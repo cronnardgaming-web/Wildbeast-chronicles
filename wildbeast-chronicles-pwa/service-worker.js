@@ -41,7 +41,6 @@ const APP_SHELL = [
   './playerlevelup.js',
   './audio.js',
   './gacha.js',
-  './passives.js',
   './ui.js',
   './admin.js',
   './save.js',

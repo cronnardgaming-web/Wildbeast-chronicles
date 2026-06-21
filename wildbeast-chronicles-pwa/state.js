@@ -110,15 +110,6 @@ const GameState = (() => {
    */
   function _mergeConfig(defaults, saved) {
     if (!saved) return defaults;
-    // Fusion profonde des passifs : type par type, pour qu'un nouveau type/passif
-    // ajouté plus tard dans DEFAULT_PASSIVES n'écrase pas et ne soit pas perdu
-    // face à une ancienne sauvegarde qui n'a pas encore ce type.
-    const mergedPassives = { ...defaults.passives };
-    if (saved.passives) {
-      Object.keys(saved.passives).forEach((typeId) => {
-        mergedPassives[typeId] = { ...defaults.passives?.[typeId], ...saved.passives[typeId] };
-      });
-    }
     return {
       ...defaults,
       ...saved,
@@ -135,7 +126,6 @@ const GameState = (() => {
       gacha:     { ...defaults.gacha,     ...(saved.gacha     || {}) },
       audio:     { ...defaults.audio,     ...(saved.audio     || {}) },
       awakening: { ...defaults.awakening, ...(saved.awakening || {}) },
-      passives:  mergedPassives,
     };
   }
 

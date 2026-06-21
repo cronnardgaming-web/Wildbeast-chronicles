@@ -1,0 +1,2929 @@
+{
+  "version": "1.0.0",
+  "timestamp": 1782052973605,
+  "config": {
+    "game": {
+      "name": "WildBeast Chronicles",
+      "version": "1.0.0",
+      "maxTeamSize": 3,
+      "enemyTeamSize": {
+        "mode": "fixed",
+        "value": 3,
+        "min": 1,
+        "max": 5
+      }
+    },
+    "combat": {
+      "damageFormula": "atk² / (atk + def)",
+      "minDamage": 10,
+      "captureBaseRate": 0.03,
+      "rewardXpPerEnemy": 25,
+      "rewardGoldPerEnemy": 15,
+      "rewardDiamondsPerEnemy": 10,
+      "speedEvasionCap": 0.1,
+      "speedAccuracyCap": 0.1,
+      "critDivisor": 5000,
+      "critMultiplier": 1.5,
+      "playerDmgBonus": 1.15,
+      "enemyDmgPenalty": 0.8,
+      "enemyStatRatio": 0.85,
+      "adaptiveScalingFactor": 1,
+      "story": {
+        "subLevelsPerWorld": 25,
+        "eliteSubLevels": [
+          10,
+          20
+        ],
+        "bossSubLevel": 25,
+        "eliteStatBoost": 0.1,
+        "bossStatBoost": 0.25,
+        "worldStatBoost": 0.1
+      },
+      "enemyRarityWeights": {
+        "common": 50,
+        "uncommon": 30,
+        "rare": 12,
+        "epic": 5,
+        "legendary": 2,
+        "mythic": 0.5
+      },
+      "enemyXpBonusByRarity": {
+        "common": 0,
+        "uncommon": 10,
+        "rare": 25,
+        "epic": 50,
+        "legendary": 100,
+        "mythic": 200
+      },
+      "costs": {}
+    },
+    "level": {
+      "xpFormula": "base * (level ** expo)",
+      "xpBase": 30,
+      "xpExponent": 1.2,
+      "statGrowthPerLevel": {
+        "hp": 0.02,
+        "atk": 0.02,
+        "def": 0.02,
+        "spd": 0.02
+      }
+    },
+    "playerLevel": {
+      "xpFormula": "base * (level ** expo)",
+      "xpBase": 35,
+      "xpExponent": 1.1,
+      "energyPerLevel": 5,
+      "xpPerEnemyKill": 5,
+      "xpPerCapture": 15
+    },
+    "energy": {
+      "enabled": true,
+      "max": 130,
+      "regenPerMinute": 1,
+      "combatCost": 10,
+      "costs": {
+        "random": 10,
+        "story": 10,
+        "line": 20,
+        "fullRandom": 10,
+        "arena": 15
+      }
+    },
+    "audio": {
+      "enabled": true,
+      "globalMusicName": "YTDown_YouTube_Persona-5-Layer-Cake-EXTENDED-1-HOUR_Media_UQ77kdlx6dM_007_128k.mp3",
+      "combatMusicName": "YTDown_YouTube_P4R-Persona-4-Revival-Trailer-Song-Exten_Media_8mkcpd1cHrU_009_128k.mp3",
+      "sfxHitNormalName": "Damage1.m4a",
+      "sfxHitResistName": "Damage2.m4a",
+      "sfxHitWeakName": "Damage3.m4a",
+      "sfxVictoryName": "Victory2.m4a",
+      "sfxDefeatName": "Shock2.m4a",
+      "sfxLevelUpName": "Up4.m4a",
+      "sfxEvolutionName": "Up2.m4a",
+      "sfxGachaPullName": "Up1.m4a"
+    },
+    "gacha": {
+      "currencyName": "Gemmes",
+      "singlePullCost": 100,
+      "tenPullCost": 900,
+      "guaranteedRareAfter": 10,
+      "guaranteedEpicAfter": 50,
+      "guaranteedLegendaryAfter": 100,
+      "dropRates": {
+        "common": 50,
+        "uncommon": 30,
+        "rare": 12,
+        "epic": 5,
+        "legendary": 2,
+        "mythic": 0.5
+      }
+    },
+    "awakening": {
+      "maxLevel": 12,
+      "bonusPerLevel": {
+        "common": {
+          "hp": 10,
+          "atk": 10,
+          "def": 10,
+          "spd": 10
+        },
+        "uncommon": {
+          "hp": 9,
+          "atk": 9,
+          "def": 9,
+          "spd": 9
+        },
+        "rare": {
+          "hp": 8,
+          "atk": 8,
+          "def": 8,
+          "spd": 8
+        },
+        "epic": {
+          "hp": 7,
+          "atk": 7,
+          "def": 7,
+          "spd": 7
+        },
+        "legendary": {
+          "hp": 6,
+          "atk": 6,
+          "def": 6,
+          "spd": 6
+        },
+        "mythic": {
+          "hp": 5,
+          "atk": 5,
+          "def": 5,
+          "spd": 5
+        }
+      }
+    },
+    "passives": {
+      "fire": {
+        "id": "fire",
+        "name": "Meute",
+        "description": "Augmente l'attaque d'un autre allié aléatoire de 10% pour une attaque (5% de chance).",
+        "trigger": "onAttack",
+        "chance": 0.05,
+        "value": 10,
+        "icon": "🐺"
+      },
+      "nature": {
+        "id": "nature",
+        "name": "Régénération",
+        "description": "Soigne 10% des PV max sur l'allié possédant le moins de vie (10% de chance).",
+        "trigger": "onTurnEnd",
+        "chance": 0.1,
+        "value": 10,
+        "icon": "🌱"
+      },
+      "ice": {
+        "id": "ice",
+        "name": "Œil Vif",
+        "description": "Augmente les dégâts critiques de +25%.",
+        "trigger": "passive",
+        "chance": 1,
+        "value": 25,
+        "icon": "🦅"
+      },
+      "water": {
+        "id": "water",
+        "name": "Tsunami",
+        "description": "À la fin du tour, 10% de chance d'infliger 5% de dégâts (des PV max) à tous les adversaires.",
+        "trigger": "onTurnEnd",
+        "chance": 0.1,
+        "value": 5,
+        "icon": "🌊"
+      },
+      "metal": {
+        "id": "metal",
+        "name": "Mue",
+        "description": "Juste avant d'attaquer, retire toutes les altérations d'état sur soi-même (35% de chance).",
+        "trigger": "onAttack",
+        "chance": 0.35,
+        "value": 0,
+        "icon": "🐍"
+      },
+      "electric": {
+        "id": "electric",
+        "name": "Paralysie",
+        "description": "Peut paralyser l'adversaire touché (5% de chance), l'empêchant d'agir pendant 1 attaque.",
+        "trigger": "onHit",
+        "chance": 0.05,
+        "value": 1,
+        "icon": "⚡"
+      },
+      "shadow": {
+        "id": "shadow",
+        "name": "Ombre",
+        "description": "Augmente l'esquive de 7%.",
+        "trigger": "passive",
+        "chance": 1,
+        "value": 7,
+        "icon": "🌓"
+      },
+      "chaos": {
+        "id": "chaos",
+        "name": "Venin",
+        "description": "Peut empoisonner l'adversaire touché (5% de chance) : -2% PV max par tour pendant 5 tours.",
+        "trigger": "onHit",
+        "chance": 0.05,
+        "value": 2,
+        "value2": 5,
+        "icon": "☠️"
+      },
+      "light": {
+        "id": "light",
+        "name": "Contre-Attaque",
+        "description": "Lorsqu'il subit des dégâts, 5% de chance de lancer une attaque immédiatement sur l'attaquant.",
+        "trigger": "onDamaged",
+        "chance": 0.05,
+        "value": 0,
+        "icon": "🦍"
+      },
+      "magic": {
+        "id": "magic",
+        "name": "Hypnose",
+        "description": "Peut charmer l'adversaire touché (5% de chance) : sa prochaine attaque vise un de ses coéquipiers au hasard.",
+        "trigger": "onHit",
+        "chance": 0.05,
+        "value": 1,
+        "icon": "🦊"
+      },
+      "Cryptide": {
+        "id": "Cryptide",
+        "name": "Mystère",
+        "description": "Au début du combat, ce créature reçoit aléatoirement un des autres passifs.",
+        "trigger": "onBattleStart",
+        "chance": 1,
+        "value": 0,
+        "icon": "🐉"
+      }
+    }
+  },
+  "types": [
+    {
+      "id": "fire",
+      "name": "Prédateur",
+      "color": "#ff4500",
+      "icon": "🦁"
+    },
+    {
+      "id": "nature",
+      "name": "Herbivore",
+      "color": "#32cd32",
+      "icon": "🐮"
+    },
+    {
+      "id": "water",
+      "name": "Aquatique",
+      "color": "#1e90ff",
+      "icon": "🐟"
+    },
+    {
+      "id": "ice",
+      "name": "Rapace",
+      "color": "#87ceeb",
+      "icon": "🐦"
+    },
+    {
+      "id": "metal",
+      "name": "Reptile",
+      "color": "#a8a9ad",
+      "icon": "🐍"
+    },
+    {
+      "id": "electric",
+      "name": "Insecte",
+      "color": "#ffe000",
+      "icon": "🪲"
+    },
+    {
+      "id": "chaos",
+      "name": "Venimeux",
+      "color": "#ff0000",
+      "icon": "🦂"
+    },
+    {
+      "id": "shadow",
+      "name": "Nocturne",
+      "color": "#6a0dad",
+      "icon": "🌓"
+    },
+    {
+      "id": "magic",
+      "name": "Rusé",
+      "color": "#ff69b4",
+      "icon": "🦊"
+    },
+    {
+      "id": "light",
+      "name": "Colosse",
+      "color": "#ffd700",
+      "icon": "🦍"
+    },
+    {
+      "id": "Cryptide",
+      "name": "Cryptide",
+      "color": "#36063c",
+      "icon": "🐉"
+    }
+  ],
+  "typeMatrix": {
+    "fire": {
+      "fire": 1,
+      "nature": 2,
+      "water": 1,
+      "ice": 1,
+      "metal": 0.5,
+      "electric": 1,
+      "chaos": 1,
+      "shadow": 1,
+      "magic": 2,
+      "light": 0.5,
+      "Cryptide": 1
+    },
+    "nature": {
+      "fire": 0.5,
+      "nature": 1,
+      "water": 1,
+      "ice": 0.5,
+      "metal": 2,
+      "electric": 1,
+      "chaos": 2,
+      "shadow": 1,
+      "magic": 1,
+      "light": 1,
+      "Cryptide": 1
+    },
+    "water": {
+      "fire": 1,
+      "nature": 1,
+      "water": 1,
+      "ice": 2,
+      "metal": 0.5,
+      "electric": 1,
+      "chaos": 0.5,
+      "shadow": 1,
+      "magic": 1,
+      "light": 2,
+      "Cryptide": 1
+    },
+    "ice": {
+      "fire": 1,
+      "nature": 1,
+      "water": 0.5,
+      "ice": 1,
+      "metal": 2,
+      "electric": 2,
+      "chaos": 1,
+      "shadow": 1,
+      "magic": 1,
+      "light": 0.5,
+      "Cryptide": 1
+    },
+    "metal": {
+      "fire": 1,
+      "nature": 2,
+      "water": 1,
+      "ice": 0.5,
+      "metal": 0.5,
+      "electric": 1,
+      "chaos": 2,
+      "shadow": 1,
+      "magic": 1,
+      "light": 2,
+      "Cryptide": 1
+    },
+    "electric": {
+      "fire": 1,
+      "nature": 2,
+      "water": 1,
+      "ice": 0.5,
+      "metal": 2,
+      "electric": 1,
+      "chaos": 1,
+      "shadow": 0.5,
+      "magic": 2,
+      "light": 1,
+      "Cryptide": 1
+    },
+    "chaos": {
+      "fire": 1,
+      "nature": 0.5,
+      "water": 2,
+      "ice": 1,
+      "metal": 0.5,
+      "electric": 1,
+      "chaos": 1,
+      "shadow": 1,
+      "magic": 1,
+      "light": 2,
+      "Cryptide": 1
+    },
+    "shadow": {
+      "fire": 2,
+      "nature": 1,
+      "water": 1,
+      "ice": 2,
+      "metal": 1,
+      "electric": 0.5,
+      "chaos": 1,
+      "shadow": 1,
+      "magic": 1,
+      "light": 1,
+      "Cryptide": 0.5
+    },
+    "magic": {
+      "fire": 0.5,
+      "nature": 1,
+      "water": 1,
+      "ice": 1,
+      "metal": 1,
+      "electric": 0.5,
+      "chaos": 1,
+      "shadow": 1,
+      "magic": 0.5,
+      "light": 2,
+      "Cryptide": 2
+    },
+    "light": {
+      "fire": 2,
+      "nature": 1,
+      "water": 1,
+      "ice": 2,
+      "metal": 1,
+      "electric": 2,
+      "chaos": 0.5,
+      "shadow": 1,
+      "magic": 1,
+      "light": 0.5,
+      "Cryptide": 1
+    },
+    "Cryptide": {
+      "fire": 1,
+      "nature": 2,
+      "water": 1,
+      "ice": 1,
+      "metal": 1,
+      "electric": 2,
+      "chaos": 1,
+      "shadow": 2,
+      "magic": 0.5,
+      "light": 1,
+      "Cryptide": 0.5
+    }
+  },
+  "characters": [
+    {
+      "id": "Abeille0",
+      "name": "Abeille",
+      "description": "",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/b/b9/Abeille-bee-face.jpg",
+      "rarity": "uncommon",
+      "evolutionLine": "Abeille",
+      "evolutionStage": 0,
+      "type1": "chaos",
+      "type2": "electric",
+      "baseStats": {
+        "hp": 810,
+        "atk": 109,
+        "def": 75,
+        "spd": 121
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 8
+      },
+      "evolvesTo": "Abeille1"
+    },
+    {
+      "id": "Abeille1",
+      "name": "Bourdon",
+      "description": "",
+      "portrait": "https://blog.idlwt.com/wp-content/uploads/2022/04/bourdon.jpg",
+      "rarity": "uncommon",
+      "evolutionLine": "Abeille",
+      "evolutionStage": 1,
+      "type1": "chaos",
+      "type2": "electric",
+      "baseStats": {
+        "hp": 860,
+        "atk": 116,
+        "def": 80,
+        "spd": 129
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 19
+      },
+      "evolvesTo": "Abeille2"
+    },
+    {
+      "id": "Abeille2",
+      "name": "Reine Abeille",
+      "description": "",
+      "portrait": "https://static.wixstatic.com/media/3a96e5_83420c3acbea43d48d7eac6413506f9e~mv2.jpg/v1/fill/w_450,h_450,al_c,q_80,usm_0.66_1.00_0.01,enc_auto/3a96e5_83420c3acbea43d48d7eac6413506f9e~mv2.jpg",
+      "rarity": "uncommon",
+      "evolutionLine": "Abeille",
+      "evolutionStage": 2,
+      "type1": "chaos",
+      "type2": "electric",
+      "baseStats": {
+        "hp": 920,
+        "atk": 123,
+        "def": 85,
+        "spd": 137
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Belette0",
+      "name": "Beletton",
+      "description": "",
+      "portrait": "https://cdn.shopify.com/s/files/1/0837/6749/2935/files/Copy-of-June2017_0408_cropped-700.jpg?v=1723048384",
+      "rarity": "common",
+      "evolutionLine": "Belette",
+      "evolutionStage": 0,
+      "type1": "fire",
+      "type2": null,
+      "baseStats": {
+        "hp": 650,
+        "atk": 105,
+        "def": 45,
+        "spd": 85
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 10
+      },
+      "evolvesTo": "Belette1"
+    },
+    {
+      "id": "Belette1",
+      "name": "Belette",
+      "description": "",
+      "portrait": "https://www.chasseauvergnerhonealpes.com/wp-content/uploads/2024/03/belette-1.jpeg",
+      "rarity": "common",
+      "evolutionLine": "Belette",
+      "evolutionStage": 1,
+      "type1": "fire",
+      "type2": null,
+      "baseStats": {
+        "hp": 690,
+        "atk": 112,
+        "def": 48,
+        "spd": 91
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Carpe0",
+      "name": "Poisson Rouge",
+      "description": "",
+      "portrait": "https://lemagdesanimaux.ouest-france.fr/images/dossiers/2018-11/mini/poisson-rouge-100150-1200-738.jpg",
+      "rarity": "common",
+      "evolutionLine": "Carpe",
+      "evolutionStage": 0,
+      "type1": "water",
+      "type2": null,
+      "baseStats": {
+        "hp": 900,
+        "atk": 80,
+        "def": 70,
+        "spd": 60
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 15
+      },
+      "evolvesTo": "Carpe1"
+    },
+    {
+      "id": "Carpe1",
+      "name": "Carpe Koi",
+      "description": "",
+      "portrait": "https://www.koibrothers.fr/cdn/shop/articles/IMG_0768_ceb28091-fb96-4954-8d3c-3bc6668868cf.jpg?v=1770281588&width=1024",
+      "rarity": "common",
+      "evolutionLine": "Carpe",
+      "evolutionStage": 1,
+      "type1": "water",
+      "type2": null,
+      "baseStats": {
+        "hp": 954,
+        "atk": 85,
+        "def": 75,
+        "spd": 64
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Chat0",
+      "name": "Chaton",
+      "description": "",
+      "portrait": "https://www.cosaanimalia.org/wp-content/uploads/2026/06/IMG_9253-750x410.jpeg",
+      "rarity": "uncommon",
+      "evolutionLine": "Chat",
+      "evolutionStage": 0,
+      "type1": "fire",
+      "type2": null,
+      "baseStats": {
+        "hp": 750,
+        "atk": 121,
+        "def": 52,
+        "spd": 98
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 10
+      },
+      "evolvesTo": "Chat1"
+    },
+    {
+      "id": "Chat1",
+      "name": "Chat",
+      "description": "",
+      "portrait": "https://sevetys.fr/_next/image/?url=https%3A%2F%2Fcharming-angel-5ca83bf286.media.strapiapp.com%2FChat_europeen_573af6e71d.webp&w=3840&q=75",
+      "rarity": "uncommon",
+      "evolutionLine": "Chat",
+      "evolutionStage": 1,
+      "type1": "fire",
+      "type2": null,
+      "baseStats": {
+        "hp": 800,
+        "atk": 129,
+        "def": 56,
+        "spd": 104
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 25
+      },
+      "evolvesTo": "Chat2"
+    },
+    {
+      "id": "Chat2",
+      "name": "Maine Coon",
+      "description": "",
+      "portrait": "https://sevetys.fr/_next/image/?url=https%3A%2F%2Fcharming-angel-5ca83bf286.media.strapiapp.com%2FMaine_Coon_62b7c10518.webp&w=3840&q=75",
+      "rarity": "uncommon",
+      "evolutionLine": "Chat",
+      "evolutionStage": 2,
+      "type1": "fire",
+      "type2": null,
+      "baseStats": {
+        "hp": 850,
+        "atk": 137,
+        "def": 60,
+        "spd": 111
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Chevreuil0",
+      "name": "Faon",
+      "description": "",
+      "portrait": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSf3Ugljq4wEo9tqybr8PaEVN08LBUhinqCD9ojmsF_RA&s=10",
+      "rarity": "uncommon",
+      "evolutionLine": "Chevreuil",
+      "evolutionStage": 0,
+      "type1": "nature",
+      "type2": null,
+      "baseStats": {
+        "hp": 1090,
+        "atk": 46,
+        "def": 121,
+        "spd": 69
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 20
+      },
+      "evolvesTo": "Chevreuil1"
+    },
+    {
+      "id": "Chevreuil1",
+      "name": "Chevreuil",
+      "description": "",
+      "portrait": "https://www.chasseurs47.com/wp-content/uploads/chevreuil_dgest_fnc20220031-683x1024.jpg",
+      "rarity": "uncommon",
+      "evolutionLine": "Chevreuil",
+      "evolutionStage": 1,
+      "type1": "nature",
+      "type2": null,
+      "baseStats": {
+        "hp": 1160,
+        "atk": 49,
+        "def": 129,
+        "spd": 74
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 40
+      },
+      "evolvesTo": "Chevreuil2"
+    },
+    {
+      "id": "Chevreuil2",
+      "name": "Cerf",
+      "description": "",
+      "portrait": "https://www.fdc25.com/content/uploads/2023/06/cerf_fnc_dgestim2016-11-scaled.jpg",
+      "rarity": "uncommon",
+      "evolutionLine": "Chevreuil",
+      "evolutionStage": 2,
+      "type1": "nature",
+      "type2": null,
+      "baseStats": {
+        "hp": 1230,
+        "atk": 52,
+        "def": 137,
+        "spd": 79
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Corbeau0",
+      "name": "Corbillat",
+      "description": "",
+      "portrait": "https://bouzou.wordpress.com/wp-content/uploads/2019/06/bc3a9bc3a9-corbeau.jpg",
+      "rarity": "uncommon",
+      "evolutionLine": "Corbeau",
+      "evolutionStage": 0,
+      "type1": "magic",
+      "type2": "ice",
+      "baseStats": {
+        "hp": 750,
+        "atk": 95,
+        "def": 69,
+        "spd": 121
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 9
+      },
+      "evolvesTo": "Corbeau1"
+    },
+    {
+      "id": "Corbeau1",
+      "name": "Corneille",
+      "description": "",
+      "portrait": "https://www.notrenature.be/media/cache/750_width/uploads/media/5e5e13b678762/shutterstock-768467572-1.jpg",
+      "rarity": "uncommon",
+      "evolutionLine": "Corbeau",
+      "evolutionStage": 1,
+      "type1": "magic",
+      "type2": "ice",
+      "baseStats": {
+        "hp": 795,
+        "atk": 101,
+        "def": 74,
+        "spd": 129
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 19
+      },
+      "evolvesTo": "Corbeau2"
+    },
+    {
+      "id": "Corbeau2",
+      "name": "Grand Corbeau",
+      "description": "",
+      "portrait": "https://static.wixstatic.com/media/2a4409_c3272452250646daa4fd4bc539d6fa67~mv2.png/v1/fill/w_1269,h_1200,al_c/corbeau_edited.png",
+      "rarity": "uncommon",
+      "evolutionLine": "Corbeau",
+      "evolutionStage": 2,
+      "type1": "magic",
+      "type2": "ice",
+      "baseStats": {
+        "hp": 843,
+        "atk": 108,
+        "def": 79,
+        "spd": 137
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Eléphant0",
+      "name": "Eléphanteau",
+      "description": "",
+      "portrait": "https://www.lavenir.net/resizer/v2/5HO6XUQQPZB3XL466ZCHMUXQ6E.jpg?auth=53ae805b966ee017bdb924f1a09d6abb1a3b6d73660d3f86b2f1f7b537240f99&width=1200&height=800&quality=85&focal=373%2C249",
+      "rarity": "mythic",
+      "evolutionLine": "Eléphant",
+      "evolutionStage": 0,
+      "type1": "nature",
+      "type2": "light",
+      "baseStats": {
+        "hp": 2420,
+        "atk": 141,
+        "def": 236,
+        "spd": 135
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 23
+      },
+      "evolvesTo": "Eléphant1",
+      "availableInLineCombat": false
+    },
+    {
+      "id": "Eléphant1",
+      "name": "Eléphant d'Asie",
+      "description": "",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/4/4c/Asian_elephant_-_melbourne_zoo.jpg",
+      "rarity": "mythic",
+      "evolutionLine": "Eléphant",
+      "evolutionStage": 1,
+      "type1": "nature",
+      "type2": "light",
+      "baseStats": {
+        "hp": 2566,
+        "atk": 150,
+        "def": 251,
+        "spd": 144
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 43
+      },
+      "evolvesTo": "Eléphant2"
+    },
+    {
+      "id": "Eléphant2",
+      "name": "Eléphant de Savane",
+      "description": "",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/African_Bush_Elephant.jpg/960px-African_Bush_Elephant.jpg",
+      "rarity": "mythic",
+      "evolutionLine": "Eléphant",
+      "evolutionStage": 2,
+      "type1": "nature",
+      "type2": "light",
+      "baseStats": {
+        "hp": 2720,
+        "atk": 159,
+        "def": 267,
+        "spd": 153
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 63
+      },
+      "evolvesTo": "Eléphant3"
+    },
+    {
+      "id": "Eléphant3",
+      "name": "Eléphant des Forêts",
+      "description": "",
+      "portrait": "https://s.france24.com/media/display/36fd8134-8d78-11eb-af88-005056a98db9/w:1280/p:3x4/25032021Elephant%20Afrique%20menace.jpg",
+      "rarity": "mythic",
+      "evolutionLine": "Eléphant",
+      "evolutionStage": 3,
+      "type1": "nature",
+      "type2": "light",
+      "baseStats": {
+        "hp": 2884,
+        "atk": 169,
+        "def": 284,
+        "spd": 163
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 78
+      },
+      "evolvesTo": "Eléphant4"
+    },
+    {
+      "id": "Eléphant4",
+      "name": "Mammouth",
+      "description": "",
+      "portrait": "https://actu-culture.com/wp-content/uploads/2025/04/preview__evocation-mammouth-laineux-neige.jpg",
+      "rarity": "mythic",
+      "evolutionLine": "Eléphant",
+      "evolutionStage": 4,
+      "type1": "nature",
+      "type2": "light",
+      "baseStats": {
+        "hp": 3058,
+        "atk": 180,
+        "def": 302,
+        "spd": 173
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 93
+      },
+      "evolvesTo": "Eléphant5"
+    },
+    {
+      "id": "Eléphant5",
+      "name": "Deinotherium",
+      "description": "",
+      "portrait": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRcf1aWSGWPoLl0eArdTyCzE8O8fXjurH7OAMcnJHVuzQ&s=10",
+      "rarity": "mythic",
+      "evolutionLine": "Eléphant",
+      "evolutionStage": 5,
+      "type1": "nature",
+      "type2": "light",
+      "baseStats": {
+        "hp": 3242,
+        "atk": 191,
+        "def": 321,
+        "spd": 184
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 100
+      },
+      "evolvesTo": "Eléphant6"
+    },
+    {
+      "id": "Eléphant6",
+      "name": "Grootslang",
+      "description": "",
+      "portrait": "https://www.radiocampusbordeaux.fr/wp-content/uploads/2023/02/artworks-PydY4HyQzTdxhMRc-k09lxQ-t3000x3000-1024x1024.jpg",
+      "rarity": "mythic",
+      "evolutionLine": "Eléphant",
+      "evolutionStage": 6,
+      "type1": "nature",
+      "type2": "Cryptide",
+      "baseStats": {
+        "hp": 3070,
+        "atk": 203,
+        "def": 341,
+        "spd": 218
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Fourmi0",
+      "name": "Fourmi",
+      "description": "",
+      "portrait": "https://lesminis.fr/blog/wp-content/uploads/2024/06/fourmi-macro.jpg",
+      "rarity": "common",
+      "evolutionLine": "Fourmi",
+      "evolutionStage": 0,
+      "type1": "electric",
+      "type2": null,
+      "baseStats": {
+        "hp": 500,
+        "atk": 45,
+        "def": 75,
+        "spd": 130
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 5
+      },
+      "evolvesTo": "Fourmi1"
+    },
+    {
+      "id": "Fourmi1",
+      "name": "Reine Fourmi",
+      "description": "",
+      "portrait": "https://static.wixstatic.com/media/f9e7ad_fe45d3d409cf468482500a10f205f075~mv2.jpg/v1/fill/w_980,h_664,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/f9e7ad_fe45d3d409cf468482500a10f205f075~mv2.jpg",
+      "rarity": "common",
+      "evolutionLine": "Fourmi",
+      "evolutionStage": 1,
+      "type1": "electric",
+      "type2": null,
+      "baseStats": {
+        "hp": 530,
+        "atk": 48,
+        "def": 80,
+        "spd": 138
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Grenouille0",
+      "name": "Tétard",
+      "description": "",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/b/bb/Tadpoles_10_days.jpg",
+      "rarity": "uncommon",
+      "evolutionLine": "Grenouille",
+      "evolutionStage": 0,
+      "type1": "water",
+      "type2": null,
+      "baseStats": {
+        "hp": 1040,
+        "atk": 92,
+        "def": 81,
+        "spd": 69
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 15
+      },
+      "evolvesTo": "Grenouille1"
+    },
+    {
+      "id": "Grenouille1",
+      "name": "Grenouille",
+      "description": "",
+      "portrait": "https://www.zoologiste.com/images/medium/grenouille-etang.jpg",
+      "rarity": "uncommon",
+      "evolutionLine": "Grenouille",
+      "evolutionStage": 1,
+      "type1": "water",
+      "type2": "metal",
+      "baseStats": {
+        "hp": 1103,
+        "atk": 98,
+        "def": 101,
+        "spd": 74
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 33
+      },
+      "evolvesTo": "Grenouille2"
+    },
+    {
+      "id": "Grenouille2",
+      "name": "Crapeau",
+      "description": "",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/5/56/Crapaud_La_Vaque_d%C3%A9_J%C3%A8rri_sculpture_2.jpg",
+      "rarity": "uncommon",
+      "evolutionLine": "Grenouille",
+      "evolutionStage": 2,
+      "type1": "water",
+      "type2": "metal",
+      "baseStats": {
+        "hp": 1170,
+        "atk": 104,
+        "def": 108,
+        "spd": 79
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Guêpe0",
+      "name": "Guêpe",
+      "description": "",
+      "portrait": "https://i-dj.unimedias.fr/2023/09/12/djaguepecommuneas-650027d8e7173.jpg?auto=format%2Ccompress&crop=faces&cs=tinysrgb&fit=max&ixlib=php-4.1.0&w=1050",
+      "rarity": "uncommon",
+      "evolutionLine": "Guêpe",
+      "evolutionStage": 0,
+      "type1": "electric",
+      "type2": "chaos",
+      "baseStats": {
+        "hp": 690,
+        "atk": 81,
+        "def": 86,
+        "spd": 150
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 8
+      },
+      "evolvesTo": "Guêpe1"
+    },
+    {
+      "id": "Guêpe1",
+      "name": "Frelon",
+      "description": "",
+      "portrait": "https://i0.wp.com/easytrap.fr/wp-content/uploads/2020/03/le-frelon-asiatique.jpg?fit=853%2C853&ssl=1",
+      "rarity": "uncommon",
+      "evolutionLine": "Guêpe",
+      "evolutionStage": 1,
+      "type1": "electric",
+      "type2": "chaos",
+      "baseStats": {
+        "hp": 740,
+        "atk": 86,
+        "def": 92,
+        "spd": 159
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 19
+      },
+      "evolvesTo": "Guêpe2"
+    },
+    {
+      "id": "Guêpe2",
+      "name": "Reine Frelon",
+      "description": "",
+      "portrait": "https://www.neozone.org/blog/wp-content/uploads/2025/02/astuce-frelon-asiatique-reine-piege-001.jpg",
+      "rarity": "uncommon",
+      "evolutionLine": "Guêpe",
+      "evolutionStage": 2,
+      "type1": "electric",
+      "type2": "chaos",
+      "baseStats": {
+        "hp": 790,
+        "atk": 92,
+        "def": 98,
+        "spd": 169
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Hérisson0",
+      "name": "Choupisson",
+      "description": "",
+      "portrait": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQy3RQvc5xU1WftZMucSgLP1pJA-JdwqdVqeg2-LxfdNNblz2atzZ0e36s&s=10",
+      "rarity": "common",
+      "evolutionLine": "Hérisson",
+      "evolutionStage": 0,
+      "type1": "shadow",
+      "type2": null,
+      "baseStats": {
+        "hp": 600,
+        "atk": 90,
+        "def": 50,
+        "spd": 100
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 12
+      },
+      "evolvesTo": "Hérisson1"
+    },
+    {
+      "id": "Hérisson1",
+      "name": "Hérisson",
+      "description": "",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/e/e1/Erinaceus_europaeus_LC0119.jpg",
+      "rarity": "common",
+      "evolutionLine": "Hérisson",
+      "evolutionStage": 1,
+      "type1": "shadow",
+      "type2": null,
+      "baseStats": {
+        "hp": 636,
+        "atk": 96,
+        "def": 53,
+        "spd": 106
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Hibou0",
+      "name": "Hibouceau",
+      "description": "",
+      "portrait": "https://media.printler.com/media/photo/111493.jpg",
+      "rarity": "rare",
+      "evolutionLine": "Hibou",
+      "evolutionStage": 0,
+      "type1": "ice",
+      "type2": null,
+      "baseStats": {
+        "hp": 740,
+        "atk": 122,
+        "def": 61,
+        "spd": 149
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 8
+      },
+      "evolvesTo": "Hibou1"
+    },
+    {
+      "id": "Hibou1",
+      "name": "Chouette",
+      "description": "",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/d/d0/Northern_Spotted_Owl.USFWS.jpg",
+      "rarity": "rare",
+      "evolutionLine": "Hibou",
+      "evolutionStage": 1,
+      "type1": "ice",
+      "type2": "shadow",
+      "baseStats": {
+        "hp": 830,
+        "atk": 129,
+        "def": 68,
+        "spd": 158
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 23
+      },
+      "evolvesTo": "Hibou2"
+    },
+    {
+      "id": "Hibou2",
+      "name": "Hibou",
+      "description": "",
+      "portrait": "https://www.onf.fr/outils/articles/b79de903-a9c7-4e96-9e90-c7b65c327c28/++versions++/1/++paras++/1/++illustration++/++i18n++data:fr/++thumb++md:w1200?_=1693498215.407016",
+      "rarity": "rare",
+      "evolutionLine": "Hibou",
+      "evolutionStage": 2,
+      "type1": "ice",
+      "type2": "shadow",
+      "baseStats": {
+        "hp": 880,
+        "atk": 137,
+        "def": 73,
+        "spd": 168
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 38
+      },
+      "evolvesTo": "Hibou3"
+    },
+    {
+      "id": "Hibou3",
+      "name": "Grand-Duc",
+      "description": "",
+      "portrait": "https://www.monde-animal.fr/wp-content/uploads/2021/04/hibou-grand-duc-carre.jpg",
+      "rarity": "rare",
+      "evolutionLine": "Hibou",
+      "evolutionStage": 3,
+      "type1": "ice",
+      "type2": "shadow",
+      "baseStats": {
+        "hp": 933,
+        "atk": 146,
+        "def": 78,
+        "spd": 179
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Lapin0",
+      "name": "Lapereau",
+      "description": "",
+      "portrait": "https://preview.redd.it/baby-rabbit-cute-or-nah-v0-jw4w7z66xq3g1.jpeg?auto=webp&s=92c85133436d1fc62815a0b494cd795b5606e7cf",
+      "rarity": "common",
+      "evolutionLine": "Lapin",
+      "evolutionStage": 0,
+      "type1": "nature",
+      "type2": null,
+      "baseStats": {
+        "hp": 950,
+        "atk": 40,
+        "def": 105,
+        "spd": 60
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 20
+      },
+      "evolvesTo": "Lapin1"
+    },
+    {
+      "id": "Lapin1",
+      "name": "Lapin",
+      "description": "",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Oryctolagus_cuniculus_Tasmania_2.jpg/960px-Oryctolagus_cuniculus_Tasmania_2.jpg",
+      "rarity": "common",
+      "evolutionLine": "Lapin",
+      "evolutionStage": 1,
+      "type1": "nature",
+      "type2": null,
+      "baseStats": {
+        "hp": 1010,
+        "atk": 43,
+        "def": 112,
+        "spd": 64
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Lion0",
+      "name": "Lionceau",
+      "description": "",
+      "portrait": "https://static.actu.fr/uploads/2019/10/AdobeStock_138594451.jpeg",
+      "rarity": "mythic",
+      "evolutionLine": "Lion",
+      "evolutionStage": 0,
+      "type1": "fire",
+      "type2": null,
+      "baseStats": {
+        "hp": 1460,
+        "atk": 236,
+        "def": 101,
+        "spd": 191
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 15
+      },
+      "evolvesTo": "Lion1",
+      "availableInLineCombat": false
+    },
+    {
+      "id": "Lion1",
+      "name": "Lionne",
+      "description": "",
+      "portrait": "https://www.zoobasel.ch/uploads/images/tiere/fotos/Foto_Lowe_2023_05_25_005_SLE.jpg",
+      "rarity": "mythic",
+      "evolutionLine": "Lion",
+      "evolutionStage": 1,
+      "type1": "fire",
+      "type2": null,
+      "baseStats": {
+        "hp": 1550,
+        "atk": 251,
+        "def": 108,
+        "spd": 203
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 25
+      },
+      "evolvesTo": "Lion2"
+    },
+    {
+      "id": "Lion2",
+      "name": "Lion d'Asie",
+      "description": "",
+      "portrait": "https://preview.redd.it/asiatic-lion-panthera-leo-persica-v0-0nvlm6jnkzdf1.jpg?width=640&crop=smart&auto=webp&s=9c16a4a5b4f5722d7407ef67a70875126e0def90",
+      "rarity": "mythic",
+      "evolutionLine": "Lion",
+      "evolutionStage": 2,
+      "type1": "fire",
+      "type2": null,
+      "baseStats": {
+        "hp": 1650,
+        "atk": 267,
+        "def": 115,
+        "spd": 216
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 45
+      },
+      "evolvesTo": "Lion3"
+    },
+    {
+      "id": "Lion3",
+      "name": "Lion",
+      "description": "",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/6/6f/011_The_lion_king_Tryggve_in_the_Serengeti_National_Park_Photo_by_Giles_Laurent.jpg",
+      "rarity": "mythic",
+      "evolutionLine": "Lion",
+      "evolutionStage": 3,
+      "type1": "fire",
+      "type2": null,
+      "baseStats": {
+        "hp": 1760,
+        "atk": 284,
+        "def": 122,
+        "spd": 229
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 65
+      },
+      "evolvesTo": "Lion4"
+    },
+    {
+      "id": "Lion4",
+      "name": "Lion de l'Atlas",
+      "description": "",
+      "portrait": "https://www.papierpeintpanoramique.fr/media/catalog/product/cache/5b18b93ddbe5d6592c6b175f41d24454/b/e/behang-met-een-barbarijse-leeuw_7.jpg",
+      "rarity": "mythic",
+      "evolutionLine": "Lion",
+      "evolutionStage": 4,
+      "type1": "fire",
+      "type2": null,
+      "baseStats": {
+        "hp": 1860,
+        "atk": 302,
+        "def": 130,
+        "spd": 243
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 90
+      },
+      "evolvesTo": "Lion5"
+    },
+    {
+      "id": "Lion5",
+      "name": "Lion de Mosbach",
+      "description": "",
+      "portrait": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTm_Wptcel0YVrDI1lT7lqmM29E-EtYROJghbJhE6p0FPpLGwjzesmOwBgH&s=10",
+      "rarity": "mythic",
+      "evolutionLine": "Lion",
+      "evolutionStage": 5,
+      "type1": "fire",
+      "type2": "light",
+      "baseStats": {
+        "hp": 2810,
+        "atk": 321,
+        "def": 191,
+        "spd": 258
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 100
+      },
+      "evolvesTo": "Lion6"
+    },
+    {
+      "id": "Lion6",
+      "name": "Lion de Némée",
+      "description": "",
+      "portrait": "https://preview.redd.it/day-2-nemean-lion-v0-qugrpx3pgw6d1.jpeg?auto=webp&s=dcdbbee80665d2c2af6727d5e40b57acbd04ff36",
+      "rarity": "mythic",
+      "evolutionLine": "Lion",
+      "evolutionStage": 6,
+      "type1": "fire",
+      "type2": "Cryptide",
+      "baseStats": {
+        "hp": 2510,
+        "atk": 341,
+        "def": 196,
+        "spd": 274
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Loup0",
+      "name": "Louveteau",
+      "description": "",
+      "portrait": "https://www.parc-animalier-pyrenees.com/medias_front/animaux/142640Louveteaux-4.webp",
+      "rarity": "epic",
+      "evolutionLine": "Loup",
+      "evolutionStage": 0,
+      "type1": "fire",
+      "type2": null,
+      "baseStats": {
+        "hp": 1040,
+        "atk": 168,
+        "def": 72,
+        "spd": 136
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 10
+      },
+      "evolvesTo": "Loup1",
+      "availableInLineCombat": false
+    },
+    {
+      "id": "Loup1",
+      "name": "Husky",
+      "description": "",
+      "portrait": "https://img.freepik.com/photos-premium/chien-husky-siberien-loup-mignon-dans-foret-hiver-dans-neige_112397-208.jpg",
+      "rarity": "epic",
+      "evolutionLine": "Loup",
+      "evolutionStage": 1,
+      "type1": "fire",
+      "type2": null,
+      "baseStats": {
+        "hp": 1110,
+        "atk": 179,
+        "def": 77,
+        "spd": 145
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 25
+      },
+      "evolvesTo": "Loup2"
+    },
+    {
+      "id": "Loup2",
+      "name": "Loup Gris",
+      "description": "",
+      "portrait": "https://parcsaintecroix.com/wp-content/uploads/2022/09/cp-morgane-bricard-5-scaled.jpg",
+      "rarity": "epic",
+      "evolutionLine": "Loup",
+      "evolutionStage": 2,
+      "type1": "fire",
+      "type2": null,
+      "baseStats": {
+        "hp": 1180,
+        "atk": 190,
+        "def": 82,
+        "spd": 154
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 45
+      },
+      "evolvesTo": "Loup3"
+    },
+    {
+      "id": "Loup3",
+      "name": "Loup du Canada",
+      "description": "",
+      "portrait": "https://parc-argonne-decouverte.fr/_next/image?url=https%3A%2F%2Fapi.parc-argonne-decouverte.fr%2Fuploads%2Fmedia%2F(w)-dsc_6793-c807d821.jpg&w=1080&q=75",
+      "rarity": "epic",
+      "evolutionLine": "Loup",
+      "evolutionStage": 3,
+      "type1": "fire",
+      "type2": null,
+      "baseStats": {
+        "hp": 1260,
+        "atk": 202,
+        "def": 87,
+        "spd": 164
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 65
+      },
+      "evolvesTo": "Loup4"
+    },
+    {
+      "id": "Loup4",
+      "name": "Loup Arctique",
+      "description": "",
+      "portrait": "https://parcsaintecroix.com/wp-content/uploads/2022/09/credit-morgane-bricard-8-1-scaled.jpg",
+      "rarity": "epic",
+      "evolutionLine": "Loup",
+      "evolutionStage": 4,
+      "type1": "fire",
+      "type2": null,
+      "baseStats": {
+        "hp": 1340,
+        "atk": 215,
+        "def": 93,
+        "spd": 174
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Phoque0",
+      "name": "Blanchon",
+      "description": "",
+      "portrait": "https://preview.redd.it/this-baby-seal-is-happy-to-see-you-v0-orplt26x3un01.png?width=640&crop=smart&auto=webp&s=565f051937d20d3d6b8fc259330276835c19cb2c",
+      "rarity": "epic",
+      "evolutionLine": "Phoque",
+      "evolutionStage": 0,
+      "type1": "water",
+      "type2": null,
+      "baseStats": {
+        "hp": 1440,
+        "atk": 128,
+        "def": 112,
+        "spd": 96
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 15
+      },
+      "evolvesTo": "Phoque1",
+      "availableInLineCombat": false
+    },
+    {
+      "id": "Phoque1",
+      "name": "Phoque",
+      "description": "",
+      "portrait": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT9sbfOU3Ko6u9xTjGnQ_RabYBSZSyEVHXvs0XiX6gVQaWBAygeTSGZoGuS&s=10",
+      "rarity": "epic",
+      "evolutionLine": "Phoque",
+      "evolutionStage": 1,
+      "type1": "water",
+      "type2": null,
+      "baseStats": {
+        "hp": 1527,
+        "atk": 136,
+        "def": 119,
+        "spd": 102
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 30
+      },
+      "evolvesTo": "Phoque2"
+    },
+    {
+      "id": "Phoque2",
+      "name": "Otarie",
+      "description": "",
+      "portrait": "https://cdn-images.zoobeauval.com/fE5lh_pX5YhELTN1exNF9PkKvNA=/730x730/https%3A%2F%2Fs3.eu-west-3.amazonaws.com%2Fimages.zoobeauval.com%2F2026%2F01%2Fotarie-02-697b834abe381.jpg",
+      "rarity": "epic",
+      "evolutionLine": "Phoque",
+      "evolutionStage": 2,
+      "type1": "water",
+      "type2": null,
+      "baseStats": {
+        "hp": 1619,
+        "atk": 145,
+        "def": 127,
+        "spd": 109
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 45
+      },
+      "evolvesTo": "Phoque3"
+    },
+    {
+      "id": "Phoque3",
+      "name": "Lamentin",
+      "description": "",
+      "portrait": "https://www.larousse.fr/encyclopedie/data/images/1310122-Lamantin.jpg",
+      "rarity": "epic",
+      "evolutionLine": "Phoque",
+      "evolutionStage": 3,
+      "type1": "water",
+      "type2": null,
+      "baseStats": {
+        "hp": 1717,
+        "atk": 154,
+        "def": 135,
+        "spd": 116
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 65
+      },
+      "evolvesTo": "Phoque4"
+    },
+    {
+      "id": "Phoque4",
+      "name": "Morse",
+      "description": "",
+      "portrait": "https://www.masaigallery.com/wp-content/uploads/2012/05/Walrus-1.jpg",
+      "rarity": "epic",
+      "evolutionLine": "Phoque",
+      "evolutionStage": 4,
+      "type1": "water",
+      "type2": "fire",
+      "baseStats": {
+        "hp": 1821,
+        "atk": 189,
+        "def": 144,
+        "spd": 148
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Rat0",
+      "name": "Raton",
+      "description": "",
+      "portrait": "https://img.leboncoin.fr/api/v1/lbcpb1/images/ef/08/39/ef0839667790cd2b9aab2f506e1c194eb72b0a8a.jpg?rule=ad-large",
+      "rarity": "common",
+      "evolutionLine": "Rat",
+      "evolutionStage": 0,
+      "type1": "magic",
+      "type2": null,
+      "baseStats": {
+        "hp": 650,
+        "atk": 75,
+        "def": 60,
+        "spd": 100
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 10
+      },
+      "evolvesTo": "Rat1"
+    },
+    {
+      "id": "Rat1",
+      "name": "Rat",
+      "description": "",
+      "portrait": "https://isyeb.mnhn.fr/sites/isyeb/files/styles/umr_desktop_contenu_principal/public/thumbnails/image/2018/01/file-20171102-26432-bxm20b.jpg?h=34737112&itok=ao0ZSUdO",
+      "rarity": "common",
+      "evolutionLine": "Rat",
+      "evolutionStage": 1,
+      "type1": "magic",
+      "type2": null,
+      "baseStats": {
+        "hp": 689,
+        "atk": 80,
+        "def": 64,
+        "spd": 106
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Renard0",
+      "name": "Renardeau",
+      "description": "",
+      "portrait": "https://www.stephanejousset.com/wp-content/uploads/2022/11/Renardeaux-06.jpg",
+      "rarity": "rare",
+      "evolutionLine": "Renard",
+      "evolutionStage": 0,
+      "type1": "fire",
+      "type2": null,
+      "baseStats": {
+        "hp": 880,
+        "atk": 142,
+        "def": 61,
+        "spd": 115
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 10
+      },
+      "evolvesTo": "Renard1"
+    },
+    {
+      "id": "Renard1",
+      "name": "Renard Roux",
+      "description": "",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Fox_at_the_British_Wildlife_Centre%2C_Newchapel%2C_Surrey_-_geograph.org.uk_-_2221750.jpg/330px-Fox_at_the_British_Wildlife_Centre%2C_Newchapel%2C_Surrey_-_geograph.org.uk_-_2221750.jpg",
+      "rarity": "rare",
+      "evolutionLine": "Renard",
+      "evolutionStage": 1,
+      "type1": "fire",
+      "type2": "magic",
+      "baseStats": {
+        "hp": 940,
+        "atk": 151,
+        "def": 65,
+        "spd": 122
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 23
+      },
+      "evolvesTo": "Renard2"
+    },
+    {
+      "id": "Renard2",
+      "name": "Renard Polaire",
+      "description": "",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/d/dc/Vulpes_lagopus_in_Iceland_%28cropped_3%29.jpg",
+      "rarity": "rare",
+      "evolutionLine": "Renard",
+      "evolutionStage": 2,
+      "type1": "fire",
+      "type2": "magic",
+      "baseStats": {
+        "hp": 1000,
+        "atk": 161,
+        "def": 69,
+        "spd": 130
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 44
+      },
+      "evolvesTo": "Renard3"
+    },
+    {
+      "id": "Renard3",
+      "name": "Renard Corsac",
+      "description": "",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/0/07/Vulpes_corsac.jpg",
+      "rarity": "rare",
+      "evolutionLine": "Renard",
+      "evolutionStage": 3,
+      "type1": "fire",
+      "type2": "magic",
+      "baseStats": {
+        "hp": 1060,
+        "atk": 171,
+        "def": 74,
+        "spd": 138
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Requin0",
+      "name": "Requineau",
+      "description": "",
+      "portrait": "https://media-cdn.tripadvisor.com/media/photo-s/05/6b/a4/99/embudu-village.jpg",
+      "rarity": "mythic",
+      "evolutionLine": "Requin",
+      "evolutionStage": 0,
+      "type1": "water",
+      "type2": null,
+      "baseStats": {
+        "hp": 2030,
+        "atk": 180,
+        "def": 158,
+        "spd": 135
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 13
+      },
+      "evolvesTo": "Requin1",
+      "availableInLineCombat": false
+    },
+    {
+      "id": "Requin1",
+      "name": "Requin Tigre",
+      "description": "",
+      "portrait": "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=1920,fit=crop/m2WBB6n1W2FLvxB6/344602792_204487945684698_3754973628977390897_n-ALpByxgrZ7uaX9VJ.jpg",
+      "rarity": "mythic",
+      "evolutionLine": "Requin",
+      "evolutionStage": 1,
+      "type1": "water",
+      "type2": "fire",
+      "baseStats": {
+        "hp": 2152,
+        "atk": 221,
+        "def": 167,
+        "spd": 173
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 28
+      },
+      "evolvesTo": "Requin2"
+    },
+    {
+      "id": "Requin2",
+      "name": "Requin Lutin",
+      "description": "",
+      "portrait": "https://static.wixstatic.com/media/88b2b2_10c31e3a47684c189a781ef52527b718~mv2.jpg/v1/fill/w_1000,h_667,al_c,q_85,usm_0.66_1.00_0.01/88b2b2_10c31e3a47684c189a781ef52527b718~mv2.jpg",
+      "rarity": "mythic",
+      "evolutionLine": "Requin",
+      "evolutionStage": 2,
+      "type1": "water",
+      "type2": "fire",
+      "baseStats": {
+        "hp": 2282,
+        "atk": 235,
+        "def": 178,
+        "spd": 184
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 45
+      },
+      "evolvesTo": "Requin3"
+    },
+    {
+      "id": "Requin3",
+      "name": "Requin Bouledogue",
+      "description": "",
+      "portrait": "https://cloudfront-eu-central-1.images.arcpublishing.com/lepoint/FDUG2Q5ZIBJYNETSX5GALAG4GI.jpg",
+      "rarity": "mythic",
+      "evolutionLine": "Requin",
+      "evolutionStage": 3,
+      "type1": "water",
+      "type2": "fire",
+      "baseStats": {
+        "hp": 2419,
+        "atk": 250,
+        "def": 189,
+        "spd": 196
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 45
+      },
+      "evolvesTo": "Requin4"
+    },
+    {
+      "id": "Requin4",
+      "name": "Requin Marteau",
+      "description": "",
+      "portrait": "https://www.aquarium-larochelle.com/wp-content/uploads/2021/01/requin-marteau-sphyrna-tiburo-aquarium-la-rochelle-bloc-560X560.jpg",
+      "rarity": "mythic",
+      "evolutionLine": "Requin",
+      "evolutionStage": 4,
+      "type1": "water",
+      "type2": "fire",
+      "baseStats": {
+        "hp": 2565,
+        "atk": 265,
+        "def": 201,
+        "spd": 208
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 65
+      },
+      "evolvesTo": "Requin5"
+    },
+    {
+      "id": "Requin5",
+      "name": "Grand Requin Blanc",
+      "description": "",
+      "portrait": "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=1920,fit=crop/m2WBB6n1W2FLvxB6/petit-requin-blanc-guadaloupe-greg-le-coeur-AMq4xVr08GuaRqEl.png",
+      "rarity": "mythic",
+      "evolutionLine": "Requin",
+      "evolutionStage": 5,
+      "type1": "water",
+      "type2": "fire",
+      "baseStats": {
+        "hp": 2719,
+        "atk": 281,
+        "def": 214,
+        "spd": 221
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 85
+      },
+      "evolvesTo": "Requin6"
+    },
+    {
+      "id": "Requin6",
+      "name": "Mégalodon",
+      "description": "",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/9/9e/VMNH_megalodon.jpg",
+      "rarity": "mythic",
+      "evolutionLine": "Requin",
+      "evolutionStage": 6,
+      "type1": "water",
+      "type2": "Cryptide",
+      "baseStats": {
+        "hp": 2883,
+        "atk": 267,
+        "def": 235,
+        "spd": 218
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Rhinocéros0",
+      "name": "Rhinocéron",
+      "description": "",
+      "portrait": "https://encommun.montpellier.fr/sites/default/files/styles/crop_libre_w1920/public/articles/2024-08/Siku%201.jpg?itok=een4CHAG",
+      "rarity": "legendary",
+      "evolutionLine": "Rhinocéros",
+      "evolutionStage": 0,
+      "type1": "nature",
+      "type2": null,
+      "baseStats": {
+        "hp": 1810,
+        "atk": 76,
+        "def": 200,
+        "spd": 114
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 20
+      },
+      "evolvesTo": "Rhinocéros1",
+      "availableInLineCombat": false
+    },
+    {
+      "id": "Rhinocéros1",
+      "name": "Rhinocéros Blanc",
+      "description": "",
+      "portrait": "https://parrainages.zoobeauval.com/thumbnail/d3f0bf42-c5d6-4b1a-aa12-34f3a72475b7/satara-01.jpg?w=900&h=900&fit=crop&s=3fc3e3e01c5d2acb145588ccd34521c4",
+      "rarity": "legendary",
+      "evolutionLine": "Rhinocéros",
+      "evolutionStage": 1,
+      "type1": "nature",
+      "type2": "light",
+      "baseStats": {
+        "hp": 2170,
+        "atk": 126,
+        "def": 212,
+        "spd": 121
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 43
+      },
+      "evolvesTo": "Rhinocéros2"
+    },
+    {
+      "id": "Rhinocéros2",
+      "name": "Rhinocéros de Sumatra",
+      "description": "",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/3/33/Sumatran_Rhino_2.jpg",
+      "rarity": "legendary",
+      "evolutionLine": "Rhinocéros",
+      "evolutionStage": 2,
+      "type1": "nature",
+      "type2": "light",
+      "baseStats": {
+        "hp": 2301,
+        "atk": 134,
+        "def": 225,
+        "spd": 129
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 63
+      },
+      "evolvesTo": "Rhinocéros3"
+    },
+    {
+      "id": "Rhinocéros3",
+      "name": "Rhinocéros de Java",
+      "description": "",
+      "portrait": "https://fbi.cults3d.com/uploaders/41395105/illustration-file/ff129b2a-a1b8-4e74-822d-5ba3a5c0ea71/aerd.jpg",
+      "rarity": "legendary",
+      "evolutionLine": "Rhinocéros",
+      "evolutionStage": 3,
+      "type1": "nature",
+      "type2": "light",
+      "baseStats": {
+        "hp": 2440,
+        "atk": 143,
+        "def": 239,
+        "spd": 137
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 78
+      },
+      "evolvesTo": "Rhinocéros4"
+    },
+    {
+      "id": "Rhinocéros4",
+      "name": "Rhinocéros Indien",
+      "description": "",
+      "portrait": "https://www.cerza.com/wp-content/uploads/2025/04/THANOS-RHINOCEROS-INDIEN-%C2%A9-CERZA.webp",
+      "rarity": "legendary",
+      "evolutionLine": "Rhinocéros",
+      "evolutionStage": 4,
+      "type1": "nature",
+      "type2": "light",
+      "baseStats": {
+        "hp": 2587,
+        "atk": 152,
+        "def": 254,
+        "spd": 146
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 93
+      },
+      "evolvesTo": "Rhinocéros5"
+    },
+    {
+      "id": "Rhinocéros5",
+      "name": "Rhinocéros Laineux",
+      "description": "",
+      "portrait": "https://s.yimg.com/os/fr/prisma_media_ca_m_interesse_783/50cc9b7bd207de719b2670070a5812d3",
+      "rarity": "legendary",
+      "evolutionLine": "Rhinocéros",
+      "evolutionStage": 5,
+      "type1": "nature",
+      "type2": "light",
+      "baseStats": {
+        "hp": 2743,
+        "atk": 162,
+        "def": 270,
+        "spd": 155
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Sanglier0",
+      "name": "Marcassin",
+      "description": "",
+      "portrait": "https://cdn-tam.ouest-france.fr/media/cache/downscale_1200/assets/featured/cf8fb2a50a1e7a13d42bd587413fc6f86883fb3f.png",
+      "rarity": "rare",
+      "evolutionLine": "Sanglier",
+      "evolutionStage": 0,
+      "type1": "nature",
+      "type2": null,
+      "baseStats": {
+        "hp": 1280,
+        "atk": 54,
+        "def": 142,
+        "spd": 81
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 20
+      },
+      "evolvesTo": "Sanglier1"
+    },
+    {
+      "id": "Sanglier1",
+      "name": "Laie",
+      "description": "",
+      "portrait": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxQ3sdXAwgAxe_D1FtICDFFG-LspxPWLG73bsf7Tog5wkBrAo0NbpDpJw&s=10",
+      "rarity": "rare",
+      "evolutionLine": "Sanglier",
+      "evolutionStage": 1,
+      "type1": "nature",
+      "type2": null,
+      "baseStats": {
+        "hp": 1360,
+        "atk": 58,
+        "def": 151,
+        "spd": 86
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 40
+      },
+      "evolvesTo": "Sanglier2"
+    },
+    {
+      "id": "Sanglier2",
+      "name": "Sanglier",
+      "description": "",
+      "portrait": "https://zoodyssee.fr/wp-content/uploads/2026/02/sanglier_interieur2.webp",
+      "rarity": "rare",
+      "evolutionLine": "Sanglier",
+      "evolutionStage": 2,
+      "type1": "nature",
+      "type2": null,
+      "baseStats": {
+        "hp": 1450,
+        "atk": 62,
+        "def": 161,
+        "spd": 92
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 60
+      },
+      "evolvesTo": "Sanglier3"
+    },
+    {
+      "id": "Sanglier3",
+      "name": "Phacochère",
+      "description": "",
+      "portrait": "https://img.20mn.fr/W_1q0TV9RZSwwC0TBg-gkSk/1444x920_un-phacochere-buvant-de-l-eau",
+      "rarity": "rare",
+      "evolutionLine": "Sanglier",
+      "evolutionStage": 3,
+      "type1": "nature",
+      "type2": null,
+      "baseStats": {
+        "hp": 1540,
+        "atk": 66,
+        "def": 171,
+        "spd": 98
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Scolopendre0",
+      "name": "Lithobiomorphe",
+      "description": "",
+      "portrait": "https://www.bugguide.net/images/cache/4HD/HMH/4HDHMHTHEHEZXLAZ0L2ZLLGZSL6Z4LLR9H9ZEHLREHZR7L3H9HNZ9HBZ0L6Z7H3H5LBZMLAZUH9Z2H1ZKL1HEHYHPH9Z.jpg",
+      "rarity": "mythic",
+      "evolutionLine": "Scolopendre",
+      "evolutionStage": 0,
+      "type1": "electric",
+      "type2": null,
+      "baseStats": {
+        "hp": 1130,
+        "atk": 101,
+        "def": 169,
+        "spd": 293
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 5
+      },
+      "evolvesTo": "Scolopendre1",
+      "availableInLineCombat": false
+    },
+    {
+      "id": "Scolopendre1",
+      "name": "Scutigère",
+      "description": "",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/f/fa/Scutigera_coleoptrata_MHNT_.jpg",
+      "rarity": "mythic",
+      "evolutionLine": "Scolopendre",
+      "evolutionStage": 1,
+      "type1": "electric",
+      "type2": null,
+      "baseStats": {
+        "hp": 1198,
+        "atk": 108,
+        "def": 180,
+        "spd": 311
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 15
+      },
+      "evolvesTo": "Scolopendre2"
+    },
+    {
+      "id": "Scolopendre2",
+      "name": "Craterostigmomorphe",
+      "description": "",
+      "portrait": "https://upload.wikimedia.org/wikipedia/commons/4/46/Craterostigmus_crabilli_%28cropped%29_53180496.jpg",
+      "rarity": "mythic",
+      "evolutionLine": "Scolopendre",
+      "evolutionStage": 2,
+      "type1": "electric",
+      "type2": null,
+      "baseStats": {
+        "hp": 1270,
+        "atk": 115,
+        "def": 191,
+        "spd": 330
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 34
+      },
+      "evolvesTo": "Scolopendre3"
+    },
+    {
+      "id": "Scolopendre3",
+      "name": "Scolopendre",
+      "description": "",
+      "portrait": "https://cdn.prod.website-files.com/68b49f78e2ebd20e1dd73f8f/694e988f08a404815ad85b0e_zoo-guadeloupe-animaux-insectes-scolopendre-07.jpg",
+      "rarity": "mythic",
+      "evolutionLine": "Scolopendre",
+      "evolutionStage": 3,
+      "type1": "electric",
+      "type2": "chaos",
+      "baseStats": {
+        "hp": 1630,
+        "atk": 189,
+        "def": 203,
+        "spd": 350
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 55
+      },
+      "evolvesTo": "Scolopendre4"
+    },
+    {
+      "id": "Scolopendre4",
+      "name": "Cryptops",
+      "description": "",
+      "portrait": "https://inaturalist-open-data.s3.amazonaws.com/photos/80182063/original.jpg",
+      "rarity": "mythic",
+      "evolutionLine": "Scolopendre",
+      "evolutionStage": 4,
+      "type1": "electric",
+      "type2": "chaos",
+      "baseStats": {
+        "hp": 1728,
+        "atk": 201,
+        "def": 216,
+        "spd": 371
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 85
+      },
+      "evolvesTo": "Scolopendre5"
+    },
+    {
+      "id": "Scolopendre5",
+      "name": "Arthropleura",
+      "description": "",
+      "portrait": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ6w70qknrl8G5RRXOYrj-i9OKDX_77ljpzeRGpXcjysfdL0Y0i-tRRlOki&s=10",
+      "rarity": "mythic",
+      "evolutionLine": "Scolopendre",
+      "evolutionStage": 5,
+      "type1": "electric",
+      "type2": "light",
+      "baseStats": {
+        "hp": 2580,
+        "atk": 199,
+        "def": 236,
+        "spd": 394
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 100
+      },
+      "evolvesTo": "Scolopendre6"
+    },
+    {
+      "id": "Scolopendre6",
+      "name": "Omukade",
+      "description": "",
+      "portrait": "https://static.wikia.nocookie.net/kaijuverse/images/2/2e/Omukade.webp/revision/latest?cb=20250109044250",
+      "rarity": "mythic",
+      "evolutionLine": "Scolopendre",
+      "evolutionStage": 6,
+      "type1": "electric",
+      "type2": "Cryptide",
+      "baseStats": {
+        "hp": 2270,
+        "atk": 211,
+        "def": 242,
+        "spd": 418
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Tigre0",
+      "name": "Tigreau",
+      "description": "",
+      "portrait": "https://media.istockphoto.com/id/926309054/fr/photo/portrait-de-tigre-de-cub-tigre-%C3%A0-jouer.jpg?s=612x612&w=0&k=20&c=HS_AuuGdFlxwUK59RLJ6AG2SVCX7-5PUvIvXtI8rEX8=",
+      "rarity": "legendary",
+      "evolutionLine": "Tigre",
+      "evolutionStage": 0,
+      "type1": "fire",
+      "type2": null,
+      "baseStats": {
+        "hp": 1240,
+        "atk": 200,
+        "def": 86,
+        "spd": 162
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 15
+      },
+      "evolvesTo": "Tigre1",
+      "availableInLineCombat": false
+    },
+    {
+      "id": "Tigre1",
+      "name": "Tigre de Chine",
+      "description": "",
+      "portrait": "https://thumbs.dreamstime.com/b/tigre-de-sud-de-la-chine-21854459.jpg",
+      "rarity": "legendary",
+      "evolutionLine": "Tigre",
+      "evolutionStage": 1,
+      "type1": "fire",
+      "type2": null,
+      "baseStats": {
+        "hp": 1310,
+        "atk": 212,
+        "def": 91,
+        "spd": 172
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 25
+      },
+      "evolvesTo": "Tigre2"
+    },
+    {
+      "id": "Tigre2",
+      "name": "Tigre de Sumatra",
+      "description": "",
+      "portrait": "https://lumigny-safari-reserve.com/wp-content/uploads/2019/02/tigre-de-sumatra.webp",
+      "rarity": "legendary",
+      "evolutionLine": "Tigre",
+      "evolutionStage": 2,
+      "type1": "fire",
+      "type2": null,
+      "baseStats": {
+        "hp": 1390,
+        "atk": 225,
+        "def": 97,
+        "spd": 183
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 45
+      },
+      "evolvesTo": "Tigre3"
+    },
+    {
+      "id": "Tigre3",
+      "name": "Tigre Blanc",
+      "description": "",
+      "portrait": "https://lumigny-safari-reserve.com/wp-content/uploads/2019/02/tigre-blanc.webp",
+      "rarity": "legendary",
+      "evolutionLine": "Tigre",
+      "evolutionStage": 3,
+      "type1": "fire",
+      "type2": null,
+      "baseStats": {
+        "hp": 148,
+        "atk": 239,
+        "def": 103,
+        "spd": 194
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 65
+      },
+      "evolvesTo": "Tigre4"
+    },
+    {
+      "id": "Tigre4",
+      "name": "Tigre de Sibérie",
+      "description": "",
+      "portrait": "https://www.zoodejurques.fr/wp-content/uploads/2019/04/Tigre-de-Siberie-5-1000x1000-c-center.jpg",
+      "rarity": "legendary",
+      "evolutionLine": "Tigre",
+      "evolutionStage": 4,
+      "type1": "fire",
+      "type2": null,
+      "baseStats": {
+        "hp": 1570,
+        "atk": 254,
+        "def": 110,
+        "spd": 206
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 90
+      },
+      "evolvesTo": "Tigre5"
+    },
+    {
+      "id": "Tigre5",
+      "name": "Smilodon",
+      "description": "",
+      "portrait": "https://i.pinimg.com/originals/2b/06/59/2b06597e652cccac4ef816c285140ca8.jpg",
+      "rarity": "legendary",
+      "evolutionLine": "Tigre",
+      "evolutionStage": 5,
+      "type1": "fire",
+      "type2": "light",
+      "baseStats": {
+        "hp": 2380,
+        "atk": 270,
+        "def": 162,
+        "spd": 219
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Tortue0",
+      "name": "Tortillon",
+      "description": "",
+      "portrait": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQCytNnPj2Ucx2kjMRLHWM4shUOm18-xFRgs-OocX5fKA_ivB6ftHes8A5I&s=10",
+      "rarity": "rare",
+      "evolutionLine": "Tortue",
+      "evolutionStage": 0,
+      "type1": "metal",
+      "type2": null,
+      "baseStats": {
+        "hp": 1080,
+        "atk": 101,
+        "def": 128,
+        "spd": 68
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 18
+      },
+      "evolvesTo": "Tortue1"
+    },
+    {
+      "id": "Tortue1",
+      "name": "Tortue d'Hermann",
+      "description": "",
+      "portrait": "https://www.zoodejurques.fr/wp-content/uploads/2024/01/Tortue-hermann-scaled-e1706187353182-1000x1000-c-center.jpg",
+      "rarity": "rare",
+      "evolutionLine": "Tortue",
+      "evolutionStage": 1,
+      "type1": "metal",
+      "type2": null,
+      "baseStats": {
+        "hp": 1145,
+        "atk": 108,
+        "def": 136,
+        "spd": 73
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 35
+      },
+      "evolvesTo": "Tortue2"
+    },
+    {
+      "id": "Tortue2",
+      "name": "Tortue Alligator",
+      "description": "",
+      "portrait": "https://cdn.prod.website-files.com/68b49f78e2ebd20e1dd73f8f/6949ae614930ac353777c313_zoo-guadeloupe-animaux-reptiles-tortue-alligator-01.jpg",
+      "rarity": "rare",
+      "evolutionLine": "Tortue",
+      "evolutionStage": 2,
+      "type1": "metal",
+      "type2": null,
+      "baseStats": {
+        "hp": 1214,
+        "atk": 115,
+        "def": 145,
+        "spd": 78
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 60
+      },
+      "evolvesTo": "Tortue3"
+    },
+    {
+      "id": "Tortue3",
+      "name": "Tortue Géante d'Aldabra",
+      "description": "",
+      "portrait": "https://cdn-images.zoobeauval.com/lTt4TMwFmYnHjH6mYkbwBuFAD4U=/730x730/https%3A%2F%2Fs3.eu-west-3.amazonaws.com%2Fimages.zoobeauval.com%2F2025%2F07%2Ftortue-aldabra-01-687e0770c8cc1.jpg",
+      "rarity": "rare",
+      "evolutionLine": "Tortue",
+      "evolutionStage": 3,
+      "type1": "metal",
+      "type2": "light",
+      "baseStats": {
+        "hp": 1630,
+        "atk": 130,
+        "def": 154,
+        "spd": 83
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Vache",
+      "name": "Veau",
+      "description": "",
+      "portrait": "https://www.traditionsarthoise.fr/media/5907/big/viande-veau-caracteristiques.jpg",
+      "rarity": "epic",
+      "evolutionLine": "Vache",
+      "evolutionStage": 0,
+      "type1": "nature",
+      "type2": null,
+      "baseStats": {
+        "hp": 1520,
+        "atk": 64,
+        "def": 168,
+        "spd": 96
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 20
+      },
+      "evolvesTo": "Vache2",
+      "availableInLineCombat": false
+    },
+    {
+      "id": "Vache2",
+      "name": "Vache",
+      "description": "",
+      "portrait": "https://www.zoologiste.com/images/medium/vache-blanche-champ.jpg",
+      "rarity": "epic",
+      "evolutionLine": "Vache",
+      "evolutionStage": 1,
+      "type1": "nature",
+      "type2": null,
+      "baseStats": {
+        "hp": 1612,
+        "atk": 68,
+        "def": 179,
+        "spd": 102
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 40
+      },
+      "evolvesTo": "Vache3"
+    },
+    {
+      "id": "Vache3",
+      "name": "Boeuf",
+      "description": "",
+      "portrait": "https://observatoire-des-aliments.fr/wp-content/uploads/2013/01/le-boeuf-1.jpg",
+      "rarity": "epic",
+      "evolutionLine": "Vache",
+      "evolutionStage": 2,
+      "type1": "nature",
+      "type2": null,
+      "baseStats": {
+        "hp": 1709,
+        "atk": 73,
+        "def": 190,
+        "spd": 109
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 60
+      },
+      "evolvesTo": "Vache4"
+    },
+    {
+      "id": "Vache4",
+      "name": "Taureau",
+      "description": "",
+      "portrait": "https://zapsolu.com/cdn/shop/files/0015.jpg?v=1745259228&width=1445",
+      "rarity": "epic",
+      "evolutionLine": "Vache",
+      "evolutionStage": 3,
+      "type1": "nature",
+      "type2": null,
+      "baseStats": {
+        "hp": 1812,
+        "atk": 78,
+        "def": 202,
+        "spd": 116
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 78
+      },
+      "evolvesTo": "Vache5"
+    },
+    {
+      "id": "Vache5",
+      "name": "Bison",
+      "description": "",
+      "portrait": "https://vetmed.tamu.edu/wp-content/uploads/2025/03/bison-single-population.jpg",
+      "rarity": "epic",
+      "evolutionLine": "Vache",
+      "evolutionStage": 4,
+      "type1": "nature",
+      "type2": "light",
+      "baseStats": {
+        "hp": 2190,
+        "atk": 128,
+        "def": 215,
+        "spd": 123
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    }
+  ],
+  "equipment": [
+    {
+      "id": "ArmeC",
+      "name": "Mini Croc",
+      "rarity": "common",
+      "slot": "weapon",
+      "description": "",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 0,
+        "atk": 15,
+        "def": 0,
+        "spd": 0
+      }
+    },
+    {
+      "id": "ArmeU",
+      "name": "Griffe Aiguisée",
+      "rarity": "uncommon",
+      "slot": "weapon",
+      "description": "",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 0,
+        "atk": 25,
+        "def": 0,
+        "spd": 0
+      }
+    },
+    {
+      "id": "ArmeR",
+      "name": "Esprit Bagarreur",
+      "rarity": "rare",
+      "slot": "weapon",
+      "description": "",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 20,
+        "atk": 40,
+        "def": 5,
+        "spd": 5
+      }
+    },
+    {
+      "id": "ArmeE",
+      "name": "Puissance Alpha",
+      "rarity": "epic",
+      "slot": "weapon",
+      "description": "",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 50,
+        "atk": 60,
+        "def": 10,
+        "spd": 5
+      }
+    },
+    {
+      "id": "equip_005",
+      "name": "Croc Mythique",
+      "slot": "weapon",
+      "description": "Le croc de l'alpha légendaire.",
+      "rarity": "legendary",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 100,
+        "atk": 80,
+        "def": 20,
+        "spd": 15
+      }
+    },
+    {
+      "id": "ArmeM",
+      "name": "Âme du Dragon",
+      "rarity": "mythic",
+      "slot": "weapon",
+      "description": "",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 250,
+        "atk": 250,
+        "def": 50,
+        "spd": 40
+      }
+    },
+    {
+      "id": "ArmureC",
+      "name": "Peau Epaisse",
+      "rarity": "common",
+      "slot": "armor",
+      "description": "Permet des déplacements foudroyants.",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 0,
+        "atk": 0,
+        "def": 10,
+        "spd": 0
+      }
+    },
+    {
+      "id": "ArmureU",
+      "name": "Fourrure Touffue",
+      "rarity": "uncommon",
+      "slot": "armor",
+      "description": "Permet des déplacements foudroyants.",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 10,
+        "atk": 0,
+        "def": 20,
+        "spd": 0
+      }
+    },
+    {
+      "id": "equip_002",
+      "name": "Carapace Cristalline",
+      "slot": "armor",
+      "description": "Blindage naturel renforcé.",
+      "rarity": "rare",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 50,
+        "atk": 0,
+        "def": 30,
+        "spd": 0
+      }
+    },
+    {
+      "id": "ArmureE",
+      "name": "Epines Pointues",
+      "rarity": "epic",
+      "slot": "armor",
+      "description": "Permet des déplacements foudroyants.",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 50,
+        "atk": 20,
+        "def": 55,
+        "spd": 0
+      }
+    },
+    {
+      "id": "ArmureL",
+      "name": "Robustesse Magique",
+      "rarity": "legendary",
+      "slot": "armor",
+      "description": "Permet des déplacements foudroyants.",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 80,
+        "atk": 20,
+        "def": 80,
+        "spd": 0
+      }
+    },
+    {
+      "id": "ArmureM",
+      "name": "Âme de l'Hydre",
+      "rarity": "mythic",
+      "slot": "armor",
+      "description": "Permet des déplacements foudroyants.",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 300,
+        "atk": 35,
+        "def": 500,
+        "spd": 50
+      }
+    },
+    {
+      "id": "equip_001",
+      "name": "Collier de Rubis",
+      "slot": "accessory",
+      "description": "Renforce les griffes de la créature.",
+      "rarity": "uncommon",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 15,
+        "atk": 5,
+        "def": 0,
+        "spd": 0
+      }
+    },
+    {
+      "id": "equip_003",
+      "name": "Plumes du Vent",
+      "slot": "accessory",
+      "description": "Permet des déplacements foudroyants.",
+      "rarity": "uncommon",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 15,
+        "atk": 0,
+        "def": 0,
+        "spd": 5
+      }
+    },
+    {
+      "id": "AccR",
+      "name": "Endurance du Chasseur",
+      "rarity": "rare",
+      "slot": "accessory",
+      "description": "Canalise l'énergie vitale animale.",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 100,
+        "atk": 0,
+        "def": 0,
+        "spd": 0
+      }
+    },
+    {
+      "id": "equip_004",
+      "name": "Esprit de Vitalité",
+      "slot": "accessory",
+      "description": "Canalise l'énergie vitale animale.",
+      "rarity": "epic",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 200,
+        "atk": 10,
+        "def": 10,
+        "spd": 5
+      }
+    },
+    {
+      "id": "AccL",
+      "name": "Bénédiction de la Fôret",
+      "rarity": "legendary",
+      "slot": "accessory",
+      "description": "Canalise l'énergie vitale animale.",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 300,
+        "atk": 20,
+        "def": 20,
+        "spd": 15
+      }
+    },
+    {
+      "id": "AccM",
+      "name": "Âme du Phénix",
+      "rarity": "mythic",
+      "slot": "accessory",
+      "description": "Canalise l'énergie vitale animale.",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 800,
+        "atk": 35,
+        "def": 50,
+        "spd": 30
+      }
+    }
+  ],
+  "banners": [
+    {
+      "id": "banner_standard",
+      "name": "Invocation Sauvage",
+      "description": "Toutes les créatures disponibles.",
+      "active": true,
+      "featured": [],
+      "pool": "all",
+      "featuredRateBoost": 0
+    },
+    {
+      "id": "banner_fire",
+      "name": "Bannière Volcanique",
+      "description": "Les créatures de feu ont un taux augmenté.",
+      "active": false,
+      "pool": "all",
+      "featured": [],
+      "featuredRateBoost": 2
+    }
+  ],
+  "exportDate": "2026-06-21T14:42:53.605Z"
+}

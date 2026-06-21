@@ -12,22 +12,6 @@
  *
  * Ainsi, une modification admin s'applique immédiatement à tous les comptes,
  * et la progression d'un compte n'interfère jamais avec un autre.
- *
- * ── EXPORT / IMPORT (database vs joueur, toujours séparés) ──────────────────
- *  - exportDatabaseToFile() → database_export.json : UNIQUEMENT ce qui est
- *    modifiable en Admin (jamais le joueur). C'est ce fichier qu'on committe
- *    sur GitHub à côté des .js pour propager une mise à jour de la database
- *    d'une machine à l'autre, sans toucher au code.
- *  - exportPlayerToFile() → wildbeast_joueur_compteN_*.json : UNIQUEMENT les
- *    données du dresseur (jamais la database).
- *  - loadDatabaseFromServer() : au démarrage, tente de fetch('./database_
- *    export.json') servi à côté de index.html. S'il existe, son contenu
- *    devient la database active (écrase ce qui était en localStorage) —
- *    fonctionne en local ET sur GitHub Pages (fetch same-origin).
- *  - applyDatabaseImport() / applyPlayerImport() / importFromFile() : import
- *    manuel via bouton, utilisé en backup si le fichier serveur est absent,
- *    pour forcer une mise à jour immédiate sans recharger la page, ou pour
- *    restaurer la progression d'un dresseur sur un slot.
  * ============================================================
  */
 
@@ -220,99 +204,31 @@ const SaveSystem = (() => {
     if (_autosaveTimer) { clearInterval(_autosaveTimer); _autosaveTimer = null; }
   }
 
-  // ─── EXPORT / IMPORT — DATABASE (config admin uniquement, jamais le joueur) ──
+  // ─── EXPORT / IMPORT ─────────────────────────────────────────────────────────
 
-  const DATABASE_FILENAME = 'database_export.json';
-
-  /**
-   * Exporte UNIQUEMENT la "database" (tout ce qui est modifiable en Admin :
-   * config, types, typeMatrix, characters, equipment, banners). Ne contient
-   * jamais les données d'un joueur — c'est précisément le fichier à committer
-   * sur GitHub à côté des .js pour propager les modifs entre machines.
-   */
-  function exportDatabaseToFile(gameState) {
+  function exportToFile(gameState, slot) {
+    const targetSlot = slot ?? _activeSlot;
     try {
-      const payload = _extractGlobalConfig(gameState);
-      payload.exportDate = new Date().toISOString();
+      const payload = {
+        version:    gameState.config?.game?.version || '1.0.0',
+        exportDate: new Date().toISOString(),
+        slot:       targetSlot,
+        player:     gameState.player,
+        config:     gameState.config,
+        types:      gameState.types,
+        typeMatrix: gameState.typeMatrix,
+        characters: gameState.characters,
+        equipment:  gameState.equipment,
+        banners:    gameState.banners,
+      };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
       const url  = URL.createObjectURL(blob);
       const a    = document.createElement('a');
-      a.href = url; a.download = DATABASE_FILENAME; a.click();
+      a.href = url; a.download = `wildbeast_compte${targetSlot}_${Date.now()}.json`; a.click();
       URL.revokeObjectURL(url);
-      return true;
-    } catch (e) { console.error('[SaveSystem] Échec export database:', e); return false; }
+    } catch (e) { console.error('[SaveSystem] Échec export:', e); }
   }
 
-  /**
-   * Exporte UNIQUEMENT les données joueur du slot donné (jamais la database).
-   */
-  function exportPlayerToFile(gameState, slot) {
-    const targetSlot = slot ?? _activeSlot;
-    try {
-      const payload = _extractPlayerData(gameState);
-      payload.exportDate = new Date().toISOString();
-      payload.slot = targetSlot;
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement('a');
-      a.href = url; a.download = `wildbeast_joueur_compte${targetSlot}_${Date.now()}.json`; a.click();
-      URL.revokeObjectURL(url);
-      return true;
-    } catch (e) { console.error('[SaveSystem] Échec export joueur:', e); return false; }
-  }
-
-  /**
-   * Applique un objet "database" (config/types/typeMatrix/characters/equipment/
-   * banners) à la config globale partagée — écrase ce qui est en localStorage.
-   * Accepte aussi bien un fichier export "database" pur qu'un ancien export
-   * mélangé (player + database) : seules les clés database sont utilisées.
-   * @param {object} data
-   * @returns {boolean} succès
-   */
-  function applyDatabaseImport(data) {
-    if (!data || typeof data !== 'object') return false;
-    try {
-      const cleaned = {
-        version:    data.config?.game?.version || data.version || '1.0.0',
-        timestamp:  Date.now(),
-        config:     data.config,
-        types:      data.types,
-        typeMatrix: data.typeMatrix,
-        characters: data.characters,
-        equipment:  data.equipment,
-        banners:    data.banners,
-      };
-      localStorage.setItem(GLOBAL_CONFIG_KEY, JSON.stringify(cleaned));
-      return true;
-    } catch (e) { console.error('[SaveSystem] Échec import database:', e); return false; }
-  }
-
-  /**
-   * Applique un objet "joueur" (export wildbeast_joueur_*.json, ou un ancien
-   * export complet mélangé — seule la clé player est utilisée) au slot donné.
-   * N'affecte jamais la database (GLOBAL_CONFIG_KEY).
-   * @param {object} data
-   * @param {number} [slot] - slot cible, par défaut le slot actif
-   * @returns {boolean} succès
-   */
-  function applyPlayerImport(data, slot) {
-    if (!data || typeof data !== 'object' || !data.player) return false;
-    const targetSlot = slot ?? _activeSlot;
-    try {
-      const cleaned = {
-        version:   data.version || '1.0.0',
-        timestamp: Date.now(),
-        player:    data.player,
-      };
-      localStorage.setItem(_slotKey(targetSlot), JSON.stringify(cleaned));
-      return true;
-    } catch (e) { console.error('[SaveSystem] Échec import joueur:', e); return false; }
-  }
-
-  /**
-   * Lit un fichier .json choisi par l'utilisateur (input file) et retourne
-   * son contenu parsé. Usage générique (database ou joueur).
-   */
   function importFromFile(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -323,35 +239,6 @@ const SaveSystem = (() => {
       reader.onerror = () => reject(new Error('Erreur lecture fichier'));
       reader.readAsText(file);
     });
-  }
-
-  /**
-   * Au démarrage du jeu : tente de récupérer database_export.json servi à
-   * côté de index.html (même dossier, donc ça fonctionne aussi bien en local
-   * qu'hébergé sur GitHub Pages — fetch same-origin, pas de souci CORS).
-   * Si le fichier existe et se parse correctement, il devient la source de
-   * vérité pour la database (remplace ce qui était en localStorage), ce qui
-   * permet de propager une mise à jour de la database juste en remplaçant
-   * ce fichier dans le dépôt, sans aucune étape d'import manuel.
-   * @returns {Promise<'loaded'|'absent'|'error'>}
-   */
-  async function loadDatabaseFromServer() {
-    try {
-      const res = await fetch('./' + DATABASE_FILENAME, { cache: 'no-store' });
-      if (!res.ok) return 'absent'; // fichier non présent : pas une erreur, juste rien à faire
-      const data = await res.json();
-      const ok = applyDatabaseImport(data);
-      return ok ? 'loaded' : 'error';
-    } catch (e) {
-      // Pas de réseau, fichier absent, ou JSON invalide : on continue avec
-      // la database déjà en localStorage (ou les défauts du jeu), en silence.
-      return 'absent';
-    }
-  }
-
-  /** Retourne true si une database_export.json a déjà été appliquée au moins une fois. */
-  function hasGlobalConfig() {
-    return !!localStorage.getItem(GLOBAL_CONFIG_KEY);
   }
 
   // ─── SETTINGS ────────────────────────────────────────────────────────────────
@@ -375,8 +262,7 @@ const SaveSystem = (() => {
     getActiveSlot, setActiveSlot, getSlotsInfo,
     save, saveGlobalConfig, load, loadGlobalConfig, clear,
     startAutosave, stopAutosave,
-    exportDatabaseToFile, exportPlayerToFile, applyDatabaseImport, applyPlayerImport,
-    importFromFile, loadDatabaseFromServer, hasGlobalConfig,
+    exportToFile, importFromFile,
     saveSettings, loadSettings,
     restoreActiveSlot,
   };

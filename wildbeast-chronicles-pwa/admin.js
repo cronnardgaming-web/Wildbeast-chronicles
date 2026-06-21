@@ -24,7 +24,6 @@ const AdminPanel = (() => {
   const TABS = [
     { id: 'characters', label: '👤 Créatures' },
     { id: 'types',      label: '🔮 Types'       },
-    { id: 'passives',   label: '💫 Passifs'     },
     { id: 'equipment',  label: '⚙️ Équipements'  },
     { id: 'gacha',      label: '🎲 Gacha'        },
     { id: 'evolutions', label: '🌀 Évolutions'   },
@@ -51,7 +50,6 @@ const AdminPanel = (() => {
   function init() {
     _buildPanel();
     _bindGlobalEvents();
-    _renderDbSourceBanner();
   }
 
   /**
@@ -69,15 +67,12 @@ const AdminPanel = (() => {
         <div id="admin-header">
           <h2>⚙️ Administration — WildBeast Chronicles</h2>
           <div id="admin-header-actions">
-            <button class="admin-btn admin-btn-success" onclick="AdminPanel.exportDatabase()" title="Exporte UNIQUEMENT la database (personnages, équipements, bannières, config) — jamais les données joueur. C'est ce fichier à committer sur GitHub.">📤 Export Database</button>
-            <button class="admin-btn admin-btn-warning" onclick="AdminPanel.importDatabase()" title="Importe un fichier database_export.json (ou un ancien export complet) et écrase la database active.">📥 Import Database</button>
-            <button class="admin-btn admin-btn-success" onclick="AdminPanel.exportPlayer()" title="Exporte UNIQUEMENT les données du dresseur actif (collection, gemmes, progression) — jamais la database.">📤 Export Joueur</button>
-            <button class="admin-btn admin-btn-warning" onclick="AdminPanel.importPlayer()" title="Importe un fichier joueur et l'applique au Compte actif — écrase sa progression actuelle. N'affecte jamais la database.">📥 Import Joueur</button>
+            <button class="admin-btn admin-btn-success" onclick="AdminPanel.exportSave()">📤 Export</button>
             <button class="admin-btn" onclick="AdminPanel.switchAccount()" style="background:#1e3a22;border-color:#2d4a30;color:var(--text);">🔄 Changer de compte</button>
+            <button class="admin-btn admin-btn-warning" onclick="AdminPanel.importSave()">📥 Import</button>
             <button class="admin-btn admin-btn-danger"  onclick="AdminPanel.hide()">✕ Fermer</button>
           </div>
         </div>
-        <div id="admin-db-source-banner"></div>
         <div id="admin-tabs">
           ${TABS.map(t => `
             <button class="admin-tab ${t.id === _activeTab ? 'active' : ''}"
@@ -481,7 +476,6 @@ const AdminPanel = (() => {
         switch (tabId) {
           case 'characters': content.innerHTML = _renderCharactersTab(); break;
           case 'types':      content.innerHTML = _renderTypesTab();      break;
-          case 'passives':   content.innerHTML = _renderPassivesTab();   break;
           case 'equipment':  content.innerHTML = _renderEquipmentTab();  break;
           case 'gacha':      content.innerHTML = _renderGachaTab();      break;
           case 'evolutions': content.innerHTML = _renderEvolutionsTab(); break;
@@ -506,11 +500,7 @@ const AdminPanel = (() => {
     const chars = state.characters;
     const types = state.types;
 
-    const passivesCfg = state.config.passives || GameDatabase.DEFAULT_PASSIVES;
-    const typeOptions = types.map(t => {
-      const passiveName = passivesCfg[t.id]?.name;
-      return `<option value="${t.id}">${t.icon} ${t.name}${passiveName ? ` — ${passiveName}` : ''}</option>`;
-    }).join('');
+    const typeOptions = types.map(t => `<option value="${t.id}">${t.icon} ${t.name}</option>`).join('');
     const rarityOptions = RARITIES.map(r => `<option value="${r}">${RARITY_LABELS[r]}</option>`).join('');
 
     return `
@@ -964,140 +954,6 @@ const AdminPanel = (() => {
   function _clearTypeForm() {
     ['type-id', 'type-name', 'type-icon'].forEach(id => _setVal(id, ''));
     _setVal('type-color', '#FF4500');
-  }
-
-  // ─── ONGLET PASSIFS ───────────────────────────────────────────────────────────
-  // Un passif est lié à un type : tout créature ayant ce type (sur type1 ou type2)
-  // hérite automatiquement de son passif. Cet onglet est aussi conçu pour
-  // accueillir, plus tard, le paramétrage des attaques actives.
-
-  const PASSIVE_TRIGGER_LABELS = {
-    onAttack:      'Avant d\'attaquer',
-    onHit:         'En touchant une cible',
-    onDamaged:     'En subissant des dégâts',
-    onTurnEnd:     'À la fin du tour',
-    onBattleStart: 'Au début du combat',
-    passive:       'Toujours actif (sans jet)',
-  };
-
-  function _renderPassivesTab() {
-    const state = GameState.get();
-    const types = state.types;
-    const passivesCfg = state.config.passives || GameDatabase.DEFAULT_PASSIVES;
-
-    const cards = types.map(t => {
-      const p = passivesCfg[t.id] || {};
-      const isPermanent = p.trigger === 'passive';
-      const isCryptide = t.id === 'Cryptide';
-      return `
-      <div class="admin-section" style="border-left:3px solid ${t.color}; margin-bottom:14px;">
-        <div class="admin-section-title">${t.icon} ${t.name} — <span style="color:${t.color}">${p.name || '(aucun passif)'}</span></div>
-        <div class="admin-grid">
-          <div class="admin-field">
-            <label>Nom du passif</label>
-            <input type="text" id="passive-name-${t.id}" value="${_escapeAttr(p.name || '')}" placeholder="Nom du passif" />
-          </div>
-          <div class="admin-field">
-            <label>Icône (emoji)</label>
-            <input type="text" id="passive-icon-${t.id}" value="${_escapeAttr(p.icon || '')}" maxlength="4" />
-          </div>
-          <div class="admin-field">
-            <label>Déclencheur</label>
-            <select id="passive-trigger-${t.id}" ${isCryptide ? 'disabled' : ''}>
-              ${Object.entries(PASSIVE_TRIGGER_LABELS).map(([val, label]) =>
-                `<option value="${val}" ${p.trigger === val ? 'selected' : ''}>${label}</option>`
-              ).join('')}
-            </select>
-          </div>
-          <div class="admin-field">
-            <label>Chance de déclenchement (%)</label>
-            <input type="number" id="passive-chance-${t.id}" value="${Math.round((p.chance ?? 0) * 100)}"
-                   min="0" max="100" step="1" ${isPermanent || isCryptide ? 'disabled' : ''} />
-          </div>
-          <div class="admin-field">
-            <label>Valeur principale ${_passiveValueHint(t.id)}</label>
-            <input type="number" id="passive-value-${t.id}" value="${p.value ?? 0}" step="1" />
-          </div>
-          ${p.value2 !== undefined ? `
-          <div class="admin-field">
-            <label>Valeur secondaire (durée en tours)</label>
-            <input type="number" id="passive-value2-${t.id}" value="${p.value2 ?? 0}" step="1" min="1" />
-          </div>` : ''}
-        </div>
-        <div class="admin-field" style="margin-top:8px;">
-          <label>Description (affichée en combat et sur la fiche créature)</label>
-          <textarea id="passive-desc-${t.id}" rows="2" style="width:100%;">${_escapeAttr(p.description || '')}</textarea>
-        </div>
-      </div>`;
-    }).join('');
-
-    return `
-      <div class="admin-section">
-        <div class="admin-section-title">💫 Passifs liés aux types</div>
-        <p style="font-size:.78rem; color:#888; margin-bottom:12px;">
-          Chaque créature hérite automatiquement du passif de son type 1 ET de son
-          type 2 (si bi-type, les deux passifs se cumulent). Le type Cryptide est
-          spécial : au lieu de "Mystère", chaque créature Cryptide tire au sort
-          (une fois, en début de combat) le passif d'un autre type au hasard.
-          Les attaques actives seront paramétrables ici également dans une future mise à jour.
-        </p>
-      </div>
-      <hr class="admin-sep" />
-      ${cards}
-      <div class="admin-actions" style="position:sticky; bottom:0; background:#1a1a2e; padding:14px 0; margin-top:8px;">
-        <button class="admin-btn admin-btn-success" onclick="AdminPanel._savePassives()">💾 Enregistrer tous les passifs</button>
-        <button class="admin-btn admin-btn-primary" onclick="AdminPanel._resetPassivesToDefault()">↺ Réinitialiser aux valeurs par défaut</button>
-      </div>
-    `;
-  }
-
-  /** Petit indice contextuel sur l'unité de la "valeur principale" selon le type de passif */
-  function _passiveValueHint(typeId) {
-    const hints = {
-      fire: '(% bonus ATK)', nature: '(% PV max soignés)', ice: '(% bonus crit)',
-      water: '(% PV max en dégâts)', metal: '', electric: '(tours de paralysie)',
-      shadow: '(% esquive bonus)', chaos: '(% PV max perdus/tour)', light: '',
-      magic: '(attaques charmées)', Cryptide: '',
-    };
-    return hints[typeId] || '';
-  }
-
-  function _savePassives() {
-    const state = GameState.get();
-    const types = state.types;
-    const newPassives = { ...(state.config.passives || {}) };
-
-    types.forEach((t) => {
-      const existing = newPassives[t.id] || {};
-      const trigger = document.getElementById(`passive-trigger-${t.id}`)?.value || existing.trigger || 'passive';
-      const chanceRaw = document.getElementById(`passive-chance-${t.id}`)?.value;
-      const updated = {
-        id: t.id,
-        name: document.getElementById(`passive-name-${t.id}`)?.value.trim() || existing.name || t.name,
-        icon: document.getElementById(`passive-icon-${t.id}`)?.value.trim() || existing.icon || t.icon,
-        description: document.getElementById(`passive-desc-${t.id}`)?.value.trim() || existing.description || '',
-        trigger,
-        chance: trigger === 'passive' ? 1.0 : Math.max(0, Math.min(100, parseFloat(chanceRaw ?? '0'))) / 100,
-        value: parseFloat(document.getElementById(`passive-value-${t.id}`)?.value ?? existing.value ?? 0),
-      };
-      if (existing.value2 !== undefined) {
-        const v2 = document.getElementById(`passive-value2-${t.id}`)?.value;
-        updated.value2 = v2 !== undefined ? parseFloat(v2) : existing.value2;
-      }
-      newPassives[t.id] = updated;
-    });
-
-    GameState.updateConfig({ ...state.config, passives: newPassives });
-    _notify('✅ Passifs enregistrés.');
-    switchTab('passives');
-  }
-
-  function _resetPassivesToDefault() {
-    if (!confirm('Réinitialiser TOUS les passifs aux valeurs par défaut du jeu ? Tes modifications seront perdues.')) return;
-    const state = GameState.get();
-    GameState.updateConfig({ ...state.config, passives: JSON.parse(JSON.stringify(GameDatabase.DEFAULT_PASSIVES)) });
-    _notify('↺ Passifs réinitialisés.');
-    switchTab('passives');
   }
 
   // ─── ONGLET ÉQUIPEMENTS ───────────────────────────────────────────────────────
@@ -2844,103 +2700,39 @@ const AdminPanel = (() => {
   // ─── SAUVEGARDE / EXPORT / IMPORT ────────────────────────────────────────────
 
   /**
-   * Exporte UNIQUEMENT la database (ce que modifie l'Admin) — jamais le joueur.
-   * Fichier à committer sur GitHub à côté des .js pour propager une mise à
-   * jour de la database d'une machine à l'autre.
+   * Exporte la sauvegarde complète en JSON
    */
-  function exportDatabase() {
-    const ok = SaveSystem.exportDatabaseToFile(GameState.get());
-    if (ok) _notify('✅ Database exportée (database_export.json). À placer à côté de index.html.');
-    else    _notify('❌ Échec de l\'export database.', 'error');
+  function exportSave() {
+    SaveSystem.exportToFile(GameState.get());
+    _notify('✅ Sauvegarde Compte ' + SaveSystem.getActiveSlot() + ' exportée.');
   }
 
   /**
-   * Exporte UNIQUEMENT les données du joueur actif — jamais la database.
+   * Importe une sauvegarde JSON
    */
-  function exportPlayer() {
-    const ok = SaveSystem.exportPlayerToFile(GameState.get(), SaveSystem.getActiveSlot());
-    if (ok) _notify('✅ Données du Compte ' + SaveSystem.getActiveSlot() + ' exportées.');
-    else    _notify('❌ Échec de l\'export joueur.', 'error');
-  }
-
-  /**
-   * Importe un fichier database (database_export.json, ou un ancien export
-   * complet mélangé — seules les clés database seront utilisées) et l'applique
-   * immédiatement à la partie en cours.
-   */
-  function importDatabase() {
+  function importSave() {
     const input  = document.createElement('input');
     input.type   = 'file';
     input.accept = '.json';
     input.onchange = (e) => {
-      const file = e.target.files[0];
+      const file   = e.target.files[0];
       if (!file) return;
-      SaveSystem.importFromFile(file).then((data) => {
-        if (!confirm('Remplacer la database actuelle (personnages, équipements, bannières, config) par ce fichier ? Les données du joueur ne seront pas affectées.')) return;
-        const ok = SaveSystem.applyDatabaseImport(data);
-        if (!ok) { _notify('❌ Fichier database invalide.', 'error'); return; }
-        // Recharger l'état en mémoire avec la nouvelle database + le joueur courant inchangé
-        const currentPlayer = GameState.getPlayer();
-        const merged = SaveSystem.loadGlobalConfig() || {};
-        merged.player = currentPlayer;
-        GameState.init(merged);
-        SaveSystem.save(GameState.get());
-        _notify('✅ Database importée et appliquée.');
-        switchTab(_activeTab);
-        _renderDbSourceBanner('loaded');
-      }).catch((err) => _notify('❌ Fichier invalide : ' + err.message, 'error'));
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const data = JSON.parse(ev.target.result);
+          if (!confirm('Remplacer toute la sauvegarde actuelle par ce fichier ?')) return;
+          GameState.init(data);
+          SaveSystem.save(GameState.get()); // persist config globale + joueur
+          _notify('✅ Sauvegarde importée dans le Compte ' + SaveSystem.getActiveSlot() + '.');
+          switchTab(_activeTab);
+        } catch (err) {
+          _notify('❌ Fichier invalide : ' + err.message, 'error');
+        }
+      };
+      reader.readAsText(file);
     };
     input.click();
-  }
-
-  /**
-   * Importe un fichier joueur (export wildbeast_joueur_*.json, ou un ancien
-   * export complet mélangé — seule la clé player sera utilisée) et l'applique
-   * au Compte actuellement actif. N'affecte jamais la database.
-   */
-  function importPlayer() {
-    const input  = document.createElement('input');
-    input.type   = 'file';
-    input.accept = '.json';
-    input.onchange = (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      SaveSystem.importFromFile(file).then((data) => {
-        if (!data || !data.player) { _notify('❌ Ce fichier ne contient pas de données joueur.', 'error'); return; }
-        const slot = SaveSystem.getActiveSlot();
-        if (!confirm(`Remplacer la progression du Compte ${slot} (collection, ressources, niveau…) par ce fichier ? La database ne sera pas affectée.`)) return;
-        const ok = SaveSystem.applyPlayerImport(data, slot);
-        if (!ok) { _notify('❌ Fichier joueur invalide.', 'error'); return; }
-        // Recharger l'état en mémoire : database actuelle inchangée + nouveau joueur importé
-        const currentDb = SaveSystem.loadGlobalConfig() || {};
-        currentDb.player = data.player;
-        GameState.init(currentDb);
-        SaveSystem.save(GameState.get(), slot);
-        _notify('✅ Données joueur importées dans le Compte ' + slot + '.');
-        switchTab(_activeTab);
-      }).catch((err) => _notify('❌ Fichier invalide : ' + err.message, 'error'));
-    };
-    input.click();
-  }
-
-  /**
-   * Affiche un bandeau discret indiquant la provenance de la database active
-   * (fichier serveur auto-chargé / localStorage / défauts du jeu), pour que
-   * l'utilisateur sache toujours d'où viennent ses données.
-   */
-  function _renderDbSourceBanner(source) {
-    const el = document.getElementById('admin-db-source-banner');
-    if (!el) return;
-    const src = source || window._dbLoadSource || (SaveSystem.hasGlobalConfig() ? 'local' : 'defaults');
-    const labels = {
-      loaded:   { text: '📡 Database chargée depuis database_export.json (serveur)', color: '#4ade80' },
-      absent:   { text: '💾 Database chargée depuis le stockage local du navigateur', color: '#facc15' },
-      local:    { text: '💾 Database chargée depuis le stockage local du navigateur', color: '#facc15' },
-      error:    { text: '⚠️ database_export.json trouvé mais invalide — database locale conservée', color: '#f87171' },
-      defaults: { text: 'ℹ️ Database par défaut du jeu (aucune modification importée)', color: '#9ca3af' },
-    };
-    const meta = labels[src] || labels.defaults;
-    el.innerHTML = `<div style="padding:6px 16px;font-size:.75rem;color:${meta.color};background:#0f172a;border-bottom:1px solid #1e293b;">${meta.text}</div>`;
   }
 
   // ─── AFFICHAGE / MASQUAGE ────────────────────────────────────────────────────
@@ -2971,7 +2763,6 @@ const AdminPanel = (() => {
       panel.classList.add('visible');
       _visible = true;
       _renderTab(_activeTab);
-      _renderDbSourceBanner();
     }
   }
 
@@ -3005,13 +2796,6 @@ const AdminPanel = (() => {
   function _setVal(id, value) {
     const el = document.getElementById(id);
     if (el) el.value = value;
-  }
-
-  /** Échappe une chaîne pour une insertion sûre dans un attribut HTML value="..." */
-  function _escapeAttr(str) {
-    const div = document.createElement('div');
-    div.textContent = str ?? '';
-    return div.innerHTML.replace(/"/g, '&quot;');
   }
 
   /**
@@ -3051,12 +2835,11 @@ const AdminPanel = (() => {
 
   return {
     init, show, hide, toggle, switchTab,
-    exportDatabase, exportPlayer, importDatabase, importPlayer,
+    exportSave, importSave,
     // Méthodes appelées depuis le HTML (onclick)
     _previewPortrait,
     _saveCharacter, _editCharacter, _deleteCharacter, _clearCharForm, _upgradeCharacter,
     _saveType, _editType, _deleteType, _clearTypeForm,
-    _savePassives, _resetPassivesToDefault,
     _matrixCellChanged, _saveMatrix,
     _saveEquip, _editEquip, _deleteEquip, _clearEquipForm, _duplicateEquip,
     _saveGachaConfig, _saveBanner, _editBanner, _deleteBanner, _clearBannerForm,

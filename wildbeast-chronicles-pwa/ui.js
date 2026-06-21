@@ -676,7 +676,6 @@ const GameUI = (() => {
                 ${t1 ? `<span class="type-badge" style="background:${t1.color}">${t1.icon} ${t1.name}</span>` : ''}
                 ${t2 ? `<span class="type-badge" style="background:${t2.color}">${t2.icon} ${t2.name}</span>` : ''}
               </div>
-              ${_buildPassivesHtml(def, state)}
               <div class="detail-level">Niveau <strong>${inst.level}</strong> — XP : ${inst.xp} / ${xpNeeded}</div>
               <div class="detail-awakening">Awakening : ${'★'.repeat(inst.awakening || 0)}</div>
               <div class="stat-grid">
@@ -710,50 +709,6 @@ const GameUI = (() => {
       if (e.target === e.currentTarget) _closeModal();
     });
   }
-
-  /**
-   * Construit le HTML des passifs hérités par un créature, d'après son type1
-   * et type2. Gère le cas spécial Cryptide (passif tiré au hasard, affiché
-   * comme "inconnu jusqu'au combat" puisqu'il n'est résolu qu'en combat).
-   * @param {object} def - définition du créature (type1, type2)
-   * @param {object} state
-   * @returns {string} HTML
-   */
-  function _buildPassivesHtml(def, state) {
-    const passivesCfg = state.config.passives || GameDatabase.DEFAULT_PASSIVES;
-    const typeIds = [def.type1, def.type2].filter(Boolean);
-    if (typeIds.length === 0) return '';
-
-    const cards = typeIds.map((typeId) => {
-      const p = passivesCfg[typeId];
-      if (!p) return '';
-
-      if (typeId === 'Cryptide') {
-        return `<div class="passive-card passive-card-cryptide">
-          <div class="passive-card-header"><span class="passive-icon">${p.icon}</span><strong>${p.name}</strong></div>
-          <div class="passive-card-desc">${p.description} <em>Le passif réellement actif est révélé au début de chaque combat.</em></div>
-        </div>`;
-      }
-
-      const chancePct = Math.round((p.chance ?? 0) * 100);
-      const triggerLabel = p.trigger === 'passive' ? 'Toujours actif' : `${chancePct}% de chance — ${PASSIVE_TRIGGER_LABELS_UI[p.trigger] || p.trigger}`;
-      return `<div class="passive-card">
-        <div class="passive-card-header"><span class="passive-icon">${p.icon}</span><strong>${p.name}</strong></div>
-        <div class="passive-card-desc">${p.description}</div>
-        <div class="passive-card-trigger">${triggerLabel}</div>
-      </div>`;
-    }).join('');
-
-    return `<div class="detail-passives"><h4>Passifs</h4><div class="passive-card-list">${cards}</div></div>`;
-  }
-
-  const PASSIVE_TRIGGER_LABELS_UI = {
-    onAttack:      'en attaquant',
-    onHit:         'en touchant',
-    onDamaged:     'en subissant des dégâts',
-    onTurnEnd:     'en fin de tour',
-    onBattleStart: 'en début de combat',
-  };
 
   function _formatEquipBonuses(bonuses) {
     return Object.entries(bonuses)
@@ -1373,7 +1328,6 @@ const GameUI = (() => {
     const isAwkMax = (combatant.awakening || 0) >= maxAwk;
     return `
     <div class="fighter-card rarity-${combatant.rarity} ${combatant.alive ? '' : 'defeated'}" id="fighter-${combatant.instanceId}" style="--enter-delay:${index * 80}ms">
-      <div class="fighter-status-badges" id="status-badges-${combatant.instanceId}">${_buildStatusBadgesHtml(combatant)}</div>
       <div class="fighter-portrait ${isAwkMax ? 'awakening-max' : ''}">
         ${combatant.portrait ? `<img src="${combatant.portrait}" alt="${combatant.name}">` : `<div class="portrait-ph">${combatant.name.charAt(0)}</div>`}
       </div>
@@ -1389,40 +1343,6 @@ const GameUI = (() => {
         <div class="hp-text">${combatant.alive ? `${combatant.currentHp} / ${combatant.maxHp}` : 'KO'}</div>
       </div>
     </div>`;
-  }
-
-  /**
-   * Icônes/labels d'affichage pour chaque type de statut actif sur un combattant.
-   * 'positive' détermine la couleur du badge (vert = bénéfique, rouge = nuisible).
-   */
-  const STATUS_BADGE_INFO = {
-    atkBoost:   { icon: '⚔️', label: 'ATK boostée',  positive: true  },
-    poison:     { icon: '☠️', label: 'Empoisonné',   positive: false },
-    paralysis:  { icon: '⚡', label: 'Paralysé',      positive: false },
-    charm:      { icon: '💞', label: 'Charmé',        positive: false },
-  };
-
-  /**
-   * Construit le HTML des badges de statut affichés en haut à droite d'une
-   * carte de combattant, visibles tant que l'altération (positive ou négative)
-   * n'est pas dissipée.
-   * @param {object} combatant
-   * @returns {string} HTML
-   */
-  function _buildStatusBadgesHtml(combatant) {
-    const statuses = combatant.statuses || [];
-    if (statuses.length === 0) return '';
-    return statuses.map((s) => {
-      const info = STATUS_BADGE_INFO[s.type];
-      if (!info) return '';
-      return `<span class="status-badge ${info.positive ? 'status-badge-positive' : 'status-badge-negative'}" title="${info.label}">${info.icon}</span>`;
-    }).join('');
-  }
-
-  /** Rafraîchit uniquement les badges de statut d'une carte (sans tout re-render) */
-  function _refreshStatusBadges(combatant) {
-    const el = document.getElementById(`status-badges-${combatant.instanceId}`);
-    if (el) el.innerHTML = _buildStatusBadgesHtml(combatant);
   }
 
   function _renderBattleControls() {
@@ -1503,19 +1423,12 @@ const GameUI = (() => {
         log.innerHTML = [..._battle.log].reverse().slice(0, 8).map(l => `<div class="log-line">${l}</div>`).join('');
       }
       _playAttackAnimation(data.attacker, data.target, data.result);
-      setTimeout(() => { _renderTurnOrderBar(); _renderBattleControls(); _refreshAllStatusBadges(); }, 900);
+      setTimeout(() => { _renderTurnOrderBar(); _renderBattleControls(); }, 900);
     }
 
     if (event === 'playerTurn') {
       _renderTurnOrderBar();
       _renderBattleControls();
-    }
-
-    if (event === 'passiveTriggered') {
-      _playPassiveAnimations(data.events);
-      if (log && _battle?.log?.length) {
-        log.innerHTML = [..._battle.log].reverse().slice(0, 8).map(l => `<div class="log-line">${l}</div>`).join('');
-      }
     }
 
     if (event === 'victory') {
@@ -1634,201 +1547,6 @@ const GameUI = (() => {
   }
 
   /**
-   * Joue les animations de déclenchement de passifs (un ou plusieurs événements
-   * survenus au même trigger, ex: plusieurs alliés régénèrent en même temps).
-   * Chaque événement affiche une bannière avec le nom du passif, et une
-   * animation visuelle adaptée sur la/les carte(s) concernée(s).
-   * @param {Array<object>} events - événements renvoyés par PassiveSystem (engine.js)
-   */
-  function _playPassiveAnimations(events) {
-    if (!events || events.length === 0) return;
-    // Échelonnement : si plusieurs passifs se déclenchent au même moment
-    // (ex: deux alliés Aquatique avec Tsunami), on les enchaîne proprement
-    // plutôt que de les superposer en désordre.
-    events.forEach((evt, i) => {
-      setTimeout(() => _playOnePassiveAnimation(evt), i * 650);
-    });
-    // Rafraîchit les badges de statut de tous les combattants (les statuts
-    // peuvent avoir été ajoutés, retirés, ou avoir expiré suite à ces événements).
-    const totalDelay = events.length * 650;
-    setTimeout(_refreshAllStatusBadges, totalDelay + 100);
-  }
-
-  /** Rafraîchit les badges de statut sur toutes les cartes de combattants affichées */
-  function _refreshAllStatusBadges() {
-    const battle = CombatEngine.getBattle();
-    if (!battle) return;
-    [...battle.playerTeam, ...battle.enemyTeam].forEach(_refreshStatusBadges);
-  }
-
-  function _playOnePassiveAnimation(evt) {
-    const { passiveId, passive, sourceId, targetId, targets } = evt;
-    if (!passive) return;
-
-    const sourceCard = sourceId ? document.getElementById(`fighter-${sourceId}`) : null;
-
-    // ── Révélation Cryptide : bannière spéciale annonçant le passif tiré ─────
-    if (evt.cryptideReveal) {
-      if (sourceCard) {
-        _spawnPassiveBanner(sourceCard, `🐉 Mystère → ${passive.icon} ${passive.name}`, 'passive-banner-cryptide');
-      }
-      return;
-    }
-
-    // ── Paralysie qui empêche d'agir ce tour-ci ──────────────────────────────
-    if (evt.paralyzedSkip) {
-      if (sourceCard) {
-        _spawnPassiveBanner(sourceCard, `⚡ ${passive.name} !`, 'passive-banner-electric');
-        _spawnFloatText(sourceCard, 'Paralysé !', 'float-status float-status-paralysis', 0);
-        sourceCard.classList.add('passive-shake-paralysis');
-        setTimeout(() => sourceCard.classList.remove('passive-shake-paralysis'), 500);
-      }
-      AudioSystem.playSfx(AudioSystem.SFX_KEYS.hitResist);
-      return;
-    }
-
-    // ── Tic de poison (dégâts périodiques) ───────────────────────────────────
-    if (evt.poisonTick !== undefined) {
-      if (sourceCard) {
-        _spawnFloatText(sourceCard, `☠️ -${evt.poisonTick}`, 'float-dmg float-poison-tick', 0);
-        sourceCard.querySelector('.fighter-portrait')?.classList.add('passive-poison-pulse');
-        setTimeout(() => sourceCard.querySelector('.fighter-portrait')?.classList.remove('passive-poison-pulse'), 600);
-        _updateFighterCard(CombatEngine.getBattle()?.playerTeam.find(c => c.instanceId === sourceId)
-          || CombatEngine.getBattle()?.enemyTeam.find(c => c.instanceId === sourceId));
-      }
-      return;
-    }
-
-    const targetCard = targetId ? document.getElementById(`fighter-${targetId}`) : null;
-
-    switch (passiveId) {
-      // ── Meute (fire) : aura orange sur l'allié boosté ───────────────────────
-      case 'fire': {
-        if (sourceCard) _spawnPassiveBanner(sourceCard, `🐺 ${passive.name} !`, 'passive-banner-fire');
-        if (targetCard) {
-          _spawnFloatText(targetCard, `⚔️ +${passive.value}% ATK`, 'float-status float-status-buff', 0);
-          targetCard.classList.add('passive-aura-fire');
-          setTimeout(() => targetCard.classList.remove('passive-aura-fire'), 1100);
-        }
-        break;
-      }
-
-      // ── Régénération (nature) : éclat vert + soin sur l'allié ciblé ─────────
-      case 'nature': {
-        if (sourceCard) _spawnPassiveBanner(sourceCard, `🌱 ${passive.name} !`, 'passive-banner-nature');
-        if (targetCard) {
-          _spawnFloatText(targetCard, `+${evt.healAmount} ♥`, 'float-heal', 0);
-          targetCard.classList.add('passive-aura-nature');
-          setTimeout(() => targetCard.classList.remove('passive-aura-nature'), 1100);
-          const battle = CombatEngine.getBattle();
-          const c = battle?.playerTeam.find(x => x.instanceId === targetId) || battle?.enemyTeam.find(x => x.instanceId === targetId);
-          if (c) _updateFighterCard(c);
-        }
-        AudioSystem.playSfx(AudioSystem.SFX_KEYS.levelUp); // son positif de repli, pas de SFX dédié au heal
-        break;
-      }
-
-      // ── Mue (metal) : éclair blanc sur soi, retire les altérations ──────────
-      case 'metal': {
-        if (sourceCard) {
-          _spawnPassiveBanner(sourceCard, `🐍 ${passive.name} !`, 'passive-banner-metal');
-          _spawnFloatText(sourceCard, '✨ Purifié', 'float-status float-status-cleanse', 0);
-          sourceCard.querySelector('.fighter-portrait')?.classList.add('passive-flash-cleanse');
-          setTimeout(() => sourceCard.querySelector('.fighter-portrait')?.classList.remove('passive-flash-cleanse'), 700);
-        }
-        break;
-      }
-
-      // ── Paralysie infligée (electric) ────────────────────────────────────────
-      case 'electric': {
-        if (sourceCard) _spawnPassiveBanner(sourceCard, `⚡ ${passive.name} !`, 'passive-banner-electric');
-        if (targetCard) {
-          _spawnFloatText(targetCard, '⚡ Paralysé !', 'float-status float-status-paralysis', 0);
-          targetCard.querySelector('.fighter-portrait')?.classList.add('passive-zap');
-          setTimeout(() => targetCard.querySelector('.fighter-portrait')?.classList.remove('passive-zap'), 500);
-        }
-        break;
-      }
-
-      // ── Venin infligé (chaos) ────────────────────────────────────────────────
-      case 'chaos': {
-        if (sourceCard) _spawnPassiveBanner(sourceCard, `☠️ ${passive.name} !`, 'passive-banner-chaos');
-        if (targetCard) {
-          _spawnFloatText(targetCard, '☠️ Empoisonné !', 'float-status float-status-poison', 0);
-          targetCard.querySelector('.fighter-portrait')?.classList.add('passive-poison-pulse');
-          setTimeout(() => targetCard.querySelector('.fighter-portrait')?.classList.remove('passive-poison-pulse'), 700);
-        }
-        break;
-      }
-
-      // ── Contre-Attaque (light) ───────────────────────────────────────────────
-      case 'light': {
-        if (sourceCard) {
-          _spawnPassiveBanner(sourceCard, `🦍 ${passive.name} !`, 'passive-banner-light');
-          sourceCard.querySelector('.fighter-portrait')?.classList.add('passive-counter-flash');
-          setTimeout(() => sourceCard.querySelector('.fighter-portrait')?.classList.remove('passive-counter-flash'), 500);
-        }
-        break;
-      }
-
-      // ── Hypnose / charme infligé (magic) ─────────────────────────────────────
-      case 'magic': {
-        if (sourceCard) _spawnPassiveBanner(sourceCard, `🦊 ${passive.name} !`, 'passive-banner-magic');
-        if (targetCard) {
-          _spawnFloatText(targetCard, '💞 Charmé !', 'float-status float-status-charm', 0);
-          targetCard.querySelector('.fighter-portrait')?.classList.add('passive-charm-spin');
-          setTimeout(() => targetCard.querySelector('.fighter-portrait')?.classList.remove('passive-charm-spin'), 700);
-        }
-        break;
-      }
-
-      // ── Tsunami (water) : vague sur tous les adversaires touchés ─────────────
-      case 'water': {
-        if (sourceCard) _spawnPassiveBanner(sourceCard, `🌊 ${passive.name} !`, 'passive-banner-water');
-        (targets || []).forEach((t, i) => {
-          setTimeout(() => {
-            const tc = document.getElementById(`fighter-${t.instanceId}`);
-            if (!tc) return;
-            _spawnWaveEffect(tc);
-            _spawnFloatText(tc, `-${t.damage}`, 'float-dmg float-tsunami-dmg', 0);
-            tc.querySelector('.fighter-portrait')?.classList.add('shake-hit');
-            setTimeout(() => tc.querySelector('.fighter-portrait')?.classList.remove('shake-hit'), 480);
-            const battle = CombatEngine.getBattle();
-            const c = battle?.playerTeam.find(x => x.instanceId === t.instanceId) || battle?.enemyTeam.find(x => x.instanceId === t.instanceId);
-            if (c) _updateFighterCard(c);
-          }, i * 120);
-        });
-        AudioSystem.playSfx(AudioSystem.SFX_KEYS.hitNormal);
-        break;
-      }
-
-      default:
-        if (sourceCard) _spawnPassiveBanner(sourceCard, `${passive.icon || '✨'} ${passive.name} !`, 'passive-banner-default');
-    }
-  }
-
-  /**
-   * Affiche une bannière de nom de passif au-dessus d'une carte de combattant,
-   * façon "float-text" mais en plus large et plus visible (le passif doit se
-   * démarquer clairement d'un simple texte de dégâts).
-   */
-  function _spawnPassiveBanner(card, text, cls) {
-    const el = document.createElement('div');
-    el.className = `passive-banner ${cls}`;
-    el.textContent = text;
-    card.appendChild(el);
-    setTimeout(() => el.remove(), 1400);
-  }
-
-  /** Effet visuel de vague traversant la carte (utilisé par Tsunami) */
-  function _spawnWaveEffect(card) {
-    const el = document.createElement('div');
-    el.className = 'passive-wave-effect';
-    card.appendChild(el);
-    setTimeout(() => el.remove(), 800);
-  }
-
-  /**
    * Affiche un écran de révélation plein écran pour chaque évolution survenue,
    * enchaînées une par une (portrait agrandi, animation "punchy" du mot ÉVOLUTION).
    * Avance automatiquement après quelques secondes, ou au clic/tap.
@@ -1911,58 +1629,6 @@ const GameUI = (() => {
     }
   }
 
-  /**
-   * Construit le récapitulatif des déclenchements de passifs survenus pendant
-   * le combat (regroupés par passif, avec le nombre d'occurrences et la liste
-   * des combattants à l'origine du déclenchement).
-   * @param {Array<object>} passiveLog - battle.passiveLog (accumulé par engine.js)
-   * @returns {string} HTML, ou chaîne vide si aucun passif ne s'est déclenché
-   */
-  function _buildPassiveRecapHtml(passiveLog) {
-    if (!passiveLog || passiveLog.length === 0) return '';
-
-    const battle = CombatEngine.getBattle();
-    const findName = (instanceId) => {
-      if (!instanceId || !battle) return '?';
-      const c = battle.playerTeam.find(x => x.instanceId === instanceId)
-             || battle.enemyTeam.find(x => x.instanceId === instanceId);
-      return c ? c.name : '?';
-    };
-
-    // Regroupement par passiveId : { passive, icon, count, sources: Set<name> }
-    const grouped = {};
-    passiveLog.forEach((evt) => {
-      const key = evt.passiveId || evt.passive?.id || 'unknown';
-      if (!grouped[key]) {
-        grouped[key] = {
-          name: evt.passive?.name || key,
-          icon: evt.passive?.icon || '✨',
-          count: 0,
-          sources: new Set(),
-        };
-      }
-      grouped[key].count++;
-      grouped[key].sources.add(findName(evt.sourceId));
-    });
-
-    const rows = Object.values(grouped)
-      .sort((a, b) => b.count - a.count)
-      .map(g => {
-        const sourceList = [...g.sources].join(', ');
-        return `<div class="passive-recap-row">
-          <span class="passive-recap-icon">${g.icon}</span>
-          <span class="passive-recap-name">${g.name}</span>
-          <span class="passive-recap-count">×${g.count}</span>
-          <span class="passive-recap-sources">${sourceList}</span>
-        </div>`;
-      }).join('');
-
-    return `<div class="passive-recap">
-      <h4>💫 Passifs déclenchés</h4>
-      <div class="passive-recap-list">${rows}</div>
-    </div>`;
-  }
-
   function _showBattleResult(result, data) {
     const controls = document.getElementById('battle-controls');
     if (!controls) return;
@@ -1987,8 +1653,6 @@ const GameUI = (() => {
       </div>`;
     }
 
-    const passiveRecapHtml = _buildPassiveRecapHtml(battle?.passiveLog);
-
     controls.innerHTML = `
       <div class="battle-result ${isVictory ? 'result-victory' : 'result-defeat'}">
         <h2>${isVictory ? '🏆 Victoire !' : '💀 Défaite...'}</h2>
@@ -2005,7 +1669,6 @@ const GameUI = (() => {
             <span>+${data.rewards.diamonds} 💎</span>
             ${data.rewards.energyPotionsDropped > 0 ? `<span>+${data.rewards.energyPotionsDropped} 🧪 Potion d'Énergie</span>` : ''}
           </div>` : ''}
-        ${passiveRecapHtml}
         ${captureHtml}
         <button class="btn-primary" id="btn-back-lobby">Retour au lobby</button>
       </div>

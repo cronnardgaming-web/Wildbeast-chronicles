@@ -616,28 +616,6 @@
   }
   .detail-desc{ color:var(--text-dim); font-size:.84rem; line-height:1.5; margin:0 0 10px; }
   .detail-types{ display:flex; gap:6px; margin-bottom:8px; }
-  .detail-passives{ margin:8px 0 4px; }
-  .detail-passives h4{
-    margin:0 0 6px; font-size:.72rem; text-transform:uppercase; letter-spacing:.08em;
-    color:var(--text-faint); font-weight:700;
-  }
-  .passive-card-list{ display:flex; flex-direction:column; gap:6px; }
-  .passive-card{
-    background:var(--surface-2); border:1px solid var(--border-soft);
-    border-left:3px solid var(--accent2);
-    border-radius:6px; padding:8px 10px;
-  }
-  .passive-card-cryptide{ border-left-color:#9333ea; }
-  .passive-card-header{
-    display:flex; align-items:center; gap:6px;
-    font-size:.85rem; color:var(--text); margin-bottom:3px;
-  }
-  .passive-icon{ font-size:1rem; }
-  .passive-card-desc{ font-size:.76rem; color:var(--text-dim); line-height:1.4; }
-  .passive-card-desc em{ color:var(--text-faint); font-style:italic; }
-  .passive-card-trigger{
-    font-size:.68rem; color:var(--accent2); margin-top:4px; font-weight:600;
-  }
   .detail-level, .detail-awakening{ font-size:.82rem; color:var(--text-dim); margin:4px 0; }
   .detail-level strong, .detail-awakening{ color:var(--text); }
   .detail-awakening{ color:var(--accent); letter-spacing:.06em; }
@@ -919,27 +897,6 @@
     font-size:.68rem; box-shadow:0 0 0 2px var(--surface);
   }
 
-  /* ── Badges d'altération active (haut à droite de la carte) ── */
-  .fighter-status-badges{
-    position:absolute; top:-7px; right:-6px; z-index:6;
-    display:flex; flex-direction:column; gap:3px;
-    pointer-events:none;
-  }
-  .status-badge{
-    width:21px; height:21px; border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-    font-size:.72rem; line-height:1;
-    background:var(--surface); box-shadow:0 2px 6px rgba(0,0,0,.4);
-    border:1.5px solid var(--border);
-    animation:statusBadgeIn .25s ease;
-  }
-  .status-badge-positive{ border-color:#4ade80; box-shadow:0 0 0 1px #4ade80, 0 2px 6px rgba(0,0,0,.4); }
-  .status-badge-negative{ border-color:#f87171; box-shadow:0 0 0 1px #f87171, 0 2px 6px rgba(0,0,0,.4); }
-  @keyframes statusBadgeIn{
-    from{ opacity:0; transform:scale(.4) rotate(-15deg); }
-    to{ opacity:1; transform:scale(1) rotate(0deg); }
-  }
-
   .fighter-info{ width:100%; text-align:center; }
   .fighter-name{ font-size:.78rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .fighter-name small{ color:var(--text-faint); font-weight:500; }
@@ -1044,134 +1001,6 @@
   .mult-immune{ color:#9ca3af; }
   .mult-mid{ color:var(--accent); }
 
-  /* ============================================================
-     PASSIFS — bannières de déclenchement + effets visuels
-     ============================================================ */
-
-  /* Bannière de nom de passif : plus large et plus marquante qu'un simple
-     float-text, pour que le joueur identifie clairement QUEL passif agit. */
-  .passive-banner{
-    position:absolute; top:-8px; left:50%; transform:translate(-50%, 0);
-    white-space:nowrap; pointer-events:none; z-index:12;
-    font-family:var(--font-display); font-weight:800; font-size:.78rem;
-    letter-spacing:.02em; color:#fff;
-    background:rgba(10,20,12,.85); border:1.5px solid var(--accent2);
-    border-radius:999px; padding:4px 12px;
-    box-shadow:0 4px 14px rgba(0,0,0,.4);
-    animation:passiveBannerIn 1.4s cubic-bezier(.2,1,.3,1) forwards;
-  }
-  @keyframes passiveBannerIn{
-    0%{ opacity:0; transform:translate(-50%, 8px) scale(.8); }
-    12%{ opacity:1; transform:translate(-50%, -6px) scale(1.08); }
-    20%{ transform:translate(-50%, -10px) scale(1); }
-    80%{ opacity:1; transform:translate(-50%, -10px) scale(1); }
-    100%{ opacity:0; transform:translate(-50%, -22px) scale(.95); }
-  }
-  .passive-banner-fire     { border-color:#FF4500; }
-  .passive-banner-nature   { border-color:#32CD32; }
-  .passive-banner-ice      { border-color:#87CEEB; }
-  .passive-banner-water    { border-color:#1E90FF; }
-  .passive-banner-metal    { border-color:#A8A9AD; }
-  .passive-banner-electric { border-color:#FFE000; color:#1a1a1a; background:rgba(255,224,0,.92); }
-  .passive-banner-shadow   { border-color:#6A0DAD; }
-  .passive-banner-chaos    { border-color:#22c55e; }
-  .passive-banner-light    { border-color:#FFD700; }
-  .passive-banner-magic    { border-color:#FF69B4; }
-  .passive-banner-cryptide { border-color:#9333ea; background:rgba(54,6,60,.92); }
-  .passive-banner-default  { border-color:var(--accent2); }
-
-  /* Textes de statut flottants (paralysie, poison, charme…) */
-  .float-status{ font-size:.78rem; font-weight:700; }
-  .float-status-buff     { color:#fb923c; }
-  .float-status-cleanse  { color:#e5e7eb; }
-  .float-status-paralysis{ color:#fde047; }
-  .float-status-poison   { color:#4ade80; }
-  .float-status-charm    { color:#f472b6; }
-  .float-heal{ font-size:1.05rem; color:#4ade80; font-weight:800; }
-  .float-poison-tick{ font-size:.92rem; color:#4ade80; }
-  .float-tsunami-dmg{ font-size:1.05rem; color:#60a5fa; }
-
-  /* ── Meute (fire) : aura orange pulsante ── */
-  .passive-aura-fire{ position:relative; }
-  .passive-aura-fire::after{
-    content:''; position:absolute; inset:-4px; border-radius:inherit;
-    box-shadow:0 0 0 2px #fb923c, 0 0 16px 4px rgba(251,146,60,.6);
-    animation:passiveAuraPulse 1.1s ease-out forwards;
-    pointer-events:none;
-  }
-
-  /* ── Régénération (nature) : aura verte ── */
-  .passive-aura-nature{ position:relative; }
-  .passive-aura-nature::after{
-    content:''; position:absolute; inset:-4px; border-radius:inherit;
-    box-shadow:0 0 0 2px #4ade80, 0 0 16px 4px rgba(74,222,128,.6);
-    animation:passiveAuraPulse 1.1s ease-out forwards;
-    pointer-events:none;
-  }
-  @keyframes passiveAuraPulse{
-    0%{ opacity:0; transform:scale(.9); }
-    25%{ opacity:1; transform:scale(1.06); }
-    100%{ opacity:0; transform:scale(1.15); }
-  }
-
-  /* ── Mue (metal) : flash blanc de purification ── */
-  .passive-flash-cleanse{ animation:passiveCleanseFlash .7s ease; }
-  @keyframes passiveCleanseFlash{
-    0%, 100%{ filter:brightness(1); }
-    40%{ filter:brightness(2.2) saturate(0); }
-  }
-
-  /* ── Paralysie (electric) : tremblement électrique + flash jaune ── */
-  .passive-zap{ animation:passiveZap .5s ease; }
-  @keyframes passiveZap{
-    0%, 100%{ filter:brightness(1); transform:translateX(0); }
-    15%{ filter:brightness(2) sepia(1) hue-rotate(0deg) saturate(4); transform:translateX(-3px); }
-    30%{ transform:translateX(3px); }
-    45%{ transform:translateX(-2px); }
-    60%{ transform:translateX(2px); }
-    75%{ filter:brightness(1.5); transform:translateX(0); }
-  }
-  .passive-shake-paralysis{ animation:shake .5s ease; }
-
-  /* ── Venin (chaos) : pulsation verte toxique ── */
-  .passive-poison-pulse{ animation:passivePoisonPulse .7s ease; }
-  @keyframes passivePoisonPulse{
-    0%, 100%{ filter:brightness(1) hue-rotate(0deg); }
-    50%{ filter:brightness(.85) hue-rotate(60deg) saturate(1.8); }
-  }
-
-  /* ── Contre-Attaque (light) : flash doré bref ── */
-  .passive-counter-flash{ animation:passiveCounterFlash .5s ease; }
-  @keyframes passiveCounterFlash{
-    0%, 100%{ filter:brightness(1); }
-    35%{ filter:brightness(1.8) drop-shadow(0 0 8px #FFD700); }
-  }
-
-  /* ── Hypnose (magic) : rotation légère + teinte rose ── */
-  .passive-charm-spin{ animation:passiveCharmSpin .7s ease; }
-  @keyframes passiveCharmSpin{
-    0%, 100%{ transform:rotate(0deg); filter:brightness(1); }
-    30%{ transform:rotate(-6deg); filter:brightness(1.3) saturate(1.5) hue-rotate(-20deg); }
-    60%{ transform:rotate(5deg); }
-  }
-
-  /* ── Tsunami (water) : vague qui traverse la carte ── */
-  .passive-wave-effect{
-    position:absolute; inset:0; border-radius:inherit; overflow:hidden;
-    pointer-events:none; z-index:8;
-  }
-  .passive-wave-effect::before{
-    content:''; position:absolute; left:-20%; right:-20%; bottom:0; height:60%;
-    background:linear-gradient(180deg, rgba(96,165,250,0) 0%, rgba(96,165,250,.55) 100%);
-    border-radius:50% 50% 0 0 / 30% 30% 0 0;
-    animation:passiveWaveRise .8s ease-out forwards;
-  }
-  @keyframes passiveWaveRise{
-    0%{ transform:translateY(100%); opacity:0; }
-    35%{ opacity:1; }
-    100%{ transform:translateY(-10%); opacity:0; }
-  }
-
   .turn-order-bar{
     display:flex; align-items:center; gap:8px; margin-bottom:10px;
     overflow-x:auto; padding-bottom:2px;
@@ -1257,30 +1086,6 @@
     font-family:var(--font-mono); font-weight:700; font-size:.95rem; color:var(--text);
   }
   .capture-section{ margin-top:14px; padding-top:14px; border-top:1px solid var(--border-soft); }
-
-  /* ── Récap des passifs déclenchés (écran de fin de combat) ── */
-  .passive-recap{
-    margin-top:14px; padding-top:14px; border-top:1px solid var(--border-soft);
-    text-align:left;
-  }
-  .passive-recap h4{ font-size:.85rem; color:var(--text-dim); margin:0 0 8px; text-align:center; }
-  .passive-recap-list{ display:flex; flex-direction:column; gap:5px; }
-  .passive-recap-row{
-    display:flex; align-items:center; gap:8px;
-    background:var(--surface-2); border:1px solid var(--border-soft);
-    border-radius:6px; padding:6px 10px;
-    font-size:.78rem;
-  }
-  .passive-recap-icon{ font-size:1rem; flex-shrink:0; }
-  .passive-recap-name{ font-weight:700; color:var(--text); flex-shrink:0; }
-  .passive-recap-count{
-    font-family:var(--font-mono); font-weight:700; color:var(--accent2);
-    flex-shrink:0;
-  }
-  .passive-recap-sources{
-    color:var(--text-faint); font-size:.72rem; overflow:hidden;
-    text-overflow:ellipsis; white-space:nowrap; flex:1; text-align:right;
-  }
   .capture-section h4{ font-size:.85rem; color:var(--text-dim); margin:0 0 8px; }
   .capture-btns{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:8px; }
   .btn-capture{
@@ -2140,7 +1945,6 @@
   <script src="database.js"></script>
   <script src="state.js"></script>
   <script src="gacha.js"></script>
-  <script src="passives.js"></script>
   <script src="engine.js"></script>
   <script src="evolution.js"></script>
   <script src="playerlevelup.js"></script>
@@ -2398,17 +2202,9 @@
     })();
 
     /* ─── Démarrage ──────────────────────────────────────────── */
-    (async function bootstrap() {
+    (function bootstrap() {
       PWAUpdater.init();
       SaveSystem.restoreActiveSlot();
-
-      // Tente de charger database_export.json servi à côté de index.html.
-      // S'il existe, il devient la source de vérité pour la database (écrase
-      // ce qui était en localStorage) — permet de propager une mise à jour
-      // de la database (créatures, équipements, bannières…) juste en
-      // remplaçant ce fichier, sans aucune étape d'import manuel.
-      const dbLoadResult = await SaveSystem.loadDatabaseFromServer();
-      window._dbLoadSource = dbLoadResult; // 'loaded' | 'absent' | 'error' — lu par l'Admin pour affichage
 
       // Initialiser le jeu avec la config globale seule (pas de joueur encore)
       // pour que l'admin sur l'écran d'accueil fonctionne

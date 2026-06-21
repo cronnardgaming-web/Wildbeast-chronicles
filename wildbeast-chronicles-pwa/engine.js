@@ -70,7 +70,6 @@ const CombatEngine = (() => {
       spd:        finalStats.spd,
       alive:      true,
       captured:   false,
-      statuses:   [], // altérations d'état actives (poison, paralysie, charme, atkBoost…)
     };
   }
 
@@ -580,7 +579,6 @@ const CombatEngine = (() => {
       turnIndex:    0,          // Position courante dans turnOrder
       currentActor: null,       // instanceId du combattant dont c'est le tour
       log:          [],
-      passiveLog:   [],         // historique des déclenchements de passifs (pour le récap de fin de combat)
       result:       null,       // 'victory' | 'defeat'
       capturable:   [],         // Ennemis capturables après victoire
       rewards:      null,
@@ -590,24 +588,6 @@ const CombatEngine = (() => {
     GameState.updatePlayer({
       stats: { ...player.stats, totalBattles: player.stats.totalBattles + 1 },
     });
-
-    // Résolution des passifs "Cryptide" : tirage aléatoire d'un passif de
-    // remplacement pour chaque combattant de type Cryptide, une seule fois.
-    const passivesCfg = cfg.passives || GameDatabase.DEFAULT_PASSIVES;
-    const cryptideRolls = PassiveSystem.rollBattleStartPassives(
-      [...playerTeam, ...enemyTeam], passivesCfg
-    );
-    if (cryptideRolls.length > 0) {
-      _emit('passiveTriggered', {
-        events: cryptideRolls.map(r => ({
-          passiveId: r.passiveId,
-          passive: passivesCfg[r.passiveId],
-          sourceId: r.instanceId,
-          targetId: r.instanceId,
-          cryptideReveal: true,
-        })),
-      });
-    }
 
     _emit('battleStart', { battle: _battle });
     // Léger différé : laisse l'interface afficher la scène de combat avant que
@@ -655,15 +635,6 @@ const CombatEngine = (() => {
     if (!_battle) return;
 
     if (_battle.turnIndex >= _battle.turnOrder.length) {
-      // ── Fin de manche : déclencher les passifs onTurnEnd (Régénération,
-      // Tsunami, tic du poison) avant de démarrer la manche suivante ─────────
-      const passivesCfg = GameState.get().config.passives || GameDatabase.DEFAULT_PASSIVES;
-      const turnEndEvents = PassiveSystem.triggerOnTurnEnd(_battle.playerTeam, _battle.enemyTeam, passivesCfg);
-      if (turnEndEvents.length > 0) {
-        _emit('passiveTriggered', { events: turnEndEvents });
-      }
-      if (_checkBattleEnd()) return; // le combat peut se terminer via Tsunami/poison
-
       _battle.turn++;
       _startRound();
       return;
@@ -686,28 +657,11 @@ const CombatEngine = (() => {
       const players = _battle.playerTeam.filter(p => p.alive);
       if (players.length === 0) { _checkBattleEnd(); return; }
 
-      // ── Paralysie : le combattant ne peut pas agir ce tour-ci ──────────────
-      if (PassiveSystem.hasStatus(combatant, 'paralysis')) {
-        const passivesCfg = GameState.get().config.passives || GameDatabase.DEFAULT_PASSIVES;
-        PassiveSystem.removeStatus(combatant, 'paralysis');
-        _emit('passiveTriggered', {
-          events: [{ passiveId: 'electric', passive: passivesCfg.electric, sourceId: combatant.instanceId, targetId: combatant.instanceId, paralyzedSkip: true }],
-        });
-        _battle.turnIndex++;
-        if (_checkBattleEnd()) return;
-        setTimeout(_advanceTurn, 750);
-        return;
-      }
-
-      // ── Charme : redirige l'attaque vers un coéquipier au hasard ───────────
-      const charmedTarget = _resolveCharmTarget(combatant, _battle.enemyTeam);
-      const target = charmedTarget || _aiChooseTarget(combatant, players);
-
+      const target = _aiChooseTarget(combatant, players);
       if (target) {
-        // L'équipe alliée de l'attaquant (pour Meute) est TOUJOURS son
-        // équipe d'origine (enemyTeam), que la cible de l'attaque soit
-        // l'équipe adverse normale ou un coéquipier redirigé par le charme.
-        _executeFullAttackSequence(combatant, target, _battle.enemyTeam);
+        const result = _executeAttack(combatant, target);
+        _logAction(combatant, target, result);
+        _emit('enemyAttack', { attacker: combatant, target, result });
       }
 
       _battle.turnIndex++;
@@ -716,88 +670,8 @@ const CombatEngine = (() => {
     } else {
       _battle.phase        = 'player';
       _battle.currentActor = combatant.instanceId;
-
-      // ── Paralysie côté joueur : on passe automatiquement le tour ───────────
-      if (PassiveSystem.hasStatus(combatant, 'paralysis')) {
-        const passivesCfg = GameState.get().config.passives || GameDatabase.DEFAULT_PASSIVES;
-        PassiveSystem.removeStatus(combatant, 'paralysis');
-        _emit('passiveTriggered', {
-          events: [{ passiveId: 'electric', passive: passivesCfg.electric, sourceId: combatant.instanceId, targetId: combatant.instanceId, paralyzedSkip: true }],
-        });
-        _battle.turnIndex++;
-        if (_checkBattleEnd()) return;
-        setTimeout(_advanceTurn, 750);
-        return;
-      }
-
       _emit('playerTurn', { actor: combatant, battle: _battle });
       // On attend ici l'appel à playerAttack() depuis l'interface
-      // (sauf si le joueur est charmé : voir playerAttack() qui redirige la cible)
-    }
-  }
-
-  /**
-   * Si l'attaquant porte le statut 'charm', retourne un coéquipier vivant
-   * choisi au hasard comme cible forcée de l'attaque. Sinon retourne null.
-   * Consomme une charge du statut (et le retire s'il n'en reste plus).
-   * @param {object} attacker
-   * @param {Array<object>} allyTeam - l'équipe de l'attaquant (où piocher la cible charmée)
-   * @returns {object|null}
-   */
-  function _resolveCharmTarget(attacker, allyTeam) {
-    if (!PassiveSystem.hasStatus(attacker, 'charm')) return null;
-    const charm = (attacker.statuses || []).find(s => s.type === 'charm');
-    charm.attacksLeft--;
-    if (charm.attacksLeft <= 0) PassiveSystem.removeStatus(attacker, 'charm');
-
-    const others = allyTeam.filter(c => c.alive && c.instanceId !== attacker.instanceId);
-    if (others.length === 0) return null; // pas de coéquipier vivant : attaque normale
-    return others[Math.floor(Math.random() * others.length)];
-  }
-
-  /**
-   * Exécute une attaque complète avec toute la chaîne de déclenchement des
-   * passifs : onAttack (avant) → résolution des dégâts → onHit (si touché) →
-   * onDamaged (contre-attaque éventuelle de la cible).
-   * @param {object} attacker
-   * @param {object} target
-   * @param {Array<object>} attackerAllyTeam - équipe de l'attaquant (pour Meute)
-   */
-  function _executeFullAttackSequence(attacker, target, attackerAllyTeam) {
-    const state = GameState.get();
-    const passivesCfg = state.config.passives || GameDatabase.DEFAULT_PASSIVES;
-    const allEvents = [];
-
-    // ── onAttack : Meute, Mue ────────────────────────────────────────────────
-    const onAttackEvents = PassiveSystem.triggerOnAttack(attacker, attackerAllyTeam, passivesCfg);
-    allEvents.push(...onAttackEvents);
-
-    // ── Résolution de l'attaque ──────────────────────────────────────────────
-    const result = _executeAttack(attacker, target);
-    _logAction(attacker, target, result);
-
-    // ── onHit : Paralysie, Venin, Hypnose (seulement si l'attaque a touché) ──
-    if (!result.evaded && result.damage > 0) {
-      const onHitEvents = PassiveSystem.triggerOnHit(attacker, target, passivesCfg);
-      allEvents.push(...onHitEvents);
-
-      // ── onDamaged : Contre-Attaque (déclenchée sur la cible qui vient de subir les dégâts) ──
-      const onDamagedEvents = PassiveSystem.triggerOnDamaged(target, attacker, passivesCfg);
-      allEvents.push(...onDamagedEvents);
-    }
-
-    if (allEvents.length > 0) {
-      _emit('passiveTriggered', { events: allEvents });
-    }
-
-    _emit(attacker.isEnemy ? 'enemyAttack' : 'playerAttack', { attacker, target, result });
-
-    // ── Contre-attaque effective : la cible riposte immédiatement ────────────
-    const counterEvent = allEvents.find(e => e.counterAttack);
-    if (counterEvent && target.alive && attacker.alive) {
-      const counterResult = _executeAttack(target, attacker);
-      _logAction(target, attacker, counterResult);
-      _emit(target.isEnemy ? 'enemyAttack' : 'playerAttack', { attacker: target, target: attacker, result: counterResult, isCounter: true });
     }
   }
 
@@ -811,16 +685,13 @@ const CombatEngine = (() => {
     if (_battle.currentActor !== attackerInstanceId) return; // ce n'est pas son tour
 
     const attacker = _battle.playerTeam.find(c => c.instanceId === attackerInstanceId && c.alive);
-    const clickedTarget = _battle.enemyTeam.find(c => c.instanceId === targetInstanceId && c.alive);
+    const target   = _battle.enemyTeam.find(c => c.instanceId === targetInstanceId && c.alive);
 
-    if (!attacker || !clickedTarget) return;
+    if (!attacker || !target) return;
 
-    // ── Charme : si l'attaquant joueur est charmé, sa cible est forcée vers
-    // un coéquipier au hasard, quelle que soit la cible cliquée par le joueur ──
-    const charmedTarget = _resolveCharmTarget(attacker, _battle.playerTeam);
-    const target = charmedTarget || clickedTarget;
-
-    _executeFullAttackSequence(attacker, target, _battle.playerTeam);
+    const result = _executeAttack(attacker, target);
+    _logAction(attacker, target, result);
+    _emit('playerAttack', { attacker, target, result });
 
     _battle.turnIndex++;
     if (_checkBattleEnd()) return;
@@ -884,24 +755,20 @@ const CombatEngine = (() => {
     const state  = GameState.get();
     const cfg    = state.config.combat;
     const matrix = state.typeMatrix;
-    const passivesCfg = state.config.passives || GameDatabase.DEFAULT_PASSIVES;
 
     // ── Efficacité de type ──────────────────────────────────────────────────
     const mult = GameDatabase.getTypeEffectiveness(attacker.type1, target.type1, target.type2, matrix);
 
-    // ── Esquive via vitesse (cap configurable) + bonus passif Ombre ─────────
+    // ── Esquive via vitesse (cap configurable) ──────────────────────────────
     const spdDiff    = target.spd - attacker.spd;
-    const evasionPassiveBonus = PassiveSystem.getEvasionBonus(target, passivesCfg);
-    const evadeChance = Math.min(cfg.speedEvasionCap, Math.max(0, spdDiff / 9999)) + evasionPassiveBonus;
+    const evadeChance = Math.min(cfg.speedEvasionCap, Math.max(0, spdDiff / 9999));
     if (Math.random() < evadeChance) {
       return { damage: 0, multiplier: mult, critical: false, evaded: true, variance: 0 };
     }
 
     // ── Formule de dégâts : ATK² / (ATK + DEF) ─────────────────────────────
-    // Avec un plancher à 1 pour ATK et DEF afin d'éviter la division par zéro,
-    // et le bonus temporaire d'ATK reçu via le passif Meute (consommé ici).
-    const atkBoostPct = PassiveSystem.consumeAtkBoost(attacker);
-    const atk    = Math.max(1, attacker.atk * (1 + atkBoostPct));
+    // Avec un plancher à 1 pour ATK et DEF afin d'éviter la division par zéro
+    const atk    = Math.max(1, attacker.atk);
     const def    = Math.max(0, target.def);
     const baseDmg = (atk * atk) / (atk + def);
 
@@ -909,10 +776,9 @@ const CombatEngine = (() => {
     const variancePct = (Math.random() * 0.10) - 0.05;   // −5 % à +5 %
     const afterVariance = baseDmg * (1 + variancePct);
 
-    // ── Coup critique (basé sur VIT de l'attaquant) + bonus passif Œil Vif ──
+    // ── Coup critique (basé sur VIT de l'attaquant) ─────────────────────────
     const critDivisor    = cfg.critDivisor    ?? 200;   // plus bas → plus de crits
-    const critBonusPassive = PassiveSystem.getCritBonus(attacker, passivesCfg);
-    const critMultiplier = (cfg.critMultiplier ?? 1.5) + critBonusPassive;
+    const critMultiplier = cfg.critMultiplier ?? 1.5;
     const critChance     = attacker.spd / (attacker.spd + critDivisor);
     const critical       = Math.random() < critChance;
     const critFactor     = critical ? critMultiplier : 1;
@@ -1110,85 +976,7 @@ const CombatEngine = (() => {
     if (_battle.log.length > 50) _battle.log.shift();
   }
 
-  /** Retrouve le nom affichable d'un combattant par son instanceId, dans les deux équipes */
-  function _findCombatantName(instanceId) {
-    if (!_battle || !instanceId) return '?';
-    const c = _battle.playerTeam.find(x => x.instanceId === instanceId)
-           || _battle.enemyTeam.find(x => x.instanceId === instanceId);
-    return c ? c.name : '?';
-  }
-
-  /**
-   * Pousse dans le log de combat visible un message textuel décrivant un
-   * déclenchement de passif (qui l'a déclenché, sur qui, et son effet),
-   * dans le même style que les messages d'attaque (_logAction).
-   * @param {object} evt - événement renvoyé par PassiveSystem
-   */
-  function _logPassiveEvent(evt) {
-    if (!_battle || !evt.passive) return;
-    const sourceName = _findCombatantName(evt.sourceId);
-    const targetName = _findCombatantName(evt.targetId);
-    const icon = evt.passive.icon || '💫';
-    let msg = null;
-
-    if (evt.cryptideReveal) {
-      msg = `🐉 ${sourceName} révèle son passif Mystère : ${icon} ${evt.passive.name} !`;
-    } else if (evt.paralyzedSkip) {
-      msg = `⚡ ${sourceName} est paralysé(e) et ne peut pas agir !`;
-    } else if (evt.poisonTick !== undefined) {
-      msg = `☠️ ${sourceName} subit ${evt.poisonTick} dégâts de poison.`;
-    } else {
-      switch (evt.passiveId) {
-        case 'fire': // Meute
-          msg = `🐺 ${sourceName} déclenche ${icon} ${evt.passive.name} : ATK de ${targetName} augmentée de ${evt.passive.value}% !`;
-          break;
-        case 'nature': // Régénération
-          msg = `🌱 ${sourceName} déclenche ${icon} ${evt.passive.name} et soigne ${targetName} de ${evt.healAmount} PV !`;
-          break;
-        case 'metal': // Mue
-          msg = `🐍 ${sourceName} déclenche ${icon} ${evt.passive.name} et retire ses altérations d'état !`;
-          break;
-        case 'electric': // Paralysie infligée
-          msg = `⚡ ${sourceName} déclenche ${icon} ${evt.passive.name} et paralyse ${targetName} !`;
-          break;
-        case 'chaos': // Venin infligé
-          msg = `☠️ ${sourceName} déclenche ${icon} ${evt.passive.name} et empoisonne ${targetName} !`;
-          break;
-        case 'light': // Contre-Attaque
-          msg = `🦍 ${sourceName} déclenche ${icon} ${evt.passive.name} et contre-attaque ${targetName} !`;
-          break;
-        case 'magic': // Hypnose
-          msg = `🦊 ${sourceName} déclenche ${icon} ${evt.passive.name} et charme ${targetName} !`;
-          break;
-        case 'water': { // Tsunami
-          const count = (evt.targets || []).length;
-          msg = `🌊 ${sourceName} déclenche ${icon} ${evt.passive.name} et inflige des dégâts à ${count} adversaire${count > 1 ? 's' : ''} !`;
-          break;
-        }
-        default:
-          msg = `${icon} ${sourceName} déclenche ${evt.passive.name} !`;
-      }
-    }
-
-    if (msg) {
-      _battle.log.push(msg);
-      if (_battle.log.length > 50) _battle.log.shift();
-    }
-  }
-
   function _emit(event, data = {}) {
-    // Accumule un historique des déclenchements de passifs tout au long du
-    // combat, pour pouvoir les résumer dans le récap de fin de combat.
-    if (event === 'passiveTriggered' && _battle && data.events) {
-      if (!_battle.passiveLog) _battle.passiveLog = [];
-      data.events.forEach((evt) => {
-        _battle.passiveLog.push({
-          ...evt,
-          turn: _battle.turn,
-        });
-        _logPassiveEvent(evt);
-      });
-    }
     if (_onEvent) {
       try { _onEvent(event, data); } catch (e) { console.error('[CombatEngine] Event error:', e); }
     }

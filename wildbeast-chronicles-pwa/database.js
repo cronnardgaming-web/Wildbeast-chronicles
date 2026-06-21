@@ -138,17 +138,16 @@ const GameDatabase = (() => {
   // ─── TYPES ───────────────────────────────────────────────────────────────────
 
   const DEFAULT_TYPES = [
-    { id: "fire",      name: "Prédateur", color: "#FF4500", icon: "🦁" },
-    { id: "nature",    name: "Herbivore", color: "#32CD32", icon: "🐮" },
-    { id: "water",     name: "Aquatique", color: "#1E90FF", icon: "🐟" },
-    { id: "ice",       name: "Rapace",    color: "#87CEEB", icon: "🐦" },
-    { id: "metal",     name: "Reptile",   color: "#A8A9AD", icon: "🐍" },
-    { id: "electric",  name: "Insecte",   color: "#FFE000", icon: "🪲" },
-    { id: "chaos",     name: "Venimeux",  color: "#FF0000", icon: "🦂" },
-    { id: "shadow",    name: "Nocturne",  color: "#6A0DAD", icon: "🌓" },
-    { id: "magic",     name: "Rusé",      color: "#FF69B4", icon: "🦊" },
-    { id: "light",     name: "Colosse",   color: "#FFD700", icon: "🦍" },
-    { id: "Cryptide",  name: "Cryptide",  color: "#36063C", icon: "🐉" },
+    { id: "fire",      name: "Feu",        color: "#FF4500", icon: "🔥" },
+    { id: "water",     name: "Eau",        color: "#1E90FF", icon: "💧" },
+    { id: "nature",    name: "Nature",     color: "#32CD32", icon: "🌿" },
+    { id: "shadow",    name: "Ombre",      color: "#6A0DAD", icon: "🌑" },
+    { id: "light",     name: "Lumière",    color: "#FFD700", icon: "✨" },
+    { id: "electric",  name: "Électrique", color: "#FFE000", icon: "⚡" },
+    { id: "ice",       name: "Glace",      color: "#87CEEB", icon: "❄️"  },
+    { id: "metal",     name: "Métal",      color: "#A8A9AD", icon: "⚙️"  },
+    { id: "magic",     name: "Magie",      color: "#FF69B4", icon: "🔮" },
+    { id: "chaos",     name: "Chaos",      color: "#FF0000", icon: "💢" },
   ];
 
   // ─── MATRICE DES TYPES ────────────────────────────────────────────────────────
@@ -156,17 +155,16 @@ const GameDatabase = (() => {
   // 2.0 = super efficace, 0.5 = peu efficace, 0 = immunité, 1.0 = normal
 
   const DEFAULT_TYPE_MATRIX = {
-    fire:     { fire:1.0, nature:2.0, water:1.0, ice:1.0, metal:0.5, electric:1.0, chaos:1.0, shadow:1.0, magic:2.0, light:0.5, Cryptide:1.0 },
-    nature:   { fire:0.5, nature:1.0, water:1.0, ice:0.5, metal:2.0, electric:1.0, chaos:2.0, shadow:1.0, magic:1.0, light:1.0, Cryptide:1.0 },
-    water:    { fire:1.0, nature:1.0, water:1.0, ice:2.0, metal:0.5, electric:1.0, chaos:0.5, shadow:1.0, magic:1.0, light:2.0, Cryptide:1.0 },
-    ice:      { fire:1.0, nature:1.0, water:0.5, ice:1.0, metal:2.0, electric:2.0, chaos:1.0, shadow:1.0, magic:1.0, light:0.5, Cryptide:1.0 },
-    metal:    { fire:1.0, nature:2.0, water:1.0, ice:0.5, metal:0.5, electric:1.0, chaos:2.0, shadow:1.0, magic:1.0, light:2.0, Cryptide:1.0 },
-    electric: { fire:1.0, nature:2.0, water:1.0, ice:0.5, metal:2.0, electric:1.0, chaos:1.0, shadow:0.5, magic:2.0, light:1.0, Cryptide:1.0 },
-    chaos:    { fire:1.0, nature:0.5, water:2.0, ice:1.0, metal:0.5, electric:1.0, chaos:1.0, shadow:1.0, magic:1.0, light:2.0, Cryptide:1.0 },
-    shadow:   { fire:2.0, nature:1.0, water:1.0, ice:2.0, metal:1.0, electric:0.5, chaos:1.0, shadow:1.0, magic:1.0, light:1.0, Cryptide:0.5 },
-    magic:    { fire:0.5, nature:1.0, water:1.0, ice:1.0, metal:1.0, electric:0.5, chaos:1.0, shadow:1.0, magic:0.5, light:2.0, Cryptide:2.0 },
-    light:    { fire:2.0, nature:1.0, water:1.0, ice:2.0, metal:1.0, electric:2.0, chaos:0.5, shadow:1.0, magic:1.0, light:0.5, Cryptide:1.0 },
-    Cryptide: { fire:1.0, nature:2.0, water:1.0, ice:1.0, metal:1.0, electric:2.0, chaos:1.0, shadow:2.0, magic:0.5, light:1.0, Cryptide:0.5 },
+    fire:     { fire:1.0, water:0.5, nature:2.0, shadow:1.0, light:1.0, electric:1.0, ice:2.0, metal:2.0, magic:1.0, chaos:1.0 },
+    water:    { fire:2.0, water:0.5, nature:0.5, shadow:1.0, light:1.0, electric:0.5, ice:1.0, metal:1.0, magic:1.0, chaos:1.0 },
+    nature:   { fire:0.5, water:2.0, nature:0.5, shadow:1.0, light:1.0, electric:1.0, ice:0.5, metal:1.0, magic:1.0, chaos:1.0 },
+    shadow:   { fire:1.0, water:1.0, nature:1.0, shadow:0.5, light:0,   electric:1.0, ice:1.0, metal:1.0, magic:2.0, chaos:2.0 },
+    light:    { fire:1.0, water:1.0, nature:1.0, shadow:2.0, light:0.5, electric:1.0, ice:1.0, metal:1.0, magic:1.0, chaos:2.0 },
+    electric: { fire:1.0, water:2.0, nature:1.0, shadow:1.0, light:1.0, electric:0.5, ice:1.0, metal:2.0, magic:0.5, chaos:1.0 },
+    ice:      { fire:0.5, water:1.0, nature:2.0, shadow:1.0, light:1.0, electric:1.0, ice:0.5, metal:0.5, magic:1.0, chaos:1.0 },
+    metal:    { fire:0.5, water:1.0, nature:1.0, shadow:1.0, light:2.0, electric:0.5, ice:2.0, metal:0.5, magic:1.0, chaos:1.0 },
+    magic:    { fire:1.0, water:1.0, nature:1.0, shadow:2.0, light:1.0, electric:2.0, ice:1.0, metal:1.0, magic:0.5, chaos:1.5 },
+    chaos:    { fire:1.0, water:1.0, nature:1.0, shadow:0,   light:0,   electric:1.0, ice:1.0, metal:1.5, magic:1.5, chaos:1.0 },
   };
 
   // ─── PERSONNAGES ──────────────────────────────────────────────────────────────
@@ -359,7 +357,7 @@ const GameDatabase = (() => {
     {
       id: "char_023", name: "Rhinofer", description: "Un rhinocéros dont la corne est faite d'acier pur. Sa charge fait trembler la terre.",
       portrait: null, rarity: "rare", evolutionLine: "line_008", evolutionStage: 1,
-      type1: "metal", type2: "light",
+      type1: "metal", type2: "earth",
       baseStats: { hp: 800, atk: 85, def: 145, spd: 45 },
       evolutionCondition: { type: "level", value: 55 },
       evolvesTo: "char_024",
@@ -423,107 +421,6 @@ const GameDatabase = (() => {
       evolutionCondition: null, evolvesTo: null,
     },
   ];
-
-  // ─── PASSIFS ──────────────────────────────────────────────────────────────────
-  // Un passif est lié à un type (typeId). Tout créature possédant ce type sur
-  // type1 OU type2 hérite automatiquement du passif correspondant. Un créature
-  // bi-type cumule les deux passifs de ses deux types.
-  //
-  // trigger : moment où le passif tente de se déclencher
-  //   'onAttack'      → quand le créature attaque (avant résolution des dégâts)
-  //   'onHit'         → quand le créature attaque ET touche (après résolution)
-  //   'onDamaged'     → quand le créature subit des dégâts
-  //   'onTurnEnd'     → à la fin de chaque tour (après l'action du joueur ET de l'ennemi)
-  //   'onBattleStart' → une seule fois, au tout début du combat
-  //   'passive'       → toujours actif, pas de jet aléatoire (chance ignorée)
-  //
-  // chance : probabilité de déclenchement (0 à 1) à chaque occasion du trigger
-  // Les valeurs numériques (value, value2…) sont éditables depuis l'admin.
-
-  const DEFAULT_PASSIVES = {
-    fire: {
-      id: "fire", name: "Meute",
-      description: "Augmente l'attaque d'un autre allié aléatoire de 10% pour une attaque (5% de chance).",
-      trigger: "onAttack", chance: 0.05,
-      value: 10,   // % de bonus ATK
-      icon: "🐺",
-    },
-    nature: {
-      id: "nature", name: "Régénération",
-      description: "Soigne 10% des PV max sur l'allié possédant le moins de vie (10% de chance).",
-      trigger: "onTurnEnd", chance: 0.10,
-      value: 10,   // % de PV max soignés
-      icon: "🌱",
-    },
-    ice: {
-      id: "ice", name: "Œil Vif",
-      description: "Augmente les dégâts critiques de +25%.",
-      trigger: "passive", chance: 1.0,  // passif permanent, pas de jet aléatoire
-      value: 25,   // % additionnel sur le multiplicateur critique
-      icon: "🦅",
-    },
-    water: {
-      id: "water", name: "Tsunami",
-      description: "À la fin du tour, 10% de chance d'infliger 5% de dégâts (des PV max) à tous les adversaires.",
-      trigger: "onTurnEnd", chance: 0.10,
-      value: 5,    // % des PV max infligés
-      icon: "🌊",
-    },
-    metal: {
-      id: "metal", name: "Mue",
-      description: "Juste avant d'attaquer, retire toutes les altérations d'état sur soi-même (35% de chance).",
-      trigger: "onAttack", chance: 0.35,
-      value: 0,
-      icon: "🐍",
-    },
-    electric: {
-      id: "electric", name: "Paralysie",
-      description: "Peut paralyser l'adversaire touché (5% de chance), l'empêchant d'agir pendant 1 attaque.",
-      trigger: "onHit", chance: 0.05,
-      value: 1,    // durée en tours
-      icon: "⚡",
-    },
-    shadow: {
-      id: "shadow", name: "Ombre",
-      description: "Augmente l'esquive de 7%.",
-      trigger: "passive", chance: 1.0,
-      value: 7,    // % d'esquive additionnelle
-      icon: "🌓",
-    },
-    chaos: {
-      id: "chaos", name: "Venin",
-      description: "Peut empoisonner l'adversaire touché (5% de chance) : -2% PV max par tour pendant 5 tours.",
-      trigger: "onHit", chance: 0.05,
-      value: 2,    // % des PV max perdus par tour
-      value2: 5,   // durée en tours
-      icon: "☠️",
-    },
-    light: {
-      id: "light", name: "Contre-Attaque",
-      description: "Lorsqu'il subit des dégâts, 5% de chance de lancer une attaque immédiatement sur l'attaquant.",
-      trigger: "onDamaged", chance: 0.05,
-      value: 0,
-      icon: "🦍",
-    },
-    magic: {
-      id: "magic", name: "Hypnose",
-      description: "Peut charmer l'adversaire touché (5% de chance) : sa prochaine attaque vise un de ses coéquipiers au hasard.",
-      trigger: "onHit", chance: 0.05,
-      value: 1,    // durée en tours (nombre d'attaques affectées)
-      icon: "🦊",
-    },
-    Cryptide: {
-      id: "Cryptide", name: "Mystère",
-      description: "Au début du combat, ce créature reçoit aléatoirement un des autres passifs.",
-      trigger: "onBattleStart", chance: 1.0,
-      value: 0,
-      icon: "🐉",
-    },
-  };
-
-  // Branché ici (après sa déclaration) car DEFAULT_CONFIG est défini plus haut
-  // dans le fichier, avant que DEFAULT_PASSIVES existe.
-  DEFAULT_CONFIG.passives = DEFAULT_PASSIVES;
 
   // ─── RARITÉS ──────────────────────────────────────────────────────────────────
 
@@ -684,7 +581,6 @@ const GameDatabase = (() => {
     DEFAULT_CONFIG,
     DEFAULT_TYPES,
     DEFAULT_TYPE_MATRIX,
-    DEFAULT_PASSIVES,
     DEFAULT_CHARACTERS,
     RARITIES,
     DEFAULT_BANNERS,
