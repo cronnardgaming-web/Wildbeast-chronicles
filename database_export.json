@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "timestamp": 1782052973605,
+  "timestamp": 1782054886454,
   "config": {
     "game": {
       "name": "WildBeast Chronicles",
@@ -163,102 +163,102 @@
       "fire": {
         "id": "fire",
         "name": "Meute",
-        "description": "Augmente l'attaque d'un autre allié aléatoire de 10% pour une attaque (5% de chance).",
+        "icon": "🐺",
+        "description": "Augmente l'attaque d'un autre allié aléatoire pour une attaque.",
         "trigger": "onAttack",
         "chance": 0.05,
-        "value": 10,
-        "icon": "🐺"
+        "value": 10
       },
       "nature": {
         "id": "nature",
         "name": "Régénération",
-        "description": "Soigne 10% des PV max sur l'allié possédant le moins de vie (10% de chance).",
+        "icon": "🌱",
+        "description": "Soigne les PV de l'allié possédant le moins de vie.",
         "trigger": "onTurnEnd",
         "chance": 0.1,
-        "value": 10,
-        "icon": "🌱"
+        "value": 10
       },
       "ice": {
         "id": "ice",
         "name": "Œil Vif",
-        "description": "Augmente les dégâts critiques de +25%.",
+        "icon": "🦅",
+        "description": "Augmente les dégâts critiques.",
         "trigger": "passive",
         "chance": 1,
-        "value": 25,
-        "icon": "🦅"
+        "value": 25
       },
       "water": {
         "id": "water",
         "name": "Tsunami",
-        "description": "À la fin du tour, 10% de chance d'infliger 5% de dégâts (des PV max) à tous les adversaires.",
+        "icon": "🌊",
+        "description": "À la fin du tour, chance d'infliger des dégâts à tous les adversaires.",
         "trigger": "onTurnEnd",
         "chance": 0.1,
-        "value": 5,
-        "icon": "🌊"
+        "value": 5
       },
       "metal": {
         "id": "metal",
         "name": "Mue",
-        "description": "Juste avant d'attaquer, retire toutes les altérations d'état sur soi-même (35% de chance).",
+        "icon": "🐍",
+        "description": "Juste avant d'attaquer, chance de retirer toutes les altérations d'état sur soi-même.",
         "trigger": "onAttack",
         "chance": 0.35,
-        "value": 0,
-        "icon": "🐍"
+        "value": 0
       },
       "electric": {
         "id": "electric",
         "name": "Paralysie",
-        "description": "Peut paralyser l'adversaire touché (5% de chance), l'empêchant d'agir pendant 1 attaque.",
+        "icon": "⚡",
+        "description": "Peut paralyser l'adversaire touché, l'empêchant d'agir pendant 1 attaque.",
         "trigger": "onHit",
         "chance": 0.05,
-        "value": 1,
-        "icon": "⚡"
+        "value": 1
       },
       "shadow": {
         "id": "shadow",
         "name": "Ombre",
-        "description": "Augmente l'esquive de 7%.",
+        "icon": "🌓",
+        "description": "Augmente l'esquive.",
         "trigger": "passive",
         "chance": 1,
-        "value": 7,
-        "icon": "🌓"
+        "value": 7
       },
       "chaos": {
         "id": "chaos",
         "name": "Venin",
-        "description": "Peut empoisonner l'adversaire touché (5% de chance) : -2% PV max par tour pendant 5 tours.",
+        "icon": "☠️",
+        "description": "Peut empoisonner l'adversaire touché : Perd des PV tout les tours pendant 5 tours.",
         "trigger": "onHit",
         "chance": 0.05,
         "value": 2,
-        "value2": 5,
-        "icon": "☠️"
+        "value2": 5
       },
       "light": {
         "id": "light",
         "name": "Contre-Attaque",
-        "description": "Lorsqu'il subit des dégâts, 5% de chance de lancer une attaque immédiatement sur l'attaquant.",
+        "icon": "🦍",
+        "description": "Lorsqu'il subit des dégâts, chance de lancer une attaque immédiatement sur l'attaquant.",
         "trigger": "onDamaged",
         "chance": 0.05,
-        "value": 0,
-        "icon": "🦍"
+        "value": 0
       },
       "magic": {
         "id": "magic",
         "name": "Hypnose",
-        "description": "Peut charmer l'adversaire touché (5% de chance) : sa prochaine attaque vise un de ses coéquipiers au hasard.",
+        "icon": "🦊",
+        "description": "Peut charmer l'adversaire touché : sa prochaine attaque vise un de ses coéquipiers au hasard.",
         "trigger": "onHit",
         "chance": 0.05,
-        "value": 1,
-        "icon": "🦊"
+        "value": 1
       },
       "Cryptide": {
         "id": "Cryptide",
         "name": "Mystère",
+        "icon": "🐉",
         "description": "Au début du combat, ce créature reçoit aléatoirement un des autres passifs.",
         "trigger": "onBattleStart",
         "chance": 1,
-        "value": 0,
-        "icon": "🐉"
+        "value": 0
       }
     }
   },
@@ -2925,5 +2925,5 @@
       "featuredRateBoost": 2
     }
   ],
-  "exportDate": "2026-06-21T14:42:53.605Z"
+  "exportDate": "2026-06-21T15:14:46.454Z"
 }
