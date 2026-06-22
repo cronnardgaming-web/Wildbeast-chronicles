@@ -482,12 +482,17 @@ const SaveSystem = (() => {
   /**
    * Applique une base de données distante déjà récupérée (cf.
    * checkRemoteDatabaseUpdate) et mémorise sa version comme "appliquée"
-   * sur cet appareil. Ne touche jamais aux données joueur.
+   * sur cet appareil. Ne touche JAMAIS aux données joueur — y compris lors
+   * de la persistance : on sauvegarde uniquement la config globale
+   * (saveGlobalConfig), jamais via save() qui écrirait aussi le joueur
+   * actuellement en mémoire (potentiellement vide/par défaut si ce check
+   * s'exécute avant la sélection d'un compte) dans le slot actif, écrasant
+   * sa vraie progression.
    * @param {object} data - le JSON de database_export.json
    */
   function applyRemoteDatabase(data) {
     GameState.applyGameDatabase(data);
-    save(GameState.get());
+    saveGlobalConfig(GameState.get());
     _setAppliedDbVersion(data.exportDate || data.gameVersion);
   }
 
