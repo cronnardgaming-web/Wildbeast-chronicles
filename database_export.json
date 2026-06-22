@@ -1,7 +1,7 @@
 {
   "_exportType": "wildbeast_db_export",
   "_exportVersion": "1.0",
-  "exportDate": "2026-06-22T19:33:21.366Z",
+  "exportDate": "2026-06-22T20:14:24.732Z",
   "gameVersion": "1.0.0",
   "config": {
     "game": {
@@ -770,6 +770,69 @@
         "atk": 216,
         "def": 120,
         "spd": 239
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Baleine0",
+      "name": "Baleineau",
+      "description": "",
+      "portrait": "https://liveaboardblog.files.wordpress.com/2015/10/whales.jpg",
+      "rarity": "legendary",
+      "evolutionLine": "Baleine",
+      "evolutionStage": 0,
+      "type1": "light",
+      "type2": "water",
+      "baseStats": {
+        "hp": 2280,
+        "atk": 162,
+        "def": 152,
+        "spd": 90
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 20
+      },
+      "evolvesTo": "Baleine01"
+    },
+    {
+      "id": "Baleine1",
+      "name": "Baleine",
+      "description": "",
+      "portrait": "https://static.nationalgeographic.fr/files/styles/image_3200/public/naturepl01628815.jpg?w=1900&h=2850",
+      "rarity": "legendary",
+      "evolutionLine": "Baleine",
+      "evolutionStage": 1,
+      "type1": "light",
+      "type2": "water",
+      "baseStats": {
+        "hp": 2417,
+        "atk": 172,
+        "def": 162,
+        "spd": 96
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 38
+      },
+      "evolvesTo": "Baleine2"
+    },
+    {
+      "id": "Baleine2",
+      "name": "Perucetus Colossus",
+      "description": "",
+      "portrait": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjYK8DWOvGpiLpBQqwQ7rkqXojjm8AWQPelQqnVMCP_fHO1ozGjnoHG_TaSdvdYcQtspEnyvDPGwGDERf3Ccd27FDTSNcu-QWKRhsVu_A86fuW7_wXZcFtDwY_VZsfbCxcEZmXvIUt4lYDP1dWJDv0spUvdiNTTD92EoGSiCej7oKS73q_MR7hD92xcgRBd/w395-h400/Perucetus_colossus-novataxa_2023-Bianucci_Lambert_Urbina_Merella___@AmsonEli.jpg",
+      "rarity": "legendary",
+      "evolutionLine": "Baleine",
+      "evolutionStage": 2,
+      "type1": "light",
+      "type2": "water",
+      "baseStats": {
+        "hp": 2563,
+        "atk": 183,
+        "def": 172,
+        "spd": 102
       },
       "evolutionCondition": null,
       "evolvesTo": null
@@ -2863,47 +2926,6 @@
         "atk": 128,
         "def": 215,
         "spd": 123
-      },
-      "evolutionCondition": null,
-      "evolvesTo": null
-    },
-    {
-      "id": "Baleine0",
-      "name": "Baleineau",
-      "description": "",
-      "portrait": "https://liveaboardblog.files.wordpress.com/2015/10/whales.jpg",
-      "rarity": "legendary",
-      "evolutionLine": "Baleine",
-      "evolutionStage": 0,
-      "type1": "light",
-      "type2": "water",
-      "baseStats": {
-        "hp": 2280,
-        "atk": 162,
-        "def": 152,
-        "spd": 90
-      },
-      "evolutionCondition": {
-        "type": "level",
-        "value": 20
-      },
-      "evolvesTo": "Baleine01"
-    },
-    {
-      "id": "Baleine1",
-      "name": "Baleine",
-      "description": "",
-      "portrait": "https://static.nationalgeographic.fr/files/styles/image_3200/public/naturepl01628815.jpg?w=1900&h=2850",
-      "rarity": "legendary",
-      "evolutionLine": "Baleine",
-      "evolutionStage": 1,
-      "type1": "light",
-      "type2": "water",
-      "baseStats": {
-        "hp": 2417,
-        "atk": 172,
-        "def": 162,
-        "spd": 96
       },
       "evolutionCondition": null,
       "evolvesTo": null
