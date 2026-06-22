@@ -138,6 +138,15 @@ async function _fetchVersion() {
 
 // ─── INTERCEPTION DES REQUÊTES (stale-while-revalidate) ─────────────────────
 
+// Fichiers qui doivent TOUJOURS être lus depuis le réseau, jamais depuis le
+// cache du Service Worker : leur intérêt même est d'être vérifiés à chaque
+// fois pour détecter une mise à jour (version.json est déjà lu en direct
+// par le SW lui-même hors de ce handler ; database_export.json est lu par
+// la page via fetch() — s'il passait par le cache stale-while-revalidate,
+// la page recevrait systématiquement l'ancienne version mise en cache au
+// lieu d'aller vérifier le réseau comme elle le demande explicitement).
+const NETWORK_ONLY_FILES = ['./version.json', './database_export.json'];
+
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
@@ -145,6 +154,15 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+
+  if (NETWORK_ONLY_FILES.some((f) => url.pathname.endsWith(f.replace('./', '/')))) {
+    event.respondWith(
+      fetch(request, { cache: 'no-store' }).catch(
+        () => new Response('', { status: 503, statusText: 'Hors-ligne' })
+      )
+    );
+    return;
+  }
 
   event.respondWith(_staleWhileRevalidate(request));
 });

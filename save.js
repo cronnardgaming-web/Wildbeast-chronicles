@@ -296,6 +296,13 @@ const SaveSystem = (() => {
   /**
    * Exporte UNIQUEMENT la configuration du jeu (base de données fonctionnelle).
    * N'inclut aucune donnée de joueur.
+   *
+   * Le fichier est TOUJOURS nommé "database_export.json" (nom fixe, sans
+   * horodatage) : c'est ce nom exact qu'il faut déposer sur GitHub à côté
+   * des fichiers .js pour que chaque appareil le détecte automatiquement
+   * au démarrage (cf. _checkRemoteDatabaseUpdate dans index.html) et
+   * applique les nouveautés (nouvelles créatures, quêtes, etc.) sans
+   * jamais toucher à la progression personnelle des joueurs.
    * @param {object} gameState
    */
   function exportGameDatabase(gameState) {
@@ -319,7 +326,7 @@ const SaveSystem = (() => {
         patchNotes:  gameState.patchNotes,
         // ── NON inclus : player (collection, monnaies, progression…) ─────────
       };
-      _downloadJson(payload, `wildbeast_database_${_dateStamp()}.json`);
+      _downloadJson(payload, `database_export.json`);
     } catch (e) { console.error('[SaveSystem] Échec export base de données:', e); }
   }
 
@@ -414,6 +421,64 @@ const SaveSystem = (() => {
     return new Date().toISOString().slice(0, 16).replace('T', '_').replace(':', 'h');
   }
 
+  // ─── MISE À JOUR DISTANTE DE LA BASE DE DONNÉES (déploiement GitHub) ─────────
+  //
+  // Pendant que le Service Worker gère la mise à jour des fichiers .js (via
+  // version.json), ce mécanisme gère la mise à jour du CONTENU du jeu
+  // (créatures, types, quêtes, cycles…) déposé sous le nom fixe
+  // "database_export.json" à côté des autres fichiers sur GitHub.
+  //
+  // Suivi par appareil (localStorage) : on retient le `gameVersion` du
+  // dernier database_export.json appliqué, pour ne jamais le réappliquer
+  // inutilement si rien n'a changé depuis le dernier déploiement.
+
+  const REMOTE_DB_VERSION_KEY = 'wildbeast_remote_db_version';
+
+  function getAppliedDbVersion() {
+    return localStorage.getItem(REMOTE_DB_VERSION_KEY);
+  }
+
+  function _setAppliedDbVersion(version) {
+    localStorage.setItem(REMOTE_DB_VERSION_KEY, String(version));
+  }
+
+  /**
+   * Va chercher database_export.json sur le serveur (même origine que le jeu)
+   * et indique s'il contient une version plus récente que celle déjà appliquée
+   * sur cet appareil. Ne modifie rien — lecture pure, sûre à appeler à tout moment.
+   * @returns {Promise<{available:boolean, data?:object}>}
+   */
+  async function checkRemoteDatabaseUpdate() {
+    try {
+      const res = await fetch('./database_export.json', { cache: 'no-store' });
+      if (!res.ok) return { available: false };
+      const data = await res.json();
+      if (!data || data._exportType !== 'wildbeast_db_export') return { available: false };
+
+      const remoteVersion = data.gameVersion || data.exportDate;
+      const appliedVersion = getAppliedDbVersion();
+      if (!remoteVersion || remoteVersion === appliedVersion) return { available: false };
+
+      return { available: true, data };
+    } catch (e) {
+      // Pas de fichier déposé, pas de réseau, ou JSON invalide : on ignore
+      // silencieusement (le jeu fonctionne très bien sans ce fichier).
+      return { available: false };
+    }
+  }
+
+  /**
+   * Applique une base de données distante déjà récupérée (cf.
+   * checkRemoteDatabaseUpdate) et mémorise sa version comme "appliquée"
+   * sur cet appareil. Ne touche jamais aux données joueur.
+   * @param {object} data - le JSON de database_export.json
+   */
+  function applyRemoteDatabase(data) {
+    GameState.applyGameDatabase(data);
+    save(GameState.get());
+    _setAppliedDbVersion(data.gameVersion || data.exportDate);
+  }
+
   return {
     getActiveSlot, setActiveSlot, getSlotsInfo,
     save, saveGlobalConfig, load, loadGlobalConfig, clear,
@@ -421,6 +486,7 @@ const SaveSystem = (() => {
     exportToFile, importFromFile,
     exportGameDatabase, importGameDatabase,
     exportPlayerData, importPlayerData,
+    checkRemoteDatabaseUpdate, applyRemoteDatabase, getAppliedDbVersion,
     saveSettings, loadSettings,
     restoreActiveSlot,
   };

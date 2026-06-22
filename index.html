@@ -2491,7 +2491,7 @@
         render();
       }
 
-      function _startGame(newPlayerName) {
+      async function _startGame(newPlayerName) {
         // Arrêter l'autosave de l'écran d'accueil
         clearInterval(window._accueilAutosave);
 
@@ -2500,6 +2500,13 @@
 
         // 2. Initialiser l'état complet du jeu
         GameState.init(saved);
+
+        // 2a. Vérifier si une nouvelle base de données (créatures, quêtes…) a
+        //     été déposée sur GitHub depuis la dernière fois — l'appliquer
+        //     silencieusement AVANT que la suite (tirage des quêtes, écrans)
+        //     ne se base sur un catalogue potentiellement obsolète.
+        const { available, data } = await SaveSystem.checkRemoteDatabaseUpdate();
+        if (available) SaveSystem.applyRemoteDatabase(data);
 
         // 2b. Appliquer le nom choisi si c'est une nouvelle partie
         if (newPlayerName) {
@@ -2608,7 +2615,11 @@
         navigator.serviceWorker.addEventListener('message', (event) => {
           if (event.data?.type === 'UPDATE_READY') {
             _updateAvailable = true;
-            _showUpdateBanner();
+            // La nouvelle base de données (créatures, quêtes, cycles…) est
+            // appliquée immédiatement en arrière-plan, AVANT que le joueur ne
+            // clique "Relancer" : au reload, les fichiers .js ET le contenu
+            // du jeu sont déjà synchronisés en une seule étape pour lui.
+            _checkAndApplyRemoteDatabase().finally(_showUpdateBanner);
           }
         });
       }
@@ -2637,6 +2648,23 @@
       return { init };
     })();
 
+    /**
+     * Vérifie si database_export.json (déposé sur GitHub) contient une
+     * version plus récente que celle déjà appliquée sur cet appareil, et
+     * l'applique silencieusement si oui — sans jamais toucher aux données
+     * du joueur. Sûr à appeler à tout moment (no-op si rien de nouveau ou
+     * si le fichier est absent).
+     * @returns {Promise<boolean>} true si une mise à jour a été appliquée
+     */
+    async function _checkAndApplyRemoteDatabase() {
+      const { available, data } = await SaveSystem.checkRemoteDatabaseUpdate();
+      if (!available) return false;
+      SaveSystem.applyRemoteDatabase(data);
+      return true;
+    }
+
+
+
     /* ─── Démarrage ──────────────────────────────────────────── */
     (function bootstrap() {
       PWAUpdater.init();
@@ -2646,6 +2674,12 @@
       // pour que l'admin sur l'écran d'accueil fonctionne
       const globalCfg = SaveSystem.loadGlobalConfig();
       GameState.init(globalCfg); // pas de player → état par défaut côté joueur
+
+      // Vérifie aussi database_export.json dès le tout premier chargement de
+      // la page (couvre le cas où les fichiers .js ont déjà été mis à jour
+      // par le Service Worker lors d'une session précédente, sans que
+      // l'événement UPDATE_READY ne se reproduise cette fois-ci).
+      _checkAndApplyRemoteDatabase();
 
       // Brancher l'admin (sans lancer l'UI de jeu)
       AdminPanel.init();
