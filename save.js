@@ -432,7 +432,13 @@ const SaveSystem = (() => {
   // dernier database_export.json appliqué, pour ne jamais le réappliquer
   // inutilement si rien n'a changé depuis le dernier déploiement.
 
-  const REMOTE_DB_VERSION_KEY = 'wildbeast_remote_db_version';
+  // ⚠️ Le suffixe "_v2" change délibérément la clé par rapport à une version
+  // antérieure de ce mécanisme qui comparait par erreur sur `gameVersion`
+  // (un champ que l'admin ne modifie jamais en pratique, donc toujours
+  // identique d'un export à l'autre) : ce changement de clé garantit que tout
+  // appareil ayant déjà mémorisé une valeur via l'ancienne logique repart
+  // sur une base propre et redétecte correctement la mise à jour en cours.
+  const REMOTE_DB_VERSION_KEY = 'wildbeast_remote_db_version_v2';
 
   function getAppliedDbVersion() {
     return localStorage.getItem(REMOTE_DB_VERSION_KEY);
@@ -446,6 +452,12 @@ const SaveSystem = (() => {
    * Va chercher database_export.json sur le serveur (même origine que le jeu)
    * et indique s'il contient une version plus récente que celle déjà appliquée
    * sur cet appareil. Ne modifie rien — lecture pure, sûre à appeler à tout moment.
+   *
+   * ⚠️ La comparaison se base en priorité sur `exportDate` (horodatage généré
+   * automatiquement à CHAQUE clic sur "Export BDD"), pas sur `gameVersion`
+   * (qui reflète config.game.version — un champ que l'admin ne modifie quasiment
+   * jamais en pratique, et qui resterait donc identique d'un export à l'autre,
+   * empêchant toute détection de changement).
    * @returns {Promise<{available:boolean, data?:object}>}
    */
   async function checkRemoteDatabaseUpdate() {
@@ -455,7 +467,7 @@ const SaveSystem = (() => {
       const data = await res.json();
       if (!data || data._exportType !== 'wildbeast_db_export') return { available: false };
 
-      const remoteVersion = data.gameVersion || data.exportDate;
+      const remoteVersion = data.exportDate || data.gameVersion;
       const appliedVersion = getAppliedDbVersion();
       if (!remoteVersion || remoteVersion === appliedVersion) return { available: false };
 
@@ -476,7 +488,7 @@ const SaveSystem = (() => {
   function applyRemoteDatabase(data) {
     GameState.applyGameDatabase(data);
     save(GameState.get());
-    _setAppliedDbVersion(data.gameVersion || data.exportDate);
+    _setAppliedDbVersion(data.exportDate || data.gameVersion);
   }
 
   return {
