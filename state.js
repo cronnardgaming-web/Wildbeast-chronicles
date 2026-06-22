@@ -719,9 +719,13 @@ const GameState = (() => {
     if (data.dailyQuests) _state.dailyQuests = data.dailyQuests;
     if (data.loginCycles) _state.loginCycles = data.loginCycles;
     if (data.patchNotes)  _state.patchNotes  = data.patchNotes;
-    // player inchangé : aucune donnée joueur n'est touchée
+    // player inchangé : aucune donnée joueur n'est touchée.
+    // ⚠️ Pas d'_autoSave() ici : applyGameDatabase peut être exécuté depuis
+    // l'écran de sélection de compte, où aucun slot joueur n'est encore chargé.
+    // Si _autoSaveFn était déjà branché, save() écrirait un joueur générique
+    // (DEFAULT_PLAYER) par-dessus le vrai slot. La persistance est assurée
+    // explicitement par l'appelant via SaveSystem.saveGlobalConfig().
     _notify('configChanged');
-    _autoSave();
   }
 
   /**

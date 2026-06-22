@@ -2492,6 +2492,12 @@
       }
 
       async function _startGame(newPlayerName) {
+        // Verrouiller immédiatement : toute vérification de BDD distante asynchrone
+        // lancée depuis l'écran d'accueil doit devenir un no-op à partir de ce point.
+        // Le joueur générique (DEFAULT_PLAYER) est encore en mémoire — on ne veut
+        // pas qu'un _autoSave() déclenché par applyGameDatabase l'écrive dans un slot.
+        _accountSelected = true;
+
         // Arrêter l'autosave de l'écran d'accueil
         clearInterval(window._accueilAutosave);
 
@@ -2593,6 +2599,13 @@
        PWA UPDATER — enregistrement du Service Worker + détection
        de mise à jour silencieuse (stale-while-revalidate).
        ============================================================ */
+
+    // Flag partagé entre PWAUpdater et AccountScreen._startGame :
+    // mis à true dès qu'un compte commence à se charger. Empêche toute
+    // application asynchrone de BDD distante d'interférer avec le joueur
+    // générique encore présent en mémoire à ce moment précis.
+    let _accountSelected = false;
+
     const PWAUpdater = (() => {
 
       let _updateAvailable = false;
@@ -2619,7 +2632,14 @@
             // appliquée immédiatement en arrière-plan, AVANT que le joueur ne
             // clique "Relancer" : au reload, les fichiers .js ET le contenu
             // du jeu sont déjà synchronisés en une seule étape pour lui.
-            _checkAndApplyRemoteDatabase().finally(_showUpdateBanner);
+            // ⚠️ Si un compte est en cours de chargement (_accountSelected),
+            //    on saute l'application immédiate : elle se fera au prochain
+            //    lancement, depuis _startGame avec le vrai joueur en mémoire.
+            if (!_accountSelected) {
+              _checkAndApplyRemoteDatabase().finally(_showUpdateBanner);
+            } else {
+              _showUpdateBanner();
+            }
           }
         });
       }
@@ -2654,11 +2674,19 @@
      * l'applique silencieusement si oui — sans jamais toucher aux données
      * du joueur. Sûr à appeler à tout moment (no-op si rien de nouveau ou
      * si le fichier est absent).
+     *
+     * ⚠️ Protégé par _accountSelected : si un compte a déjà commencé à se
+     * charger dans _startGame, cette fonction devient un no-op. L'application
+     * de la BDD distante se fait alors à l'intérieur de _startGame (étape 2a),
+     * avec le vrai joueur déjà en mémoire — jamais avec le joueur générique.
+     *
      * @returns {Promise<boolean>} true si une mise à jour a été appliquée
      */
     async function _checkAndApplyRemoteDatabase() {
+      if (_accountSelected) return false; // un compte est en cours de chargement : ne pas interférer
       const { available, data } = await SaveSystem.checkRemoteDatabaseUpdate();
       if (!available) return false;
+      if (_accountSelected) return false; // re-vérifier après l'await (la promesse peut prendre du temps)
       SaveSystem.applyRemoteDatabase(data);
       return true;
     }
@@ -2679,6 +2707,10 @@
       // la page (couvre le cas où les fichiers .js ont déjà été mis à jour
       // par le Service Worker lors d'une session précédente, sans que
       // l'événement UPDATE_READY ne se reproduise cette fois-ci).
+      // ⚠️ On ne déclenche ceci que si aucun compte n'a encore été sélectionné.
+      //    L'application distante de la BDD, une fois un compte en cours de
+      //    chargement, se fait à l'intérieur de _startGame (étape 2a), avec le
+      //    vrai joueur déjà en mémoire — jamais depuis l'écran d'accueil.
       _checkAndApplyRemoteDatabase();
 
       // Brancher l'admin (sans lancer l'UI de jeu)
