@@ -309,6 +309,7 @@ const GameUI = (() => {
     if (_currentScreen === 'collection') renderCollection();
     if (_currentScreen === 'team') renderTeam();
     if (_currentScreen === 'bestiaire') renderBestiaire();
+    if (_currentScreen === 'quests') _renderDailyQuestsList();
   }
 
   /**
@@ -385,12 +386,14 @@ const GameUI = (() => {
       { id: 'combat',     icon: '🔥', label: 'Combat'     },
       { id: 'gacha',      icon: '💎', label: 'Invoquer'   },
       { id: 'equip',      icon: '⚙️', label: 'Équiper'    },
-      { id: 'bestiaire',    icon: '📖', label: 'Bestiaire'    },
+      { id: 'bestiaire',  icon: '📖', label: 'Bestiaire'  },
+      { id: 'quests',     icon: '📜', label: 'Quêtes'     },
     ];
     nav.innerHTML = screens.map(s =>
       `<button class="nav-btn" data-screen="${s.id}">
         <span class="nav-icon">${s.icon}</span>
         <span class="nav-label">${s.label}</span>
+        ${s.id === 'quests' ? '<span class="nav-badge" id="quests-nav-badge" style="display:none;">0</span>' : ''}
       </button>`
     ).join('');
   }
@@ -418,6 +421,7 @@ const GameUI = (() => {
       gacha:      renderGacha,
       equip:      renderEquip,
       bestiaire:    renderBestiaire,
+      quests:     renderDailyQuests,
     };
     renderers[screenId]?.();
     _updateHUD();
@@ -485,6 +489,22 @@ const GameUI = (() => {
       </div>
     `;
     if (accountWrap) resRow.appendChild(accountWrap); // réinjecté après réécriture
+
+    _updateQuestsBadge();
+  }
+
+  /** Met à jour le badge de notification de l'onglet Quêtes (nb de quêtes complétées non réclamées) */
+  function _updateQuestsBadge() {
+    const badge = document.getElementById('quests-nav-badge');
+    if (!badge) return;
+    const todays = QuestSystem.getTodaysQuests();
+    const readyCount = todays.filter(q => q.completed && !q.claimed).length;
+    if (readyCount > 0) {
+      badge.textContent = String(readyCount);
+      badge.style.display = 'flex';
+    } else {
+      badge.style.display = 'none';
+    }
   }
 
   /** Échappe le HTML d'une chaîne (protège contre l'injection via un nom de joueur) */
@@ -677,6 +697,7 @@ const GameUI = (() => {
                 ${t2 ? `<span class="type-badge" style="background:${t2.color}">${t2.icon} ${t2.name}</span>` : ''}
               </div>
               ${_buildPassivesHtml(def, state)}
+              ${_buildTypeAffinitiesHtml(def, state)}
               <div class="detail-level">Niveau <strong>${inst.level}</strong> — XP : ${inst.xp} / ${xpNeeded}</div>
               <div class="detail-awakening">Awakening : ${'★'.repeat(inst.awakening || 0)}</div>
               <div class="stat-grid">
@@ -747,6 +768,83 @@ const GameUI = (() => {
     return `<div class="detail-passives"><h4>Passifs</h4><div class="passive-card-list">${cards}</div></div>`;
   }
 
+  /**
+   * Construit le tableau des affinités de types pour un créature donné.
+   * Affiche :
+   *  - Dégâts infligés : quels types adverses subissent x2, x0.5 des attaques de ce créature
+   *  - Dégâts reçus    : quels types adverses lui infligent x2, x0.5
+   * Pour les doubles types, les multiplicateurs se combinent (x4, x0.25).
+   * @param {object} def   - définition du créature (type1, type2)
+   * @param {object} state
+   * @returns {string} HTML
+   */
+  function _buildTypeAffinitiesHtml(def, state) {
+    const matrix = state.typeMatrix || GameDatabase.DEFAULT_TYPE_MATRIX;
+    const allTypes = state.types || GameDatabase.DEFAULT_TYPES;
+
+    const attackTypes = [def.type1, def.type2].filter(Boolean);
+
+    // dealtBuckets  : types ennemis touchés → { typeObj } (on déduplique par id)
+    // receivedBuckets : types attaquants ennemis → typeObj
+    const dealtBuckets    = { 2: new Map(), 0.5: new Map() };
+    const receivedBuckets = { 4: [], 2: [], 0.5: [], 0.25: [] };
+
+    allTypes.forEach(atkType => {
+      // Dégâts infligés : chaque type d'attaque de CE créature sur atkType défenseur mono-type
+      attackTypes.forEach(myAtkType => {
+        const mult = GameDatabase.getTypeEffectiveness(myAtkType, atkType.id, null, matrix);
+        if (mult === 2 && !dealtBuckets[2].has(atkType.id))   dealtBuckets[2].set(atkType.id, atkType);
+        if (mult === 0.5 && !dealtBuckets[0.5].has(atkType.id)) dealtBuckets[0.5].set(atkType.id, atkType);
+      });
+
+      // Dégâts reçus : atkType attaque CE créature (défenseur bi-type)
+      const multRec = GameDatabase.getTypeEffectiveness(atkType.id, def.type1, def.type2 || null, matrix);
+      if      (multRec === 4)    receivedBuckets[4].push(atkType);
+      else if (multRec === 2)    receivedBuckets[2].push(atkType);
+      else if (multRec === 0.5)  receivedBuckets[0.5].push(atkType);
+      else if (multRec === 0.25) receivedBuckets[0.25].push(atkType);
+    });
+
+    function _typePill(typeDef) {
+      if (!typeDef) return '';
+      return `<span class="affinity-pill" style="background:${typeDef.color}" title="${typeDef.name}">${typeDef.icon} ${typeDef.name}</span>`;
+    }
+
+    function _bucketRow(label, colorCls, types) {
+      if (!types || types.length === 0) return '';
+      return `<div class="affinity-row ${colorCls}">
+        <span class="affinity-mult">${label}</span>
+        <div class="affinity-pills">${types.map(t => _typePill(t)).join('')}</div>
+      </div>`;
+    }
+
+    const dealtHtml = [
+      _bucketRow('×2',   'aff-super',  [...dealtBuckets[2].values()]),
+      _bucketRow('×0.5', 'aff-resist', [...dealtBuckets[0.5].values()]),
+    ].filter(Boolean).join('');
+
+    const receivedHtml = [
+      _bucketRow('×4',    'aff-ultra',  receivedBuckets[4]),
+      _bucketRow('×2',    'aff-super',  receivedBuckets[2]),
+      _bucketRow('×0.5',  'aff-resist', receivedBuckets[0.5]),
+      _bucketRow('×0.25', 'aff-immune', receivedBuckets[0.25]),
+    ].filter(Boolean).join('');
+
+    if (!dealtHtml && !receivedHtml) return '';
+
+    return `<div class="detail-affinities">
+      <h4>Affinités de types</h4>
+      ${dealtHtml ? `<div class="affinity-section">
+        <div class="affinity-section-label">⚔️ Dégâts infligés</div>
+        <div class="affinity-table">${dealtHtml}</div>
+      </div>` : ''}
+      ${receivedHtml ? `<div class="affinity-section">
+        <div class="affinity-section-label">🛡️ Dégâts reçus</div>
+        <div class="affinity-table">${receivedHtml}</div>
+      </div>` : ''}
+    </div>`;
+  }
+
   const PASSIVE_TRIGGER_LABELS_UI = {
     onAttack:      'en attaquant',
     onHit:         'en touchant',
@@ -786,6 +884,102 @@ const GameUI = (() => {
   function _closeModal() {
     const modal = document.getElementById('modal');
     if (modal) modal.style.display = 'none';
+  }
+
+  // ─── QUÊTES QUOTIDIENNES ────────────────────────────────────────────────────────
+
+  /** Icône représentative par type de quête (cohérent avec le thème du jeu). */
+  const QUEST_TYPE_ICONS = {
+    capture:    '🪤',
+    defeat:     '⚔️',
+    pullEquip:  '🛡️',
+    pullChar:   '💎',
+    line:       '🧬',
+    fullRandom: '🎰',
+    story:      '🗺️',
+  };
+
+  /** Rendu de l'écran "Quêtes" (onglet de navigation principal). */
+  function renderDailyQuests() {
+    const el = document.getElementById('screen-quests');
+    if (!el) return;
+
+    const quests = QuestSystem.getTodaysQuests();
+    const readyCount = quests.filter(q => q.completed && !q.claimed).length;
+
+    el.innerHTML = `
+      <div class="screen-header"><h2>📜 Quêtes du jour</h2></div>
+      <p class="quests-screen-sub">
+        3 quêtes tirées au hasard chaque jour. Reviens demain pour de nouvelles quêtes !
+        ${readyCount > 0 ? `<span class="quests-screen-ready-hint">🎁 ${readyCount} récompense${readyCount > 1 ? 's' : ''} à réclamer</span>` : ''}
+      </p>
+      <div class="quests-screen-list" id="quests-screen-list"></div>
+    `;
+
+    _renderDailyQuestsList();
+  }
+
+  /** (Re)génère uniquement la liste de quêtes à l'intérieur de l'écran déjà affiché. */
+  function _renderDailyQuestsList() {
+    const listEl = document.getElementById('quests-screen-list');
+    if (!listEl) return;
+
+    const quests = QuestSystem.getTodaysQuests();
+    if (quests.length === 0) {
+      listEl.innerHTML = `<p class="quests-empty">Aucune quête active pour le moment. Reviens plus tard !</p>`;
+      return;
+    }
+
+    listEl.innerHTML = quests.map(q => {
+      const pct = Math.min(100, Math.round((q.current / q.target) * 100));
+      const icon = QUEST_TYPE_ICONS[q.def.type] || '📋';
+      return `
+        <div class="quest-card ${q.claimed ? 'is-claimed' : q.completed ? 'is-ready' : ''}">
+          <div class="quest-card-icon">${icon}</div>
+          <div class="quest-card-body">
+            <div class="quest-card-label">${_escapeHtml(q.def.label)}</div>
+            <div class="quest-card-progressbar">
+              <div class="quest-card-progressfill" style="width:${pct}%"></div>
+            </div>
+            <div class="quest-card-progresstext">${q.current} / ${q.target}</div>
+            <div class="quest-card-reward">
+              <span class="quest-card-reward-label">Récompense</span>
+              ${_formatQuestRewardLine(q.def.reward)}
+            </div>
+          </div>
+          <button class="quest-claim-btn" data-quest-id="${q.def.id}"
+            ${!q.completed || q.claimed ? 'disabled' : ''}>
+            ${q.claimed ? '✓ Reçue' : q.completed ? '🎁 Réclamer' : '🔒'}
+          </button>
+        </div>`;
+    }).join('');
+
+    listEl.querySelectorAll('.quest-claim-btn:not([disabled])').forEach(btn => {
+      btn.addEventListener('click', () => _claimDailyQuest(btn.dataset.questId));
+    });
+  }
+
+  function _formatQuestRewardLine(reward) {
+    const parts = [];
+    if (reward.crystals) parts.push(`<span class="quest-reward-chip">+${reward.crystals} 💎</span>`);
+    if (reward.gold) parts.push(`<span class="quest-reward-chip">+${reward.gold} 🪙</span>`);
+    if (reward.items) {
+      const itemDefs = GameState.getItemDefs();
+      Object.entries(reward.items).forEach(([itemId, qty]) => {
+        if (!qty) return;
+        const def = itemDefs.find(i => i.id === itemId);
+        parts.push(`<span class="quest-reward-chip">+${qty} ${def?.icon || ''} ${def?.name || itemId}</span>`.trim());
+      });
+    }
+    return parts.join('') || '<span class="quest-reward-chip">—</span>';
+  }
+
+  function _claimDailyQuest(questId) {
+    const res = QuestSystem.claimQuestReward(questId);
+    if (!res.success) return;
+    _updateHUD();
+    _renderDailyQuestsList();
+    _showToast('🎁 Récompense de quête reçue !', 'success');
   }
 
   // ─── ÉQUIPE ───────────────────────────────────────────────────────────────────
@@ -1335,6 +1529,89 @@ const GameUI = (() => {
 
     _renderTurnOrderBar();
     _renderBattleControls();
+    _bindFighterPortraitClicks();
+  }
+
+  /**
+   * Attache un listener sur chaque .fighter-portrait dans l'arène de combat :
+   * un clic ouvre la fiche détaillée du combattant (comme dans la collection).
+   * Pour les ennemis (pas dans la collection joueur), affiche une fiche simplifiée.
+   */
+  function _bindFighterPortraitClicks() {
+    document.querySelectorAll('.fighter-card').forEach(card => {
+      const portrait = card.querySelector('.fighter-portrait');
+      if (!portrait) return;
+      const instanceId = card.id.replace('fighter-', '');
+      portrait.style.cursor = 'pointer';
+      portrait.title = 'Voir la fiche';
+      portrait.addEventListener('click', () => {
+        // Cherche d'abord dans la collection joueur
+        const playerInst = GameState.getPlayerChar(instanceId);
+        if (playerInst) {
+          _openCharDetail(instanceId);
+          return;
+        }
+        // Ennemi : fiche simplifiée construite depuis le combattant _battle
+        if (!_battle) return;
+        const combatant = [..._battle.enemyTeam, ..._battle.playerTeam].find(c => c.instanceId === instanceId);
+        if (combatant) _openEnemyFighterDetail(combatant);
+      });
+    });
+  }
+
+  /**
+   * Fiche simplifiée pour un ennemi (pas dans la collection du joueur) :
+   * affiche portrait, types, stats actuelles, affinités.
+   */
+  function _openEnemyFighterDetail(combatant) {
+    const modal = document.getElementById('modal');
+    if (!modal) return;
+    const state = GameState.get();
+    const def = GameState.getCharDef(combatant.charId || combatant.id);
+    const types = state.types;
+    const t1 = types.find(t => t.id === combatant.type1);
+    const t2 = combatant.type2 ? types.find(t => t.id === combatant.type2) : null;
+    const rarityDef = GameDatabase.RARITIES[combatant.rarity] || {};
+
+    const affinHtml = def ? _buildTypeAffinitiesHtml(def, state) : _buildTypeAffinitiesHtml(combatant, state);
+
+    modal.innerHTML = `
+      <div class="modal-backdrop" id="modal-backdrop">
+        <div class="modal-box">
+          <button class="modal-close" id="modal-close">✕</button>
+          <div class="detail-layout">
+            <div class="detail-portrait">
+              ${combatant.portrait
+                ? `<img src="${combatant.portrait}" alt="${combatant.name}">`
+                : `<div class="detail-portrait-placeholder">${combatant.name.charAt(0)}</div>`}
+              <div class="detail-rarity" style="background:${rarityDef.color || '#888'}">${rarityDef.name || combatant.rarity}</div>
+            </div>
+            <div class="detail-info">
+              <h3>${combatant.name}</h3>
+              ${def?.description ? `<p class="detail-desc">${def.description}</p>` : ''}
+              <div class="detail-types">
+                ${t1 ? `<span class="type-badge" style="background:${t1.color}">${t1.icon} ${t1.name}</span>` : ''}
+                ${t2 ? `<span class="type-badge" style="background:${t2.color}">${t2.icon} ${t2.name}</span>` : ''}
+              </div>
+              ${def ? _buildPassivesHtml(def, state) : ''}
+              ${affinHtml}
+              <div class="detail-level">Niveau <strong>${combatant.level}</strong></div>
+              <div class="stat-grid">
+                <div class="stat-row"><span>♥ PV</span><strong>${combatant.currentHp} / ${combatant.maxHp}</strong></div>
+                <div class="stat-row"><span>⚔ ATK</span><strong>${combatant.atk}</strong></div>
+                <div class="stat-row"><span>🛡 DEF</span><strong>${combatant.def}</strong></div>
+                <div class="stat-row"><span>💨 VIT</span><strong>${combatant.spd}</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+
+    modal.style.display = 'block';
+    document.getElementById('modal-close')?.addEventListener('click', _closeModal);
+    document.getElementById('modal-backdrop')?.addEventListener('click', e => {
+      if (e.target === e.currentTarget) _closeModal();
+    });
   }
 
   /**
@@ -2955,6 +3232,8 @@ const GameUI = (() => {
       results.push(_rollEquipPull(banner, state));
     }
 
+    if (typeof QuestSystem !== 'undefined') QuestSystem.trackPullEquip(count);
+
     _updateHUD();
     _showEquipResults(results, () => {
       document.querySelectorAll('.btn-equip-pull').forEach(b => { b.disabled = false; b.style.opacity = ''; });
@@ -3213,6 +3492,8 @@ const GameUI = (() => {
   return {
     init, showScreen,
     renderCollection, renderTeam, renderGacha, renderEquip, renderBestiaire, renderCombatLobby, renderCombatByLine,
+    renderDailyQuests,
     _showEvolutionShowcase,
+    _updateQuestsBadge,
   };
 })();

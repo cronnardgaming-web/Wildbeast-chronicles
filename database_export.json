@@ -1,6 +1,8 @@
 {
-  "version": "1.0.0",
-  "timestamp": 1782054886454,
+  "_exportType": "wildbeast_db_export",
+  "_exportVersion": "1.0",
+  "exportDate": "2026-06-22T18:23:49.841Z",
+  "gameVersion": "1.0.0",
   "config": {
     "game": {
       "name": "WildBeast Chronicles",
@@ -70,11 +72,11 @@
     },
     "playerLevel": {
       "xpFormula": "base * (level ** expo)",
-      "xpBase": 35,
-      "xpExponent": 1.1,
+      "xpBase": 70,
+      "xpExponent": 1.02,
       "energyPerLevel": 5,
-      "xpPerEnemyKill": 5,
-      "xpPerCapture": 15
+      "xpPerEnemyKill": 3,
+      "xpPerCapture": 6
     },
     "energy": {
       "enabled": true,
@@ -163,102 +165,102 @@
       "fire": {
         "id": "fire",
         "name": "Meute",
-        "icon": "🐺",
-        "description": "Augmente l'attaque d'un autre allié aléatoire pour une attaque.",
+        "description": "Augmente l'attaque d'un autre allié aléatoire de 10% pour une attaque (5% de chance).",
         "trigger": "onAttack",
         "chance": 0.05,
-        "value": 10
+        "value": 10,
+        "icon": "🐺"
       },
       "nature": {
         "id": "nature",
         "name": "Régénération",
-        "icon": "🌱",
-        "description": "Soigne les PV de l'allié possédant le moins de vie.",
+        "description": "Soigne 10% des PV max sur l'allié possédant le moins de vie (10% de chance).",
         "trigger": "onTurnEnd",
         "chance": 0.1,
-        "value": 10
+        "value": 10,
+        "icon": "🌱"
       },
       "ice": {
         "id": "ice",
         "name": "Œil Vif",
-        "icon": "🦅",
-        "description": "Augmente les dégâts critiques.",
+        "description": "Augmente les dégâts critiques de +25%.",
         "trigger": "passive",
         "chance": 1,
-        "value": 25
+        "value": 25,
+        "icon": "🦅"
       },
       "water": {
         "id": "water",
         "name": "Tsunami",
-        "icon": "🌊",
-        "description": "À la fin du tour, chance d'infliger des dégâts à tous les adversaires.",
+        "description": "À la fin du tour, 10% de chance d'infliger 5% de dégâts (des PV max) à tous les adversaires.",
         "trigger": "onTurnEnd",
         "chance": 0.1,
-        "value": 5
+        "value": 5,
+        "icon": "🌊"
       },
       "metal": {
         "id": "metal",
         "name": "Mue",
-        "icon": "🐍",
-        "description": "Juste avant d'attaquer, chance de retirer toutes les altérations d'état sur soi-même.",
+        "description": "Juste avant d'attaquer, retire toutes les altérations d'état sur soi-même (35% de chance).",
         "trigger": "onAttack",
         "chance": 0.35,
-        "value": 0
+        "value": 0,
+        "icon": "🐍"
       },
       "electric": {
         "id": "electric",
         "name": "Paralysie",
-        "icon": "⚡",
-        "description": "Peut paralyser l'adversaire touché, l'empêchant d'agir pendant 1 attaque.",
+        "description": "Peut paralyser l'adversaire touché (5% de chance), l'empêchant d'agir pendant 1 attaque.",
         "trigger": "onHit",
         "chance": 0.05,
-        "value": 1
+        "value": 1,
+        "icon": "⚡"
       },
       "shadow": {
         "id": "shadow",
         "name": "Ombre",
-        "icon": "🌓",
-        "description": "Augmente l'esquive.",
+        "description": "Augmente l'esquive de 7%.",
         "trigger": "passive",
         "chance": 1,
-        "value": 7
+        "value": 7,
+        "icon": "🌓"
       },
       "chaos": {
         "id": "chaos",
         "name": "Venin",
-        "icon": "☠️",
-        "description": "Peut empoisonner l'adversaire touché : Perd des PV tout les tours pendant 5 tours.",
+        "description": "Peut empoisonner l'adversaire touché (5% de chance) : -2% PV max par tour pendant 5 tours.",
         "trigger": "onHit",
         "chance": 0.05,
         "value": 2,
-        "value2": 5
+        "value2": 5,
+        "icon": "☠️"
       },
       "light": {
         "id": "light",
         "name": "Contre-Attaque",
-        "icon": "🦍",
-        "description": "Lorsqu'il subit des dégâts, chance de lancer une attaque immédiatement sur l'attaquant.",
+        "description": "Lorsqu'il subit des dégâts, 5% de chance de lancer une attaque immédiatement sur l'attaquant.",
         "trigger": "onDamaged",
         "chance": 0.05,
-        "value": 0
+        "value": 0,
+        "icon": "🦍"
       },
       "magic": {
         "id": "magic",
         "name": "Hypnose",
-        "icon": "🦊",
-        "description": "Peut charmer l'adversaire touché : sa prochaine attaque vise un de ses coéquipiers au hasard.",
+        "description": "Peut charmer l'adversaire touché (5% de chance) : sa prochaine attaque vise un de ses coéquipiers au hasard.",
         "trigger": "onHit",
         "chance": 0.05,
-        "value": 1
+        "value": 1,
+        "icon": "🦊"
       },
       "Cryptide": {
         "id": "Cryptide",
         "name": "Mystère",
-        "icon": "🐉",
         "description": "Au début du combat, ce créature reçoit aléatoirement un des autres passifs.",
         "trigger": "onBattleStart",
         "chance": 1,
-        "value": 0
+        "value": 0,
+        "icon": "🐉"
       }
     }
   },
@@ -2631,6 +2633,239 @@
       },
       "evolutionCondition": null,
       "evolvesTo": null
+    },
+    {
+      "id": "Aigle0",
+      "name": "Aiglon",
+      "description": "",
+      "portrait": "https://france3-regions.franceinfo.fr/image/ju7mJOQ9Cf_iEHJy8ETibNTPeP4/1200x1200/regions/2021/08/17/611bcbad6ea34_aigle-royal-photo-cd30-5427093.jpg",
+      "rarity": "rare",
+      "evolutionLine": "Aiglon",
+      "evolutionStage": 0,
+      "type1": "ice",
+      "type2": null,
+      "baseStats": {
+        "hp": 740,
+        "atk": 122,
+        "def": 61,
+        "spd": 149
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 8
+      },
+      "evolvesTo": "Aiglon1"
+    },
+    {
+      "id": "Aigle1",
+      "name": "Aigle",
+      "description": "",
+      "portrait": "https://zoo-boissiere.com/wp-content/uploads/2025/06/aigle-steppe-passeport2.jpg",
+      "rarity": "rare",
+      "evolutionLine": "Aiglon",
+      "evolutionStage": 1,
+      "type1": "ice",
+      "type2": null,
+      "baseStats": {
+        "hp": 785,
+        "atk": 130,
+        "def": 65,
+        "spd": 158
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 18
+      },
+      "evolvesTo": "Aiglon2"
+    },
+    {
+      "id": "Aigle2",
+      "name": "Aigle Royal",
+      "description": "",
+      "portrait": "https://www.monde-animal.fr/wp-content/uploads/2020/04/aigle-royal-photo-mise-en-avant.jpg",
+      "rarity": "rare",
+      "evolutionLine": "Aiglon",
+      "evolutionStage": 2,
+      "type1": "ice",
+      "type2": null,
+      "baseStats": {
+        "hp": 833,
+        "atk": 138,
+        "def": 69,
+        "spd": 168
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 50
+      },
+      "evolvesTo": "Aiglon3"
+    },
+    {
+      "id": "Aigle3",
+      "name": "Aigle de Haast",
+      "description": "",
+      "portrait": "https://preview.redd.it/haasts-eagle-attacking-a-human-v0-0wp7nbg8qvh31.jpg?auto=webp&s=614d1a5a82e8849a962b077f0bc15a4761a6cdcd",
+      "rarity": "rare",
+      "evolutionLine": "Aiglon",
+      "evolutionStage": 3,
+      "type1": "ice",
+      "type2": "light",
+      "baseStats": {
+        "hp": 1430,
+        "atk": 147,
+        "def": 102,
+        "spd": 179
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 100
+      },
+      "evolvesTo": "Aiglon4"
+    },
+    {
+      "id": "Aigle4",
+      "name": "Rokh",
+      "description": "",
+      "portrait": "https://www.dol-celeb.com/wp-content/uploads/2024/04/phenix.jpg",
+      "rarity": "rare",
+      "evolutionLine": "Aiglon",
+      "evolutionStage": 4,
+      "type1": "ice",
+      "type2": "Cryptide",
+      "baseStats": {
+        "hp": 1260,
+        "atk": 156,
+        "def": 104,
+        "spd": 190
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Anaconda1",
+      "name": "Serpenteau",
+      "description": "",
+      "portrait": "https://i.redd.it/7ct6mihgcyc91.jpg",
+      "rarity": "epic",
+      "evolutionLine": "Anaconda",
+      "evolutionStage": 0,
+      "type1": "metal",
+      "type2": null,
+      "baseStats": {
+        "hp": 1280,
+        "atk": 120,
+        "def": 152,
+        "spd": 80
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 18
+      },
+      "evolvesTo": "Anaconda2"
+    },
+    {
+      "id": "Anaconda2",
+      "name": "Anaconda",
+      "description": "",
+      "portrait": "https://zoo-boissiere.com/wp-content/uploads/2025/06/anaconda-passeport.jpg",
+      "rarity": "epic",
+      "evolutionLine": "Anaconda",
+      "evolutionStage": 1,
+      "type1": "metal",
+      "type2": "light",
+      "baseStats": {
+        "hp": 1700,
+        "atk": 136,
+        "def": 162,
+        "spd": 85
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 40
+      },
+      "evolvesTo": "Anaconda3"
+    },
+    {
+      "id": "Anaconda3",
+      "name": "Titanoboa",
+      "description": "",
+      "portrait": "https://static.wikia.nocookie.net/nickcutter/images/5/5f/NW1x2_TitanoboaInfobox.png/revision/latest?cb=20130901172339&path-prefix=fr",
+      "rarity": "epic",
+      "evolutionLine": "Anaconda",
+      "evolutionStage": 2,
+      "type1": "metal",
+      "type2": "light",
+      "baseStats": {
+        "hp": 1810,
+        "atk": 145,
+        "def": 172,
+        "spd": 91
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 100
+      },
+      "evolvesTo": "Anaconda4"
+    },
+    {
+      "id": "Anaconda4",
+      "name": "Jormungand",
+      "description": "",
+      "portrait": "https://static.wikia.nocookie.net/hanin/images/2/22/Jormungand.jpg/revision/latest?cb=20180319153430&path-prefix=fr",
+      "rarity": "epic",
+      "evolutionLine": "Anaconda",
+      "evolutionStage": 3,
+      "type1": "metal",
+      "type2": "Cryptide",
+      "baseStats": {
+        "hp": 1740,
+        "atk": 164,
+        "def": 194,
+        "spd": 128
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
+    },
+    {
+      "id": "Aye-Aye0",
+      "name": "Bébé Aye-Aye",
+      "description": "",
+      "portrait": "https://i.etsystatic.com/7973851/r/il/24d96a/1695171616/il_fullxfull.1695171616_751f.jpg",
+      "rarity": "mythic",
+      "evolutionLine": "Aye-Aye",
+      "evolutionStage": 0,
+      "type1": "shadow",
+      "type2": null,
+      "baseStats": {
+        "hp": 1350,
+        "atk": 203,
+        "def": 113,
+        "spd": 225
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 12
+      },
+      "evolvesTo": "Aye-Aye1"
+    },
+    {
+      "id": "Aye-Aye1",
+      "name": "Aye-Aye",
+      "description": "",
+      "portrait": "https://static.wixstatic.com/media/6b1166_7e7063aad90a4c599ce3be98ef519fef~mv2.jpg/v1/fill/w_568,h_854,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/6b1166_7e7063aad90a4c599ce3be98ef519fef~mv2.jpg",
+      "rarity": "mythic",
+      "evolutionLine": "Aye-Aye",
+      "evolutionStage": 1,
+      "type1": "shadow",
+      "type2": null,
+      "baseStats": {
+        "hp": 1431,
+        "atk": 216,
+        "def": 120,
+        "spd": 239
+      },
+      "evolutionCondition": null,
+      "evolvesTo": null
     }
   ],
   "equipment": [
@@ -2905,6 +3140,41 @@
       }
     }
   ],
+  "items": [
+    {
+      "id": "item_power_pill",
+      "name": "Pillule de Puissance",
+      "icon": "💊",
+      "description": "Fait gagner immédiatement 1 niveau à n'importe quelle créature.",
+      "stackable": true
+    },
+    {
+      "id": "item_energy_potion",
+      "name": "Potion d'Énergie",
+      "icon": "🧪",
+      "description": "Redonne immédiatement 50 points d'énergie.",
+      "stackable": true
+    }
+  ],
+  "equipBanners": [
+    {
+      "id": "equip_banner_standard",
+      "name": "Invocation Équipement",
+      "description": "Obtenez des équipements pour renforcer vos personnages.",
+      "active": true,
+      "singlePullCost": 80,
+      "tenPullCost": 720,
+      "guaranteedRareAfter": 10,
+      "guaranteedEpicAfter": 30,
+      "dropRates": {
+        "common": 45,
+        "uncommon": 30,
+        "rare": 16,
+        "epic": 7,
+        "legendary": 2
+      }
+    }
+  ],
   "banners": [
     {
       "id": "banner_standard",
@@ -2925,5 +3195,290 @@
       "featuredRateBoost": 2
     }
   ],
-  "exportDate": "2026-06-21T15:14:46.454Z"
+  "dailyQuests": [
+    {
+      "id": "q_capture_1",
+      "type": "capture",
+      "target": 1,
+      "active": true,
+      "label": "Capturer 1 créature",
+      "reward": {
+        "crystals": 15,
+        "gold": 0,
+        "items": {}
+      }
+    },
+    {
+      "id": "q_capture_2",
+      "type": "capture",
+      "target": 2,
+      "active": true,
+      "label": "Capturer 2 créatures",
+      "reward": {
+        "crystals": 35,
+        "gold": 0,
+        "items": {}
+      }
+    },
+    {
+      "id": "q_capture_3",
+      "type": "capture",
+      "target": 3,
+      "active": true,
+      "label": "Capturer 3 créatures",
+      "reward": {
+        "crystals": 70,
+        "gold": 0,
+        "items": {}
+      }
+    },
+    {
+      "id": "q_defeat_5",
+      "type": "defeat",
+      "target": 5,
+      "active": true,
+      "label": "Battre 5 ennemis",
+      "reward": {
+        "crystals": 0,
+        "gold": 150,
+        "items": {}
+      }
+    },
+    {
+      "id": "q_defeat_10",
+      "type": "defeat",
+      "target": 10,
+      "active": true,
+      "label": "Battre 10 ennemis",
+      "reward": {
+        "crystals": 0,
+        "gold": 300,
+        "items": {}
+      }
+    },
+    {
+      "id": "q_pull_equip_1",
+      "type": "pullEquip",
+      "target": 1,
+      "active": true,
+      "label": "Invoquer 1 équipement",
+      "reward": {
+        "crystals": 0,
+        "gold": 50,
+        "items": {}
+      }
+    },
+    {
+      "id": "q_pull_equip_10",
+      "type": "pullEquip",
+      "target": 10,
+      "active": true,
+      "label": "Invoquer 10 équipements",
+      "reward": {
+        "crystals": 0,
+        "gold": 550,
+        "items": {}
+      }
+    },
+    {
+      "id": "q_pull_char_1",
+      "type": "pullChar",
+      "target": 1,
+      "active": true,
+      "label": "Invoquer 1 personnage",
+      "reward": {
+        "crystals": 50,
+        "gold": 0,
+        "items": {}
+      }
+    },
+    {
+      "id": "q_pull_char_10",
+      "type": "pullChar",
+      "target": 10,
+      "active": true,
+      "label": "Invoquer 10 personnages",
+      "reward": {
+        "crystals": 550,
+        "gold": 0,
+        "items": {}
+      }
+    },
+    {
+      "id": "q_line_1",
+      "type": "line",
+      "target": 1,
+      "active": true,
+      "label": "Réussir 1 combat de lignée",
+      "reward": {
+        "crystals": 0,
+        "gold": 150,
+        "items": {}
+      }
+    },
+    {
+      "id": "q_line_3",
+      "type": "line",
+      "target": 3,
+      "active": true,
+      "label": "Réussir 3 combats de lignée",
+      "reward": {
+        "crystals": 0,
+        "gold": 400,
+        "items": {}
+      }
+    },
+    {
+      "id": "q_fullrandom_1",
+      "type": "fullRandom",
+      "target": 1,
+      "active": true,
+      "label": "Réussir 1 combat Full Aléatoire",
+      "reward": {
+        "crystals": 0,
+        "gold": 150,
+        "items": {}
+      }
+    },
+    {
+      "id": "q_fullrandom_3",
+      "type": "fullRandom",
+      "target": 3,
+      "active": true,
+      "label": "Réussir 3 combats Full Aléatoire",
+      "reward": {
+        "crystals": 0,
+        "gold": 400,
+        "items": {}
+      }
+    },
+    {
+      "id": "q_story_1",
+      "type": "story",
+      "target": 1,
+      "active": true,
+      "label": "Réussir 1 combat d'Odyssée",
+      "reward": {
+        "crystals": 0,
+        "gold": 0,
+        "items": {
+          "item_energy_potion": 3
+        }
+      }
+    }
+  ],
+  "loginCycles": [
+    {
+      "id": "login_cycle_coins",
+      "name": "Récompenses Quotidiennes",
+      "active": true,
+      "days": [
+        {
+          "reward": {
+            "crystals": 10,
+            "gold": 50,
+            "items": {}
+          }
+        },
+        {
+          "reward": {
+            "crystals": 20,
+            "gold": 75,
+            "items": {}
+          }
+        },
+        {
+          "reward": {
+            "crystals": 30,
+            "gold": 100,
+            "items": {}
+          }
+        },
+        {
+          "reward": {
+            "crystals": 40,
+            "gold": 150,
+            "items": {}
+          }
+        },
+        {
+          "reward": {
+            "crystals": 60,
+            "gold": 200,
+            "items": {}
+          }
+        },
+        {
+          "reward": {
+            "crystals": 80,
+            "gold": 250,
+            "items": {}
+          }
+        },
+        {
+          "reward": {
+            "crystals": 100,
+            "gold": 300,
+            "items": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "login_cycle_potions",
+      "name": "Cycle Potions",
+      "active": true,
+      "days": [
+        {
+          "reward": {
+            "crystals": 0,
+            "gold": 0,
+            "items": {
+              "item_energy_potion": 1
+            }
+          }
+        },
+        {
+          "reward": {
+            "crystals": 0,
+            "gold": 0,
+            "items": {
+              "item_energy_potion": 1
+            }
+          }
+        },
+        {
+          "reward": {
+            "crystals": 0,
+            "gold": 0,
+            "items": {
+              "item_energy_potion": 2
+            }
+          }
+        },
+        {
+          "reward": {
+            "crystals": 0,
+            "gold": 0,
+            "items": {
+              "item_energy_potion": 3
+            }
+          }
+        },
+        {
+          "reward": {
+            "crystals": 0,
+            "gold": 0,
+            "items": {
+              "item_power_pill": 1
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "patchNotes": {
+    "id": "pn_mqpjnqfc",
+    "text": "22/06/2026\nPatch Note 0.2.0 :\n\n-Ajout d'un système de récompense de connexion quotidienne\n-Ajout de quêtes journalières\n-La fiche info dans Collection donnent les faiblesses et résistances de chaque animal pour chacun de ses types\n-Pour les animaux à double type, seul le premier type de chaque animal étant prix en compte dans le calcul de faiblesse et de résistance. Dorénavant, pour chaque attaque, c'est le type le plus avantageux qui est choisi en fonction des faiblesses et résistances de l'animal adverse.\n\n-Ajout de 3 nouvelles lignes évolutives (animaux et leurs évolutions)\n\n-Réajustement des gains de niveau de joueur"
+  }
 }

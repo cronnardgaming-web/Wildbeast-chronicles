@@ -852,7 +852,11 @@ const CombatEngine = (() => {
     let bestScore = -1;
 
     for (const target of alive) {
-      const mult  = GameDatabase.getTypeEffectiveness(attacker.type1, target.type1, target.type2, matrix);
+      const mult1 = GameDatabase.getTypeEffectiveness(attacker.type1, target.type1, target.type2, matrix);
+      const mult2 = attacker.type2
+        ? GameDatabase.getTypeEffectiveness(attacker.type2, target.type1, target.type2, matrix)
+        : 0;
+      const mult  = Math.max(mult1, mult2);
       const dmg   = Math.max(1, attacker.atk - target.def) * mult;
       // Score : dégâts pondérés + bonus si coup fatal
       const score = dmg + (dmg >= target.currentHp ? 10000 : 0);
@@ -887,7 +891,13 @@ const CombatEngine = (() => {
     const passivesCfg = state.config.passives || GameDatabase.DEFAULT_PASSIVES;
 
     // ── Efficacité de type ──────────────────────────────────────────────────
-    const mult = GameDatabase.getTypeEffectiveness(attacker.type1, target.type1, target.type2, matrix);
+    // Option A : l'attaquant utilise le meilleur de ses deux types offensifs.
+    // Les deux types du défenseur sont toujours pris en compte (multiplicatifs).
+    const mult1 = GameDatabase.getTypeEffectiveness(attacker.type1, target.type1, target.type2, matrix);
+    const mult2 = attacker.type2
+      ? GameDatabase.getTypeEffectiveness(attacker.type2, target.type1, target.type2, matrix)
+      : 0;
+    const mult = Math.max(mult1, mult2);
 
     // ── Esquive via vitesse (cap configurable) + bonus passif Ombre ─────────
     const spdDiff    = target.spd - attacker.spd;
@@ -1056,6 +1066,14 @@ const CombatEngine = (() => {
         stats: { ...player.stats, totalVictories: player.stats.totalVictories + 1 },
       });
 
+      // ── Quêtes quotidiennes : "Battre X ennemis" + combat réussi par mode ──────
+      if (typeof QuestSystem !== 'undefined') {
+        QuestSystem.trackDefeat(_battle.enemyTeam.length);
+        if (_battle.mode === 'line') QuestSystem.trackLineWin();
+        else if (_battle.mode === 'fullRandom') QuestSystem.trackFullRandomWin();
+        else if (_battle.mode === 'story') QuestSystem.trackStoryWin();
+      }
+
       _battle.rewards = { xpEarned, gold, diamonds, levelUps, energyPotionsDropped };
       _emit('victory', { battle: _battle, rewards: _battle.rewards });
 
@@ -1083,6 +1101,7 @@ const CombatEngine = (() => {
       GameState.updatePlayer({
         stats: { ...player.stats, totalCaptures: player.stats.totalCaptures + 1 },
       });
+      if (typeof QuestSystem !== 'undefined') QuestSystem.trackCapture();
       _emit('capture', { success: true, charId: capturable.charId, addResult });
       return { success: true, addResult };
     } else {

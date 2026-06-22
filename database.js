@@ -620,6 +620,17 @@ const GameDatabase = (() => {
       totalCaptures: 0,
       playtime: 0,
     },
+    // ── Récompenses de connexion quotidienne ──────────────────────────────────
+    // { [cycleId]: { dayIndex: number (0-indexé, prochain jour à réclamer),
+    //                lastClaimDate: 'YYYY-MM-DD' | null } }
+    loginCycleState: {},
+    // ── Quêtes quotidiennes ───────────────────────────────────────────────────
+    dailyQuestState: {
+      date: null,           // 'YYYY-MM-DD' du tirage actuel
+      questIds: [],         // les 3 IDs de quêtes tirées pour la date courante
+      progress: {},         // { questId: number } compteur courant
+      claimed: {},          // { questId: true } déjà réclamée aujourd'hui
+    },
   };
 
   // ─── ITEMS ────────────────────────────────────────────────────────────────────
@@ -638,6 +649,78 @@ const GameDatabase = (() => {
       icon: '🧪',
       description: 'Redonne immédiatement 50 points d\'énergie.',
       stackable: true,
+    },
+  ];
+
+  // ─── QUÊTES QUOTIDIENNES ──────────────────────────────────────────────────────
+  // Catalogue fixe de 14 types de quêtes (le "type" pilote le tracking automatique
+  // en jeu, cf. QuestSystem). L'admin ne peut pas en ajouter de nouvelles (la liste
+  // est fermée), seulement activer/désactiver chacune et paramétrer sa récompense.
+  // reward: { crystals, gold, items: { itemId: qty } }
+
+  const DEFAULT_DAILY_QUESTS = [
+    { id: 'q_capture_1',     type: 'capture',     target: 1,  active: true, label: 'Capturer 1 créature',
+      reward: { crystals: 50,  gold: 0,   items: {} } },
+    { id: 'q_capture_2',     type: 'capture',     target: 2,  active: true, label: 'Capturer 2 créatures',
+      reward: { crystals: 100, gold: 0,   items: {} } },
+    { id: 'q_capture_3',     type: 'capture',     target: 3,  active: true, label: 'Capturer 3 créatures',
+      reward: { crystals: 150, gold: 0,   items: {} } },
+    { id: 'q_defeat_5',      type: 'defeat',      target: 5,  active: true, label: 'Battre 5 ennemis',
+      reward: { crystals: 0,   gold: 200, items: {} } },
+    { id: 'q_defeat_10',     type: 'defeat',      target: 10, active: true, label: 'Battre 10 ennemis',
+      reward: { crystals: 0,   gold: 400, items: {} } },
+    { id: 'q_pull_equip_1',  type: 'pullEquip',   target: 1,  active: true, label: 'Invoquer 1 équipement',
+      reward: { crystals: 0,   gold: 150, items: {} } },
+    { id: 'q_pull_equip_10', type: 'pullEquip',   target: 10, active: true, label: 'Invoquer 10 équipements',
+      reward: { crystals: 0,   gold: 800, items: {} } },
+    { id: 'q_pull_char_1',   type: 'pullChar',    target: 1,  active: true, label: 'Invoquer 1 personnage',
+      reward: { crystals: 80,  gold: 0,   items: {} } },
+    { id: 'q_pull_char_10',  type: 'pullChar',    target: 10, active: true, label: 'Invoquer 10 personnages',
+      reward: { crystals: 400, gold: 0,   items: {} } },
+    { id: 'q_line_1',        type: 'line',        target: 1,  active: true, label: 'Réussir 1 combat de lignée',
+      reward: { crystals: 60,  gold: 0,   items: {} } },
+    { id: 'q_line_3',        type: 'line',        target: 3,  active: true, label: 'Réussir 3 combats de lignée',
+      reward: { crystals: 180, gold: 0,   items: {} } },
+    { id: 'q_fullrandom_1',  type: 'fullRandom',  target: 1,  active: true, label: 'Réussir 1 combat Full Aléatoire',
+      reward: { crystals: 60,  gold: 0,   items: {} } },
+    { id: 'q_fullrandom_3',  type: 'fullRandom',  target: 3,  active: true, label: 'Réussir 3 combats Full Aléatoire',
+      reward: { crystals: 180, gold: 0,   items: {} } },
+    { id: 'q_story_1',       type: 'story',       target: 1,  active: true, label: "Réussir 1 combat d'Odyssée",
+      reward: { crystals: 100, gold: 0,   items: { item_energy_potion: 1 } } },
+  ];
+
+  // ─── RÉCOMPENSES DE CONNEXION QUOTIDIENNE ────────────────────────────────────
+  // Cycles paramétrables en admin : chaque cycle a une liste ordonnée de jours,
+  // chacun avec sa propre récompense. Plusieurs cycles peuvent être actifs en
+  // parallèle (ex : un cycle 7 jours de pièces + un cycle 3 jours de potions).
+  // La progression de chaque cycle ne se réinitialise jamais sur un jour manqué :
+  // elle avance d'un jour à chaque NOUVELLE date calendaire de connexion, et
+  // reboucle au jour 1 une fois le dernier jour du cycle réclamé.
+
+  const DEFAULT_LOGIN_CYCLES = [
+    {
+      id: 'login_cycle_coins',
+      name: 'Récompenses Quotidiennes',
+      active: true,
+      days: [
+        { reward: { crystals: 20,  gold: 50,  items: {} } },
+        { reward: { crystals: 30,  gold: 75,  items: {} } },
+        { reward: { crystals: 40,  gold: 100, items: {} } },
+        { reward: { crystals: 60,  gold: 150, items: {} } },
+        { reward: { crystals: 80,  gold: 200, items: {} } },
+        { reward: { crystals: 100, gold: 250, items: {} } },
+        { reward: { crystals: 200, gold: 500, items: {} } },
+      ],
+    },
+    {
+      id: 'login_cycle_potions',
+      name: 'Cycle Potions',
+      active: true,
+      days: [
+        { reward: { crystals: 0, gold: 0, items: { item_energy_potion: 1 } } },
+        { reward: { crystals: 0, gold: 0, items: { item_energy_potion: 1 } } },
+        { reward: { crystals: 0, gold: 0, items: { item_power_pill: 1 } } },
+      ],
     },
   ];
 
@@ -690,6 +773,8 @@ const GameDatabase = (() => {
     DEFAULT_BANNERS,
     DEFAULT_EQUIPMENT,
     DEFAULT_ITEMS,
+    DEFAULT_DAILY_QUESTS,
+    DEFAULT_LOGIN_CYCLES,
     DEFAULT_EQUIP_BANNERS,
     DEFAULT_PLAYER,
     FUTURE_STUBS,

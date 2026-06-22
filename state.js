@@ -83,6 +83,9 @@ const GameState = (() => {
       items:        JSON.parse(JSON.stringify(GameDatabase.DEFAULT_ITEMS)),
       equipBanners: JSON.parse(JSON.stringify(GameDatabase.DEFAULT_EQUIP_BANNERS)),
       banners:      JSON.parse(JSON.stringify(GameDatabase.DEFAULT_BANNERS)),
+      dailyQuests:  JSON.parse(JSON.stringify(GameDatabase.DEFAULT_DAILY_QUESTS)),
+      loginCycles:  JSON.parse(JSON.stringify(GameDatabase.DEFAULT_LOGIN_CYCLES)),
+      patchNotes:   { id: '', text: '' },
       player:       JSON.parse(JSON.stringify(GameDatabase.DEFAULT_PLAYER)),
     };
   }
@@ -99,6 +102,9 @@ const GameState = (() => {
       items:        saved.items        || defaults.items,
       equipBanners: saved.equipBanners || defaults.equipBanners,
       banners:      saved.banners      || defaults.banners,
+      dailyQuests:  saved.dailyQuests  || defaults.dailyQuests,
+      loginCycles:  saved.loginCycles  || defaults.loginCycles,
+      patchNotes:   saved.patchNotes   || defaults.patchNotes,
       player:       _mergePlayer(defaults.player, saved.player),
     };
   }
@@ -151,6 +157,13 @@ const GameState = (() => {
       stats:     { ...defaults.stats,      ...(saved.stats     || {}) },
       bestiaire: bestiaire,
       story:     { ...defaults.story,      ...(saved.story     || {}) },
+      loginCycleState: { ...defaults.loginCycleState, ...(saved.loginCycleState || {}) },
+      dailyQuestState: {
+        ...defaults.dailyQuestState,
+        ...(saved.dailyQuestState || {}),
+        progress: { ...(saved.dailyQuestState?.progress || {}) },
+        claimed:  { ...(saved.dailyQuestState?.claimed  || {}) },
+      },
     };
   }
 
@@ -166,6 +179,9 @@ const GameState = (() => {
   const getCharDefs  = () => _state.characters;
   const getEquipDefs = () => _state.equipment;
   const getBanners   = () => _state.banners;
+  const getItemDefs  = () => _state.items;
+  const getDailyQuestDefs = () => _state.dailyQuests;
+  const getLoginCycles    = () => _state.loginCycles;
 
   /** Retourne la définition d'un créature par son ID */
   const getCharDef = (id) => _state.characters.find(c => c.id === id);
@@ -384,6 +400,29 @@ const GameState = (() => {
     _autoSave();
   }
 
+  /**
+   * Distribue une récompense composite (gemmes + or + items) au joueur.
+   * Utilisé par le système de récompense de connexion quotidienne et le
+   * système de quêtes quotidiennes.
+   * @param {{crystals?:number, gold?:number, items?:Object<string,number>}} reward
+   */
+  function grantReward(reward) {
+    if (!reward) return;
+    const p = _state.player;
+    if (reward.crystals) p.currency.crystals = (p.currency.crystals || 0) + reward.crystals;
+    if (reward.gold)     p.currency.gold     = (p.currency.gold     || 0) + reward.gold;
+    if (reward.items) {
+      const inv = { ...(p.inventory || {}) };
+      Object.entries(reward.items).forEach(([itemId, qty]) => {
+        if (!qty) return;
+        inv[itemId] = (inv[itemId] || 0) + qty;
+      });
+      p.inventory = inv;
+    }
+    _notify('resourceChanged');
+    _autoSave();
+  }
+
   /** Régénère l'énergie selon le temps écoulé */
   function regenEnergy() {
     const cfg = _state.config.energy;
@@ -516,6 +555,30 @@ const GameState = (() => {
     _autoSave();
   }
 
+  /** Remplace complètement le catalogue de quêtes quotidiennes (admin) */
+  function updateDailyQuestDefs(quests) {
+    _state.dailyQuests = JSON.parse(JSON.stringify(quests));
+    _notify('dailyQuestDefsChanged');
+    _autoSave();
+  }
+
+  /** Remplace complètement la liste des cycles de récompense de connexion (admin) */
+  function updateLoginCycles(cycles) {
+    _state.loginCycles = JSON.parse(JSON.stringify(cycles));
+    _notify('loginCyclesChanged');
+    _autoSave();
+  }
+
+  /**
+   * Met à jour les notes de mise à jour (admin).
+   * @param {{ id: string, text: string }} patchNotes
+   */
+  function updatePatchNotes(patchNotes) {
+    _state.patchNotes = { ...patchNotes };
+    _notify('patchNotesChanged');
+    _autoSave();
+  }
+
   /** Remplace complètement le joueur (admin) */
   function updatePlayer(playerData) {
     _state.player = { ..._state.player, ...playerData };
@@ -630,17 +693,66 @@ const GameState = (() => {
     _autoSave();
   }
 
+
+  // ─── IMPORT SÉPARÉ : BASE DE DONNÉES ──────────────────────────────────────────
+
+  /**
+   * Applique une base de données de jeu importée, SANS toucher aux données joueur.
+   * Remplace config, types, typeMatrix, characters, equipment, items, equipBanners,
+   * banners, dailyQuests, loginCycles, patchNotes — et rien d'autre.
+   * Compatible avec les fichiers exportés par SaveSystem.exportGameDatabase().
+   * @param {object} data - données parsées depuis le fichier d'import
+   */
+  function applyGameDatabase(data) {
+    const defaults = _buildDefaultState();
+    // On fusionne chaque section config avec ses défauts pour garantir que
+    // tous les champs requis existent (robustesse si le fichier vient d'une
+    // version plus ancienne du jeu avec moins de champs).
+    if (data.config)      _state.config      = _mergeConfig(defaults.config, data.config);
+    if (data.types)       _state.types       = data.types;
+    if (data.typeMatrix)  _state.typeMatrix  = data.typeMatrix;
+    if (data.characters)  _state.characters  = data.characters;
+    if (data.equipment)   _state.equipment   = data.equipment;
+    if (data.items)       _state.items       = data.items;
+    if (data.equipBanners)_state.equipBanners= data.equipBanners;
+    if (data.banners)     _state.banners     = data.banners;
+    if (data.dailyQuests) _state.dailyQuests = data.dailyQuests;
+    if (data.loginCycles) _state.loginCycles = data.loginCycles;
+    if (data.patchNotes)  _state.patchNotes  = data.patchNotes;
+    // player inchangé : aucune donnée joueur n'est touchée
+    _notify('configChanged');
+    _autoSave();
+  }
+
+  /**
+   * Applique les données joueur importées dans le slot courant, SANS toucher
+   * à la configuration du jeu (types, créatures, config…).
+   * Compatible avec les fichiers exportés par SaveSystem.exportPlayerData().
+   * @param {object} data - données parsées depuis le fichier d'import
+   */
+  function applyPlayerData(data) {
+    const defaults = _buildDefaultState();
+    if (data.player) {
+      _state.player = _mergePlayer(defaults.player, data.player);
+    }
+    // config, types, characters, etc. inchangés
+    _notify('playerChanged');
+    _autoSave();
+  }
+
   // ─── API PUBLIQUE ─────────────────────────────────────────────────────────────
 
   return {
     init, get,
     getPlayer, getConfig, getTypes, getMatrix,
-    getCharDefs, getEquipDefs, getBanners, getCharDef, getPlayerChar, getTeam,
+    getCharDefs, getEquipDefs, getBanners, getItemDefs, getDailyQuestDefs, getLoginCycles,
+    getCharDef, getPlayerChar, getTeam,
     addCharacterToCollection, addXpToCharacter, addPlayerXp, setTeam, equipItem,
-    modifyResources, regenEnergy,
+    modifyResources, grantReward, regenEnergy,
     updateConfig, updateCharDef, addCharDef, removeCharDef, reorderCharDefs,
     updateTypeMatrix, updateTypes, reorderTypes, addEquipDef, updateEquipDef, removeEquipDef, reorderEquipDefs,
-    updateBanners, updatePlayer,
+    updateBanners, updateDailyQuestDefs, updateLoginCycles, updatePatchNotes, updatePlayer,
+    applyGameDatabase, applyPlayerData,
     subscribe, setAutoSaveFn,
     getStoryNext, completeStoryLevel,
   };

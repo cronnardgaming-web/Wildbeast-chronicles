@@ -334,6 +334,15 @@
     width:28px; height:2px; background:var(--accent); border-radius:2px;
   }
   .nav-btn:active{ color:var(--accent); }
+  .nav-badge{
+    position:absolute; top:4px; right:calc(50% - 26px);
+    min-width:16px; height:16px; border-radius:8px;
+    background:var(--danger); color:#fff;
+    font-size:.6rem; font-weight:700; font-family:var(--font-body);
+    display:flex; align-items:center; justify-content:center;
+    padding:0 4px; line-height:1;
+    box-shadow:0 0 0 2px var(--bg);
+  }
 
   /* ============================================================
      CARD GRID (collection / team selector / gacha results)
@@ -592,6 +601,63 @@
     color:var(--text); font-size:.9rem; cursor:pointer;
     display:flex; align-items:center; justify-content:center;
   }
+
+  /* ============================================================
+     QUÊTES QUOTIDIENNES — écran de navigation
+     ============================================================ */
+  .quests-screen-sub{
+    font-size:.85rem; color:var(--text-dim); margin:0 0 16px; line-height:1.5;
+  }
+  .quests-screen-ready-hint{
+    display:inline-block; margin-left:8px; color:var(--accent2); font-weight:700;
+  }
+  .quests-empty{ color:var(--text-dim); font-size:.9rem; text-align:center; padding:30px 0; }
+  .quests-screen-list{ display:flex; flex-direction:column; gap:12px; }
+  .quest-card{
+    display:flex; align-items:flex-start; gap:14px;
+    background:var(--surface-2); border:1px solid var(--border-soft);
+    border-radius:var(--radius-lg); padding:16px;
+  }
+  .quest-card.is-ready{ border-color:var(--accent2); box-shadow:0 0 0 1px var(--accent2), 0 0 22px rgba(74,222,128,.12); }
+  .quest-card.is-claimed{ opacity:.55; }
+  .quest-card-icon{
+    flex-shrink:0; width:42px; height:42px; border-radius:50%;
+    background:var(--surface); border:1px solid var(--border-soft);
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.3rem;
+  }
+  .quest-card-body{ flex:1; min-width:0; }
+  .quest-card-label{ font-weight:700; font-size:.95rem; color:var(--text); margin-bottom:8px; }
+  .quest-card-progressbar{
+    height:8px; border-radius:4px; background:var(--surface-3, var(--surface));
+    overflow:hidden; margin-bottom:4px; border:1px solid var(--border-soft);
+  }
+  .quest-card-progressfill{
+    height:100%; background:linear-gradient(90deg, var(--accent2-deep), var(--accent2));
+    transition:width .3s ease;
+  }
+  .quest-card-progresstext{ font-size:.72rem; color:var(--text-faint); font-family:var(--font-mono); margin-bottom:8px; }
+  .quest-card-reward{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .quest-card-reward-label{ font-size:.7rem; color:var(--text-faint); text-transform:uppercase; letter-spacing:.04em; margin-right:2px; }
+  .quest-reward-chip{
+    display:inline-flex; align-items:center; gap:2px;
+    background:var(--surface); border:1px solid var(--border-soft);
+    border-radius:999px; padding:3px 9px; font-size:.75rem; color:var(--accent);
+    font-weight:600;
+  }
+  .quest-claim-btn{
+    flex-shrink:0; align-self:center; padding:10px 16px; border-radius:999px;
+    background:var(--accent2); color:#000; font-weight:700;
+    font-family:var(--font-display); font-size:.82rem;
+    border:none; cursor:pointer; white-space:nowrap;
+    transition:opacity .15s, transform .1s;
+  }
+  .quest-claim-btn:hover:not([disabled]){ opacity:.85; transform:translateY(-1px); }
+  .quest-claim-btn[disabled]{ background:var(--surface-3, var(--border-soft)); color:var(--text-faint); cursor:default; }
+  @media (max-width:420px){
+    .quest-card{ flex-wrap:wrap; }
+    .quest-claim-btn{ width:100%; }
+  }
   .detail-layout{ display:flex; gap:16px; flex-wrap:wrap; }
   .detail-portrait{
     width:140px; flex-shrink:0; position:relative;
@@ -637,6 +703,32 @@
   .passive-card-desc em{ color:var(--text-faint); font-style:italic; }
   .passive-card-trigger{
     font-size:.68rem; color:var(--accent2); margin-top:4px; font-weight:600;
+  }
+  /* ── Affinités de types ─────────────────────────────────────────────────── */
+  .detail-affinities{ margin:10px 0 4px; }
+  .detail-affinities h4{ font-size:.85rem; margin:0 0 8px; color:var(--text-dim); font-weight:700; letter-spacing:.03em; }
+  .affinity-section{ margin-bottom:10px; }
+  .affinity-section-label{ font-size:.72rem; color:var(--text-faint); text-transform:uppercase; letter-spacing:.06em; margin-bottom:5px; }
+  .affinity-table{ display:flex; flex-direction:column; gap:5px; }
+  .affinity-row{
+    display:grid;
+    grid-template-columns:46px 1fr;
+    align-items:start;
+    gap:0 10px;
+  }
+  .affinity-mult{
+    font-family:var(--font-mono); font-weight:700; font-size:.82rem;
+    text-align:right; padding-top:3px;
+  }
+  .aff-ultra  .affinity-mult{ color:#f97316; }
+  .aff-super  .affinity-mult{ color:#4ade80; }
+  .aff-resist .affinity-mult{ color:#94a3b8; }
+  .aff-immune .affinity-mult{ color:#6366f1; }
+  .affinity-pills{ display:flex; flex-wrap:wrap; gap:4px; }
+  .affinity-pill{
+    font-size:.68rem; padding:2px 7px; border-radius:999px;
+    color:#fff; font-weight:600; white-space:nowrap;
+    text-shadow:0 1px 2px rgba(0,0,0,.4);
   }
   .detail-level, .detail-awakening{ font-size:.82rem; color:var(--text-dim); margin:4px 0; }
   .detail-level strong, .detail-awakening{ color:var(--text); }
@@ -906,7 +998,9 @@
     border:2px solid var(--rc, var(--border));
     box-shadow:0 0 0 3px rgba(0,0,0,.25), 0 4px 14px -4px var(--rc, transparent);
     position:relative;
+    cursor:pointer; transition:transform .15s, box-shadow .15s;
   }
+  .fighter-portrait:hover{ transform:scale(1.08); box-shadow:0 0 0 3px rgba(0,0,0,.25), 0 6px 20px -4px var(--rc, transparent), 0 0 0 2px var(--accent2); }
   .fighter-portrait img{ width:100%; height:100%; object-fit:cover; object-position:center 20%; }
   @media (max-width:380px){
     .fighter-portrait{ width:58px; height:58px; font-size:1.2rem; }
@@ -2096,6 +2190,7 @@
       <section id="screen-gacha" class="screen"></section>
       <section id="screen-equip" class="screen"></section>
       <section id="screen-bestiaire" class="screen"></section>
+      <section id="screen-quests" class="screen"></section>
     </main>
 
     <nav id="main-nav"></nav>
@@ -2139,6 +2234,7 @@
        ============================================================ -->
   <script src="database.js"></script>
   <script src="state.js"></script>
+  <script src="quests.js"></script>
   <script src="gacha.js"></script>
   <script src="passives.js"></script>
   <script src="engine.js"></script>
@@ -2146,11 +2242,146 @@
   <script src="playerlevelup.js"></script>
   <script src="audio.js"></script>
   <script src="ui.js"></script>
+  <script src="dailyrewards.js"></script>
   <script src="admin.js"></script>
   <script src="save.js"></script>
 
   <script>
     'use strict';
+
+    /* ============================================================
+       PATCH NOTES UI — popup de note de mise à jour
+       Affichée une seule fois par note publiée (par ID), avant les
+       récompenses quotidiennes. Le joueur doit cliquer "OK" pour
+       la fermer ; l'ID est ensuite mémorisé sur le joueur afin de
+       ne plus la réafficher.
+       ============================================================ */
+    const PatchNotesUI = (() => {
+
+      let _overlay = null;
+      let _onDone  = null;
+
+      /**
+       * Affiche la popup si une note non encore vue est disponible.
+       * Appelle `onDone` immédiatement si rien à afficher.
+       * @param {Function} onDone
+       */
+      function presentIfNeeded(onDone) {
+        _onDone = onDone || null;
+
+        const state = GameState.get();
+        const pn    = state.patchNotes || {};
+
+        // Rien à afficher si la note est vide ou déjà vue par ce joueur
+        if (!pn.id || !pn.text) { _finish(); return; }
+        const player = GameState.getPlayer();
+        if ((player.lastSeenPatchNotesId || '') === pn.id) { _finish(); return; }
+
+        _injectStyles();
+        _buildOverlay(pn.text);
+      }
+
+      function _finish() {
+        if (_onDone) { const fn = _onDone; _onDone = null; fn(); }
+      }
+
+      function _injectStyles() {
+        if (document.getElementById('pnui-styles')) return;
+        const s = document.createElement('style');
+        s.id = 'pnui-styles';
+        s.textContent = `
+#pnui-overlay{
+  position:fixed;inset:0;z-index:4500;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;box-sizing:border-box;
+  opacity:0;pointer-events:none;
+  transition:opacity .3s ease;
+}
+#pnui-overlay.pnui-visible{opacity:1;pointer-events:all;}
+#pnui-overlay.pnui-closing{opacity:0;}
+.pnui-bg{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,rgba(6,15,8,.93) 0%,rgba(2,6,3,.98) 75%);
+  backdrop-filter:blur(4px);
+}
+.pnui-card{
+  position:relative;z-index:2;
+  width:100%;max-width:460px;
+  background:linear-gradient(150deg,var(--surface-2),var(--surface));
+  border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:24px 20px 26px;
+  display:flex;flex-direction:column;gap:14px;
+  transform:scale(.88) translateY(18px);opacity:0;
+  animation:pnuiCardIn .45s cubic-bezier(.2,1.4,.4,1) forwards .05s;
+  box-shadow:0 0 50px rgba(244,194,103,.1);
+}
+@keyframes pnuiCardIn{to{transform:scale(1) translateY(0);opacity:1;}}
+.pnui-title{
+  font-family:var(--font-display);font-weight:700;
+  font-size:1.05rem;color:var(--accent);letter-spacing:.02em;
+}
+.pnui-body{
+  font-size:.86rem;line-height:1.65;color:#cde8d4;
+  white-space:pre-wrap;word-break:break-word;
+  max-height:55vh;overflow-y:auto;
+  padding-right:4px;
+}
+.pnui-body::-webkit-scrollbar{width:4px;}
+.pnui-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.pnui-ok-btn{
+  align-self:stretch;padding:13px 0;border-radius:999px;
+  background:var(--accent2);color:#000;font-weight:700;
+  font-family:var(--font-display);font-size:.95rem;
+  border:none;cursor:pointer;letter-spacing:.02em;
+  transition:opacity .15s,transform .1s;
+}
+.pnui-ok-btn:hover{opacity:.88;transform:translateY(-1px);}
+        `;
+        document.head.appendChild(s);
+      }
+
+      function _buildOverlay(text) {
+        document.getElementById('pnui-overlay')?.remove();
+        _overlay = document.createElement('div');
+        _overlay.id = 'pnui-overlay';
+
+        // Echappement HTML puis mise en forme des retours à la ligne
+        const div = document.createElement('div');
+        div.textContent = text;
+        const escaped = div.innerHTML;
+
+        _overlay.innerHTML = `
+          <div class="pnui-bg"></div>
+          <div class="pnui-card">
+            <div class="pnui-title">📋 Note de mise à jour</div>
+            <div class="pnui-body">${escaped}</div>
+            <button class="pnui-ok-btn" id="pnui-ok-btn">OK, compris !</button>
+          </div>`;
+        document.body.appendChild(_overlay);
+        requestAnimationFrame(() => _overlay.classList.add('pnui-visible'));
+        document.getElementById('pnui-ok-btn').addEventListener('click', _confirm);
+      }
+
+      function _confirm() {
+        // Mémoriser l'ID de la note sur le joueur pour ne plus la réafficher
+        const pn = GameState.get().patchNotes || {};
+        if (pn.id) {
+          GameState.updatePlayer({ lastSeenPatchNotesId: pn.id });
+        }
+        _close();
+      }
+
+      function _close() {
+        if (!_overlay) { _finish(); return; }
+        const ov = _overlay;
+        _overlay = null;
+        ov.classList.remove('pnui-visible');
+        ov.classList.add('pnui-closing');
+        setTimeout(() => { ov.remove(); _finish(); }, 320);
+      }
+
+      return { presentIfNeeded };
+    })();
 
     /* ============================================================
        ACCOUNT SCREEN — sélection de compte au démarrage
@@ -2279,27 +2510,36 @@
         // 3. Brancher l'autosave interne (config + joueur)
         GameState.setAutoSaveFn((state) => SaveSystem.save(state));
 
-        // 4. Initialiser l'interface de jeu
+        // 4. Tirage des quêtes du jour (idempotent : ne retire rien si déjà tiré aujourd'hui)
+        QuestSystem.ensureDailyQuestsRolled();
+
+        // 5. Initialiser l'interface de jeu
         GameUI.init();
 
-        // 5. Réinitialiser l'admin (déjà init sur l'accueil, mais le toggle
+        // 6. Réinitialiser l'admin (déjà init sur l'accueil, mais le toggle
         //    a changé de contexte — on rebind juste le bouton)
         document.getElementById('admin-toggle')?.replaceWith(
           document.getElementById('admin-toggle')?.cloneNode(true)
         );
         document.getElementById('admin-toggle')?.addEventListener('click', () => AdminPanel.toggle());
 
-        // 6. Autosave périodique (30s)
+        // 7. Autosave périodique (30s)
         SaveSystem.startAutosave(GameState.get, () => {});
 
-        // 7. Sauvegarder en quittant
+        // 8. Sauvegarder en quittant
         window.addEventListener('beforeunload', () => SaveSystem.save(GameState.get()));
 
-        // 8. Bouton de sauvegarde manuelle dans le HUD
+        // 9. Bouton de sauvegarde manuelle dans le HUD
         _bindManualSaveBtn();
 
-        // 9. Indicateur de compte actif dans le header
+        // 10. Indicateur de compte actif dans le header
         _renderAccountIndicator();
+
+        // 11. Popup de note de mise à jour (si une note non vue est disponible),
+        //     puis popup de récompense(s) de connexion quotidienne.
+        PatchNotesUI.presentIfNeeded(() => {
+          DailyRewardsUI.presentPending(() => GameUI._updateQuestsBadge());
+        });
       }
 
       function _bindManualSaveBtn() {
@@ -2398,17 +2638,9 @@
     })();
 
     /* ─── Démarrage ──────────────────────────────────────────── */
-    (async function bootstrap() {
+    (function bootstrap() {
       PWAUpdater.init();
       SaveSystem.restoreActiveSlot();
-
-      // Tente de charger database_export.json servi à côté de index.html.
-      // S'il existe, il devient la source de vérité pour la database (écrase
-      // ce qui était en localStorage) — permet de propager une mise à jour
-      // de la database (créatures, équipements, bannières…) juste en
-      // remplaçant ce fichier, sans aucune étape d'import manuel.
-      const dbLoadResult = await SaveSystem.loadDatabaseFromServer();
-      window._dbLoadSource = dbLoadResult; // 'loaded' | 'absent' | 'error' — lu par l'Admin pour affichage
 
       // Initialiser le jeu avec la config globale seule (pas de joueur encore)
       // pour que l'admin sur l'écran d'accueil fonctionne

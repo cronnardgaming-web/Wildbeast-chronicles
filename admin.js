@@ -33,6 +33,8 @@ const AdminPanel = (() => {
     { id: 'resources',  label: '💎 Ressources'   },
     { id: 'combat',     label: '⚔️ Combat'        },
     { id: 'audio',      label: '🎵 Audio & Vidéo' },
+    { id: 'daily',      label: '📅 Quotidien'    },
+    { id: 'patchnotes', label: '📝 Note MàJ'     },
   ];
 
   const RARITIES = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic'];
@@ -51,7 +53,6 @@ const AdminPanel = (() => {
   function init() {
     _buildPanel();
     _bindGlobalEvents();
-    _renderDbSourceBanner();
   }
 
   /**
@@ -69,15 +70,17 @@ const AdminPanel = (() => {
         <div id="admin-header">
           <h2>⚙️ Administration — WildBeast Chronicles</h2>
           <div id="admin-header-actions">
-            <button class="admin-btn admin-btn-success" onclick="AdminPanel.exportDatabase()" title="Exporte UNIQUEMENT la database (personnages, équipements, bannières, config) — jamais les données joueur. C'est ce fichier à committer sur GitHub.">📤 Export Database</button>
-            <button class="admin-btn admin-btn-warning" onclick="AdminPanel.importDatabase()" title="Importe un fichier database_export.json (ou un ancien export complet) et écrase la database active.">📥 Import Database</button>
-            <button class="admin-btn admin-btn-success" onclick="AdminPanel.exportPlayer()" title="Exporte UNIQUEMENT les données du dresseur actif (collection, gemmes, progression) — jamais la database.">📤 Export Joueur</button>
-            <button class="admin-btn admin-btn-warning" onclick="AdminPanel.importPlayer()" title="Importe un fichier joueur et l'applique au Compte actif — écrase sa progression actuelle. N'affecte jamais la database.">📥 Import Joueur</button>
+            <button class="admin-btn admin-btn-success" onclick="AdminPanel.exportGameDatabase()" title="Exporte la config, créatures, types, bannières, passifs…">📦 Export BDD</button>
+            <button class="admin-btn admin-btn-success" onclick="AdminPanel.exportPlayerData()" title="Exporte la progression du joueur actif (collection, gemmes, niveau…)">🧑 Export Joueur</button>
+            <div class="admin-header-sep"></div>
             <button class="admin-btn" onclick="AdminPanel.switchAccount()" style="background:#1e3a22;border-color:#2d4a30;color:var(--text);">🔄 Changer de compte</button>
+            <div class="admin-header-sep"></div>
+            <button class="admin-btn admin-btn-warning" onclick="AdminPanel.importGameDatabase()" title="Importe une base de données de jeu sans toucher aux données joueur">📦 Import BDD</button>
+            <button class="admin-btn admin-btn-warning" onclick="AdminPanel.importPlayerData()" title="Importe des données joueur sans toucher à la config du jeu">🧑 Import Joueur</button>
+            <div class="admin-header-sep"></div>
             <button class="admin-btn admin-btn-danger"  onclick="AdminPanel.hide()">✕ Fermer</button>
           </div>
         </div>
-        <div id="admin-db-source-banner"></div>
         <div id="admin-tabs">
           ${TABS.map(t => `
             <button class="admin-tab ${t.id === _activeTab ? 'active' : ''}"
@@ -122,10 +125,16 @@ const AdminPanel = (() => {
         flex-shrink:0;
       }
       #admin-header h2 { margin:0; font-size:1.1rem; color:#e8d5b7; letter-spacing:.5px; }
-      #admin-header-actions { display:flex; gap:8px; flex-wrap:wrap; }
+      #admin-header-actions {
+        display:flex; gap:6px; flex-wrap:wrap; align-items:center;
+      }
+      .admin-header-sep{
+        width:1px; height:24px; background:rgba(255,255,255,.15); flex-shrink:0;
+      }
       @media (max-width:640px){
         #admin-header-actions{ width:100%; }
-        #admin-header-actions .admin-btn{ flex:1 1 auto; min-width:0; padding:8px 10px; font-size:.78rem; }
+        #admin-header-actions .admin-btn{ flex:1 1 auto; min-width:0; padding:8px 8px; font-size:.72rem; }
+        .admin-header-sep{ display:none; }
       }
       #admin-tabs {
         display:flex; flex-wrap:wrap; gap:4px; padding:10px 16px;
@@ -490,6 +499,8 @@ const AdminPanel = (() => {
           case 'resources':  content.innerHTML = _renderResourcesTab();  break;
           case 'combat':     content.innerHTML = _renderCombatTab();     break;
           case 'audio':      content.innerHTML = _renderAudioTab();      break;
+          case 'daily':      content.innerHTML = _renderDailyTab();      break;
+          case 'patchnotes': content.innerHTML = _renderPatchNotesTab(); break;
           default:           content.innerHTML = '<p style="color:#888">Onglet inconnu.</p>';
         }
       } catch (e) {
@@ -2693,6 +2704,328 @@ const AdminPanel = (() => {
     else AudioSystem.stop();
   }
 
+  // ─── ONGLET QUOTIDIEN (Connexion + Quêtes) ───────────────────────────────────
+
+  /** Construit la liste des options d'objets pour les sélecteurs de récompense en items. */
+  function _itemOptionsHtml(selectedId) {
+    const items = GameState.getItemDefs();
+    return `<option value="">— Aucun —</option>` + items.map(i =>
+      `<option value="${i.id}" ${i.id === selectedId ? 'selected' : ''}>${i.icon} ${i.name}</option>`
+    ).join('');
+  }
+
+  /** Résumé textuel court d'une récompense (gemmes / or / items), pour les listes. */
+  function _rewardSummary(reward) {
+    if (!reward) return '—';
+    const parts = [];
+    if (reward.crystals) parts.push(`💎${reward.crystals}`);
+    if (reward.gold) parts.push(`🪙${reward.gold}`);
+    if (reward.items) {
+      const itemDefs = GameState.getItemDefs();
+      Object.entries(reward.items).forEach(([id, qty]) => {
+        if (!qty) return;
+        const def = itemDefs.find(i => i.id === id);
+        parts.push(`${def?.icon || '🎁'}×${qty}`);
+      });
+    }
+    return parts.join('  ') || '—';
+  }
+
+  function _renderDailyTab() {
+    return `
+      ${_renderLoginCyclesSection()}
+      <hr class="admin-sep" />
+      ${_renderDailyQuestsSection()}
+    `;
+  }
+
+  // ── SOUS-SECTION : CYCLES DE RÉCOMPENSE DE CONNEXION ────────────────────────
+
+  function _renderLoginCyclesSection() {
+    const state  = GameState.get();
+    const cycles = state.loginCycles || [];
+
+    const list = cycles.map(cycle => `
+      <div class="admin-list-item" data-drag-id="${cycle.id}">
+        <div class="admin-list-item-info">
+          <div class="admin-list-item-name">
+            ${_escapeAttr(cycle.name)}
+            <span class="badge" style="background:${cycle.active ? 'var(--admin-success,#2e7d32)' : '#555'};color:#fff;">
+              ${cycle.active ? 'Actif' : 'Inactif'}
+            </span>
+          </div>
+          <div class="admin-list-item-sub">ID: ${cycle.id} — ${cycle.days.length} jour(s)</div>
+          <div class="admin-list-item-sub">${cycle.days.map((d, i) => `J${i + 1}: ${_rewardSummary(d.reward)}`).join('   ')}</div>
+        </div>
+        <div class="admin-list-item-actions">
+          <button class="admin-btn admin-btn-sm ${cycle.active ? 'admin-btn-warning' : 'admin-btn-success'}"
+            onclick="AdminPanel._toggleLoginCycleActive('${cycle.id}')">
+            ${cycle.active ? '⏸️ Désactiver' : '▶️ Activer'}
+          </button>
+          <button class="admin-btn admin-btn-primary admin-btn-sm" onclick="AdminPanel._editLoginCycle('${cycle.id}')">✏️</button>
+          <button class="admin-btn admin-btn-danger admin-btn-sm" onclick="AdminPanel._deleteLoginCycle('${cycle.id}')">🗑️</button>
+        </div>
+      </div>
+    `).join('');
+
+    return `
+      <div class="admin-section">
+        <div class="admin-section-title">🎁 Cycles de récompense de connexion quotidienne</div>
+        <p style="font-size:.8rem;color:#999;margin:0 0 12px;">
+          Chaque cycle distribue une récompense par jour de connexion (1 clic = 1 jour). Plusieurs
+          cycles actifs en parallèle sont présentés au joueur l'un après l'autre. La progression
+          d'un cycle n'est jamais réinitialisée : elle avance d'un jour à chaque nouvelle connexion
+          et reboucle au jour 1 une fois le dernier jour réclamé.
+        </p>
+        <div id="login-cycle-editor">${_renderLoginCycleEditorForm(null)}</div>
+        <div class="admin-actions">
+          <button class="admin-btn admin-btn-success" onclick="AdminPanel._saveLoginCycle()">💾 Enregistrer le cycle</button>
+          <button class="admin-btn admin-btn-primary" onclick="AdminPanel._clearLoginCycleForm()">🗑️ Vider le formulaire</button>
+        </div>
+      </div>
+      <hr class="admin-sep" />
+      <div class="admin-section">
+        <div class="admin-section-title">Cycles existants (${cycles.length})</div>
+        <div class="admin-list">${list || '<p style="color:#888;">Aucun cycle créé.</p>'}</div>
+      </div>
+    `;
+  }
+
+  // État transitoire du formulaire d'édition de cycle (jours en cours de construction)
+  let _cycleFormDays = [];
+
+  /** Construit le formulaire d'édition/création d'un cycle (id existant ou null pour création). */
+  function _renderLoginCycleEditorForm(cycleId) {
+    const state = GameState.get();
+    const cycle = cycleId ? (state.loginCycles || []).find(c => c.id === cycleId) : null;
+    _cycleFormDays = cycle ? JSON.parse(JSON.stringify(cycle.days)) : (_cycleFormDays.length ? _cycleFormDays : [_emptyReward()]);
+
+    return `
+      <input type="hidden" id="lc-id" value="${cycle ? cycle.id : ''}" />
+      <div class="admin-grid">
+        <div class="admin-field">
+          <label>Nom du cycle *</label>
+          <input type="text" id="lc-name" placeholder="Récompenses Quotidiennes" value="${cycle ? _escapeAttr(cycle.name) : ''}" />
+        </div>
+        <div class="admin-field">
+          <label>Actif</label>
+          <select id="lc-active">
+            <option value="1" ${!cycle || cycle.active ? 'selected' : ''}>Oui</option>
+            <option value="0" ${cycle && !cycle.active ? 'selected' : ''}>Non</option>
+          </select>
+        </div>
+      </div>
+      <p style="font-size:.8rem;color:#aaa;margin:14px 0 6px;">Jours du cycle (dans l'ordre)</p>
+      <div id="lc-days-list">${_renderCycleDaysRows()}</div>
+      <div class="admin-actions">
+        <button type="button" class="admin-btn admin-btn-primary admin-btn-sm" onclick="AdminPanel._addCycleDay()">➕ Ajouter un jour</button>
+      </div>
+    `;
+  }
+
+  function _emptyReward() { return { reward: { crystals: 0, gold: 0, items: {} } }; }
+
+  function _renderCycleDaysRows() {
+    return _cycleFormDays.map((day, i) => {
+      const itemId = Object.keys(day.reward.items || {})[0] || '';
+      const itemQty = itemId ? day.reward.items[itemId] : 1;
+      return `
+        <div class="admin-grid" style="align-items:end; border:1px solid var(--border-soft,#333); border-radius:8px; padding:10px; margin-bottom:8px;">
+          <div class="admin-field"><label>Jour ${i + 1} — 💎 Gemmes</label>
+            <input type="number" min="0" class="lc-day-crystals" value="${day.reward.crystals || 0}" data-day="${i}" /></div>
+          <div class="admin-field"><label>🪙 Or</label>
+            <input type="number" min="0" class="lc-day-gold" value="${day.reward.gold || 0}" data-day="${i}" /></div>
+          <div class="admin-field"><label>Objet (optionnel)</label>
+            <select class="lc-day-item" data-day="${i}">${_itemOptionsHtml(itemId)}</select></div>
+          <div class="admin-field"><label>Quantité objet</label>
+            <input type="number" min="1" class="lc-day-itemqty" value="${itemQty}" data-day="${i}" /></div>
+          <div class="admin-field">
+            <button type="button" class="admin-btn admin-btn-danger admin-btn-sm" onclick="AdminPanel._removeCycleDay(${i})">🗑️ Retirer ce jour</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function _addCycleDay() {
+    _syncCycleFormDaysFromDom();
+    _cycleFormDays.push(_emptyReward());
+    document.getElementById('lc-days-list').innerHTML = _renderCycleDaysRows();
+  }
+
+  function _removeCycleDay(index) {
+    _syncCycleFormDaysFromDom();
+    if (_cycleFormDays.length <= 1) { _notify('❌ Un cycle doit avoir au moins 1 jour.', 'error'); return; }
+    _cycleFormDays.splice(index, 1);
+    document.getElementById('lc-days-list').innerHTML = _renderCycleDaysRows();
+  }
+
+  /** Relit les valeurs actuellement saisies dans le DOM vers _cycleFormDays (avant d'ajouter/retirer une ligne). */
+  function _syncCycleFormDaysFromDom() {
+    document.querySelectorAll('.lc-day-crystals').forEach(el => {
+      const i = Number(el.dataset.day);
+      if (_cycleFormDays[i]) _cycleFormDays[i].reward.crystals = parseInt(el.value || '0');
+    });
+    document.querySelectorAll('.lc-day-gold').forEach(el => {
+      const i = Number(el.dataset.day);
+      if (_cycleFormDays[i]) _cycleFormDays[i].reward.gold = parseInt(el.value || '0');
+    });
+    document.querySelectorAll('.lc-day-item').forEach(el => {
+      const i = Number(el.dataset.day);
+      if (!_cycleFormDays[i]) return;
+      const qtyEl = document.querySelector(`.lc-day-itemqty[data-day="${i}"]`);
+      const qty = parseInt(qtyEl?.value || '1');
+      _cycleFormDays[i].reward.items = el.value ? { [el.value]: qty } : {};
+    });
+  }
+
+  function _saveLoginCycle() {
+    _syncCycleFormDaysFromDom();
+    const name = document.getElementById('lc-name')?.value.trim();
+    if (!name) { _notify('❌ Nom du cycle obligatoire.', 'error'); return; }
+    if (_cycleFormDays.length === 0) { _notify('❌ Le cycle doit avoir au moins 1 jour.', 'error'); return; }
+
+    const idInput = document.getElementById('lc-id')?.value.trim();
+    const id = idInput || `login_cycle_${Date.now()}`;
+    const active = document.getElementById('lc-active')?.value === '1';
+
+    const data = { id, name, active, days: JSON.parse(JSON.stringify(_cycleFormDays)) };
+
+    const state = GameState.get();
+    const cycles = [...(state.loginCycles || [])];
+    const idx = cycles.findIndex(c => c.id === id);
+    if (idx >= 0) cycles[idx] = data; else cycles.push(data);
+
+    GameState.updateLoginCycles(cycles);
+    _notify(`✅ Cycle "${name}" enregistré.`);
+    _clearLoginCycleForm();
+    switchTab('daily');
+  }
+
+  function _editLoginCycle(id) {
+    document.getElementById('login-cycle-editor').innerHTML = _renderLoginCycleEditorForm(id);
+    document.getElementById('admin-content')?.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function _clearLoginCycleForm() {
+    _cycleFormDays = [];
+    const editor = document.getElementById('login-cycle-editor');
+    if (editor) editor.innerHTML = _renderLoginCycleEditorForm(null);
+  }
+
+  function _toggleLoginCycleActive(id) {
+    const state = GameState.get();
+    const cycles = (state.loginCycles || []).map(c => c.id === id ? { ...c, active: !c.active } : c);
+    GameState.updateLoginCycles(cycles);
+    switchTab('daily');
+  }
+
+  function _deleteLoginCycle(id) {
+    if (!confirm(`Supprimer définitivement ce cycle de connexion ?`)) return;
+    const state = GameState.get();
+    GameState.updateLoginCycles((state.loginCycles || []).filter(c => c.id !== id));
+    _notify('🗑️ Cycle supprimé.');
+    switchTab('daily');
+  }
+
+  // ── SOUS-SECTION : QUÊTES QUOTIDIENNES ───────────────────────────────────────
+
+  function _renderDailyQuestsSection() {
+    const state  = GameState.get();
+    const quests = state.dailyQuests || [];
+
+    const rows = quests.map(q => `
+      <div class="admin-list-item" data-drag-id="${q.id}">
+        <div class="admin-list-item-info">
+          <div class="admin-list-item-name">
+            ${_escapeAttr(q.label)}
+            <span class="badge" style="background:${q.active ? 'var(--admin-success,#2e7d32)' : '#555'};color:#fff;">
+              ${q.active ? 'Active' : 'Inactive'}
+            </span>
+          </div>
+          <div class="admin-list-item-sub">ID: ${q.id} — Cible : ${q.target}</div>
+          <div class="admin-list-item-sub">Récompense : ${_rewardSummary(q.reward)}</div>
+        </div>
+        <div class="admin-list-item-actions">
+          <button class="admin-btn admin-btn-sm ${q.active ? 'admin-btn-warning' : 'admin-btn-success'}"
+            onclick="AdminPanel._toggleDailyQuestActive('${q.id}')">
+            ${q.active ? '⏸️ Désactiver' : '▶️ Activer'}
+          </button>
+          <button class="admin-btn admin-btn-primary admin-btn-sm" onclick="AdminPanel._editDailyQuestReward('${q.id}')">✏️ Récompense</button>
+        </div>
+      </div>
+    `).join('');
+
+    return `
+      <div class="admin-section">
+        <div class="admin-section-title">📜 Quêtes quotidiennes</div>
+        <p style="font-size:.8rem;color:#999;margin:0 0 12px;">
+          Liste fixe de 14 quêtes. Active/désactive chacune et configure sa récompense.
+          Chaque jour calendaire, 3 quêtes actives sont tirées au hasard pour le joueur.
+        </p>
+        <div id="quest-reward-editor"></div>
+        <div class="admin-list">${rows}</div>
+      </div>
+    `;
+  }
+
+  function _editDailyQuestReward(id) {
+    const state = GameState.get();
+    const q = (state.dailyQuests || []).find(x => x.id === id);
+    if (!q) return;
+    const itemId = Object.keys(q.reward.items || {})[0] || '';
+    const itemQty = itemId ? q.reward.items[itemId] : 1;
+
+    const editor = document.getElementById('quest-reward-editor');
+    editor.innerHTML = `
+      <div class="admin-section" style="border:1px solid var(--border-soft,#333); border-radius:8px; padding:12px; margin-bottom:14px;">
+        <div class="admin-section-title" style="font-size:.95rem;">Récompense — ${_escapeAttr(q.label)}</div>
+        <input type="hidden" id="dq-id" value="${q.id}" />
+        <div class="admin-grid">
+          <div class="admin-field"><label>💎 Gemmes</label><input type="number" min="0" id="dq-crystals" value="${q.reward.crystals || 0}" /></div>
+          <div class="admin-field"><label>🪙 Or</label><input type="number" min="0" id="dq-gold" value="${q.reward.gold || 0}" /></div>
+          <div class="admin-field"><label>Objet (optionnel)</label><select id="dq-item">${_itemOptionsHtml(itemId)}</select></div>
+          <div class="admin-field"><label>Quantité objet</label><input type="number" min="1" id="dq-itemqty" value="${itemQty}" /></div>
+        </div>
+        <div class="admin-actions">
+          <button class="admin-btn admin-btn-success" onclick="AdminPanel._saveDailyQuestReward()">💾 Enregistrer</button>
+          <button class="admin-btn admin-btn-primary" onclick="document.getElementById('quest-reward-editor').innerHTML='';">Annuler</button>
+        </div>
+      </div>
+    `;
+    editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function _saveDailyQuestReward() {
+    const id = document.getElementById('dq-id')?.value;
+    const state = GameState.get();
+    const quests = [...(state.dailyQuests || [])];
+    const idx = quests.findIndex(q => q.id === id);
+    if (idx === -1) return;
+
+    const itemId = document.getElementById('dq-item')?.value;
+    const itemQty = parseInt(document.getElementById('dq-itemqty')?.value || '1');
+
+    quests[idx] = {
+      ...quests[idx],
+      reward: {
+        crystals: parseInt(document.getElementById('dq-crystals')?.value || '0'),
+        gold:     parseInt(document.getElementById('dq-gold')?.value || '0'),
+        items:    itemId ? { [itemId]: itemQty } : {},
+      },
+    };
+    GameState.updateDailyQuestDefs(quests);
+    _notify(`✅ Récompense de "${quests[idx].label}" mise à jour.`);
+    switchTab('daily');
+  }
+
+  function _toggleDailyQuestActive(id) {
+    const state = GameState.get();
+    const quests = (state.dailyQuests || []).map(q => q.id === id ? { ...q, active: !q.active } : q);
+    GameState.updateDailyQuestDefs(quests);
+    switchTab('daily');
+  }
+
   /** Prévisualise la chance de crit en temps réel selon le diviseur saisi */
   /**
    * Construit le HTML du diagnostic "Équilibrage adaptatif" : profil de puissance
@@ -2841,106 +3174,255 @@ const AdminPanel = (() => {
     _notify('✅ Niveau du Dresseur sauvegardé.');
   }
 
+  // ─── ONGLET NOTE DE MISE À JOUR ───────────────────────────────────────────────
+
+  /**
+   * Affiche un éditeur de texte libre pour rédiger les notes de mise à jour.
+   * Ces notes sont stockées dans state.patchNotes et affichées en popup au
+   * joueur à chaque connexion tant qu'il ne les a pas validées.
+   */
+  function _renderPatchNotesTab() {
+    const state = GameState.get();
+    const pn    = state.patchNotes || { id: '', text: '' };
+
+    return `
+      <div class="admin-section">
+        <div class="admin-section-title">📝 Note de mise à jour</div>
+        <p style="color:#aaa;font-size:.85rem;margin:0 0 16px;">
+          Ce texte sera affiché en popup à chaque joueur lors de sa prochaine connexion,
+          jusqu'à ce qu'il clique sur <strong>OK</strong>. Modifiez-le et cliquez sur
+          <em>Publier</em> pour diffuser une nouvelle note (les joueurs verront
+          la popup à leur prochain lancement même s'ils l'avaient déjà validée).
+          Laissez le champ vide pour désactiver la popup.
+        </p>
+
+        <div class="admin-field" style="margin-bottom:16px;">
+          <label>Contenu de la note (texte libre, markdown non requis)</label>
+          <textarea id="patchnotes-text" rows="12" style="min-height:200px;font-family:var(--font-mono,monospace);font-size:.82rem;line-height:1.55;"
+            placeholder="Ex : &#10;🆕 Nouvelle créature : Pyrokhan ajouté au bestiaire&#10;⚖️ Équilibrage : réduction des dégâts de type Feu de 10%&#10;🐛 Correctifs : le poison ne pouvait plus tuer en dehors des combats">${_escapeAttr(pn.text || '')}</textarea>
+        </div>
+
+        <div style="background:#0f3460;border:1px solid #333;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:.8rem;color:#888;">
+          <strong style="color:#aaa;">ID courant :</strong>
+          <code id="patchnotes-id-display" style="color:#f4c267;margin-left:8px;">${pn.id ? pn.id : '<em>aucun</em>'}</code>
+          <br><span style="margin-top:4px;display:block;">
+            Un nouvel ID est généré automatiquement à chaque publication, ce qui garantit
+            que tous les joueurs verront la popup même s'ils l'avaient déjà lue.
+          </span>
+        </div>
+
+        <div class="admin-actions">
+          <button class="admin-btn admin-btn-success" onclick="AdminPanel._savePatchNotes()">📢 Publier la note</button>
+          <button class="admin-btn admin-btn-danger"  onclick="AdminPanel._clearPatchNotes()">🗑️ Supprimer (désactiver popup)</button>
+        </div>
+      </div>
+
+      <div class="admin-section">
+        <div class="admin-section-title">Aperçu de la popup joueur</div>
+        <p style="color:#aaa;font-size:.82rem;margin:0 0 12px;">
+          Voici comment la note apparaîtra aux joueurs (style indicatif).
+        </p>
+        <div id="patchnotes-preview" style="
+          background:linear-gradient(150deg,#152b18,#0f2211);
+          border:1px solid #2d4a30; border-radius:12px;
+          padding:20px 22px; max-width:460px;
+          font-family:'Manrope',sans-serif; color:#f4f1fb;
+        ">
+          <div style="font-family:'Cinzel',serif;font-weight:700;font-size:1rem;color:#f4c267;margin-bottom:12px;">
+            📋 Note de mise à jour
+          </div>
+          <div id="patchnotes-preview-text" style="
+            font-size:.85rem;line-height:1.65;color:#cde8d4;
+            white-space:pre-wrap;word-break:break-word;
+            max-height:220px;overflow-y:auto;
+          ">${_escapeAttr(pn.text || '').replace(/\n/g, '<br>') || '<em style="color:#4a6e50">Aucune note pour le moment.</em>'}</div>
+          <button style="
+            margin-top:16px;padding:10px 32px;border-radius:999px;
+            background:#4ade80;color:#000;font-weight:700;border:none;cursor:default;
+            font-family:'Cinzel',serif;font-size:.9rem;
+          ">OK, compris !</button>
+        </div>
+      </div>
+    `;
+  }
+
+  /** Génère un identifiant unique de note (timestamp base36) */
+  function _genPatchNotesId() {
+    return 'pn_' + Date.now().toString(36);
+  }
+
+  /** Publie la note de mise à jour saisie dans l'éditeur */
+  function _savePatchNotes() {
+    const text = document.getElementById('patchnotes-text')?.value?.trim() || '';
+    if (!text) {
+      _notify('⚠️ Le texte est vide. Utilisez "Supprimer" pour désactiver la popup.', 'error');
+      return;
+    }
+    const newId = _genPatchNotesId();
+    GameState.updatePatchNotes({ id: newId, text });
+    SaveSystem.saveGlobalConfig(GameState.get());
+    _notify('✅ Note de mise à jour publiée. Les joueurs la verront à leur prochaine connexion.');
+    // Rafraîchir l'affichage de l'ID courant
+    const idDisplay = document.getElementById('patchnotes-id-display');
+    if (idDisplay) idDisplay.innerHTML = `<code style="color:#f4c267;">${newId}</code>`;
+    // Rafraîchir l'aperçu
+    const preview = document.getElementById('patchnotes-preview-text');
+    if (preview) preview.innerHTML = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  }
+
+  /** Supprime la note de mise à jour (désactive la popup) */
+  function _clearPatchNotes() {
+    if (!confirm('Supprimer la note de mise à jour ? Les joueurs ne verront plus aucune popup.')) return;
+    GameState.updatePatchNotes({ id: '', text: '' });
+    SaveSystem.saveGlobalConfig(GameState.get());
+    _notify('✅ Note supprimée. La popup est désactivée.');
+    switchTab('patchnotes');
+  }
+
   // ─── SAUVEGARDE / EXPORT / IMPORT ────────────────────────────────────────────
 
   /**
-   * Exporte UNIQUEMENT la database (ce que modifie l'Admin) — jamais le joueur.
-   * Fichier à committer sur GitHub à côté des .js pour propager une mise à
-   * jour de la database d'une machine à l'autre.
+   * Exporte la base de données du jeu (config, créatures, types, bannières,
+   * passifs, équipements, quêtes, cycles de connexion…).
+   * NE contient PAS les données joueur.
    */
-  function exportDatabase() {
-    const ok = SaveSystem.exportDatabaseToFile(GameState.get());
-    if (ok) _notify('✅ Database exportée (database_export.json). À placer à côté de index.html.');
-    else    _notify('❌ Échec de l\'export database.', 'error');
+  function exportGameDatabase() {
+    SaveSystem.exportGameDatabase(GameState.get());
+    _notify('✅ Base de données exportée (sans données joueur).');
   }
 
   /**
-   * Exporte UNIQUEMENT les données du joueur actif — jamais la database.
+   * Exporte les données du joueur actif (collection, gemmes, niveau,
+   * bestiaire, progression des quêtes…).
+   * NE contient PAS la configuration du jeu.
    */
-  function exportPlayer() {
-    const ok = SaveSystem.exportPlayerToFile(GameState.get(), SaveSystem.getActiveSlot());
-    if (ok) _notify('✅ Données du Compte ' + SaveSystem.getActiveSlot() + ' exportées.');
-    else    _notify('❌ Échec de l\'export joueur.', 'error');
+  function exportPlayerData() {
+    SaveSystem.exportPlayerData(GameState.get());
+    _notify('✅ Données joueur Compte ' + SaveSystem.getActiveSlot() + ' exportées.');
   }
 
   /**
-   * Importe un fichier database (database_export.json, ou un ancien export
-   * complet mélangé — seules les clés database seront utilisées) et l'applique
-   * immédiatement à la partie en cours.
+   * Importe une base de données de jeu.
+   * ⚠️ Remplace TOUTE la config du jeu — ne touche PAS aux sauvegardes joueur.
    */
-  function importDatabase() {
-    const input  = document.createElement('input');
-    input.type   = 'file';
-    input.accept = '.json';
+  function importGameDatabase() {
+    const input = document.createElement('input');
+    input.type  = 'file'; input.accept = '.json';
     input.onchange = (e) => {
       const file = e.target.files[0];
       if (!file) return;
-      SaveSystem.importFromFile(file).then((data) => {
-        if (!confirm('Remplacer la database actuelle (personnages, équipements, bannières, config) par ce fichier ? Les données du joueur ne seront pas affectées.')) return;
-        const ok = SaveSystem.applyDatabaseImport(data);
-        if (!ok) { _notify('❌ Fichier database invalide.', 'error'); return; }
-        // Recharger l'état en mémoire avec la nouvelle database + le joueur courant inchangé
-        const currentPlayer = GameState.getPlayer();
-        const merged = SaveSystem.loadGlobalConfig() || {};
-        merged.player = currentPlayer;
-        GameState.init(merged);
-        SaveSystem.save(GameState.get());
-        _notify('✅ Database importée et appliquée.');
-        switchTab(_activeTab);
-        _renderDbSourceBanner('loaded');
-      }).catch((err) => _notify('❌ Fichier invalide : ' + err.message, 'error'));
+      SaveSystem.importGameDatabase(file)
+        .then((data) => {
+          if (!confirm(
+            '⚠️ IMPORT BASE DE DONNÉES\n\n' +
+            'Ceci va remplacer toute la configuration du jeu :\n' +
+            '• Créatures, types, passifs\n' +
+            '• Équipements, bannières gacha\n' +
+            '• Paramètres de combat, cycles de connexion…\n\n' +
+            'Les données joueur (collection, gemmes, progression) NE seront PAS modifiées.\n\n' +
+            'Continuer ?'
+          )) return;
+          GameState.applyGameDatabase(data);
+          SaveSystem.saveGlobalConfig(GameState.get());
+          _notify('✅ Base de données importée. Les données joueur sont intactes.');
+          switchTab(_activeTab);
+        })
+        .catch((err) => _notify('❌ ' + err.message, 'error'));
     };
     input.click();
   }
 
   /**
-   * Importe un fichier joueur (export wildbeast_joueur_*.json, ou un ancien
-   * export complet mélangé — seule la clé player sera utilisée) et l'applique
-   * au Compte actuellement actif. N'affecte jamais la database.
+   * Importe des données joueur dans le slot actif.
+   * ⚠️ Remplace la progression du joueur — ne touche PAS à la config du jeu.
    */
-  function importPlayer() {
-    const input  = document.createElement('input');
-    input.type   = 'file';
-    input.accept = '.json';
+  function importPlayerData() {
+    const input = document.createElement('input');
+    input.type  = 'file'; input.accept = '.json';
     input.onchange = (e) => {
       const file = e.target.files[0];
       if (!file) return;
-      SaveSystem.importFromFile(file).then((data) => {
-        if (!data || !data.player) { _notify('❌ Ce fichier ne contient pas de données joueur.', 'error'); return; }
-        const slot = SaveSystem.getActiveSlot();
-        if (!confirm(`Remplacer la progression du Compte ${slot} (collection, ressources, niveau…) par ce fichier ? La database ne sera pas affectée.`)) return;
-        const ok = SaveSystem.applyPlayerImport(data, slot);
-        if (!ok) { _notify('❌ Fichier joueur invalide.', 'error'); return; }
-        // Recharger l'état en mémoire : database actuelle inchangée + nouveau joueur importé
-        const currentDb = SaveSystem.loadGlobalConfig() || {};
-        currentDb.player = data.player;
-        GameState.init(currentDb);
-        SaveSystem.save(GameState.get(), slot);
-        _notify('✅ Données joueur importées dans le Compte ' + slot + '.');
-        switchTab(_activeTab);
-      }).catch((err) => _notify('❌ Fichier invalide : ' + err.message, 'error'));
+      SaveSystem.importPlayerData(file)
+        .then((data) => {
+          if (!confirm(
+            '⚠️ IMPORT DONNÉES JOUEUR — Compte ' + SaveSystem.getActiveSlot() + '\n\n' +
+            'Ceci va remplacer la progression du joueur actif :\n' +
+            '• Collection, gemmes, énergie\n' +
+            '• Niveau, XP, bestiaire\n' +
+            '• Progression des quêtes et cycles…\n\n' +
+            'La configuration du jeu (créatures, types, config…) NE sera PAS modifiée.\n\n' +
+            'Continuer ?'
+          )) return;
+          GameState.applyPlayerData(data);
+          SaveSystem.save(GameState.get());
+          _notify('✅ Données joueur importées dans le Compte ' + SaveSystem.getActiveSlot() + '. Config du jeu intacte.');
+          switchTab(_activeTab);
+        })
+        .catch((err) => _notify('❌ ' + err.message, 'error'));
     };
     input.click();
   }
 
-  /**
-   * Affiche un bandeau discret indiquant la provenance de la database active
-   * (fichier serveur auto-chargé / localStorage / défauts du jeu), pour que
-   * l'utilisateur sache toujours d'où viennent ses données.
-   */
-  function _renderDbSourceBanner(source) {
-    const el = document.getElementById('admin-db-source-banner');
-    if (!el) return;
-    const src = source || window._dbLoadSource || (SaveSystem.hasGlobalConfig() ? 'local' : 'defaults');
-    const labels = {
-      loaded:   { text: '📡 Database chargée depuis database_export.json (serveur)', color: '#4ade80' },
-      absent:   { text: '💾 Database chargée depuis le stockage local du navigateur', color: '#facc15' },
-      local:    { text: '💾 Database chargée depuis le stockage local du navigateur', color: '#facc15' },
-      error:    { text: '⚠️ database_export.json trouvé mais invalide — database locale conservée', color: '#f87171' },
-      defaults: { text: 'ℹ️ Database par défaut du jeu (aucune modification importée)', color: '#9ca3af' },
+  // ── Maintenu pour rétrocompatibilité (import ancien format tout-en-un) ────────
+  function exportSave() { exportGameDatabase(); }
+
+  function importSave() {
+    const input = document.createElement('input');
+    input.type  = 'file'; input.accept = '.json';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const data = JSON.parse(ev.target.result);
+          // Détection automatique du type de fichier
+          if (data._exportType === 'wildbeast_db_export') {
+            if (!confirm('Fichier de BASE DE DONNÉES détecté.\n\nImporter la config du jeu sans toucher aux données joueur ?')) return;
+            GameState.applyGameDatabase(data);
+            SaveSystem.saveGlobalConfig(GameState.get());
+            _notify('✅ Base de données importée (format détecté automatiquement).');
+          } else if (data._exportType === 'wildbeast_player_export') {
+            if (!confirm('Fichier DONNÉES JOUEUR détecté.\n\nImporter dans le Compte ' + SaveSystem.getActiveSlot() + ' sans toucher à la config du jeu ?')) return;
+            GameState.applyPlayerData(data);
+            SaveSystem.save(GameState.get());
+            _notify('✅ Données joueur importées (format détecté automatiquement).');
+          } else {
+            // Ancien format tout-en-un : demander quelle partie importer
+            const choice = window.prompt(
+              'Ancien format de sauvegarde détecté.\n\n' +
+              'Que souhaitez-vous importer ?\n' +
+              '  1 → Base de données du jeu uniquement\n' +
+              '  2 → Données joueur uniquement\n' +
+              '  3 → Tout (comportement classique)\n\n' +
+              'Entrez 1, 2 ou 3 :'
+            );
+            if (!choice) return;
+            if (choice === '1') {
+              if (!confirm('Importer uniquement la config du jeu depuis cet ancien fichier ?')) return;
+              GameState.applyGameDatabase(data);
+              SaveSystem.saveGlobalConfig(GameState.get());
+              _notify('✅ Config du jeu importée depuis l\'ancien format.');
+            } else if (choice === '2') {
+              if (!confirm('Importer uniquement les données joueur depuis cet ancien fichier dans le Compte ' + SaveSystem.getActiveSlot() + ' ?')) return;
+              GameState.applyPlayerData(data);
+              SaveSystem.save(GameState.get());
+              _notify('✅ Données joueur importées depuis l\'ancien format.');
+            } else {
+              if (!confirm('Remplacer TOUTE la sauvegarde actuelle (config + joueur) par ce fichier ?')) return;
+              GameState.init(data);
+              SaveSystem.save(GameState.get());
+              _notify('✅ Sauvegarde complète importée (ancien format).');
+            }
+          }
+          switchTab(_activeTab);
+        } catch (err) {
+          _notify('❌ Fichier invalide : ' + err.message, 'error');
+        }
+      };
+      reader.readAsText(file);
     };
-    const meta = labels[src] || labels.defaults;
-    el.innerHTML = `<div style="padding:6px 16px;font-size:.75rem;color:${meta.color};background:#0f172a;border-bottom:1px solid #1e293b;">${meta.text}</div>`;
+    input.click();
   }
 
   // ─── AFFICHAGE / MASQUAGE ────────────────────────────────────────────────────
@@ -2971,7 +3453,6 @@ const AdminPanel = (() => {
       panel.classList.add('visible');
       _visible = true;
       _renderTab(_activeTab);
-      _renderDbSourceBanner();
     }
   }
 
@@ -3051,7 +3532,8 @@ const AdminPanel = (() => {
 
   return {
     init, show, hide, toggle, switchTab,
-    exportDatabase, exportPlayer, importDatabase, importPlayer,
+    exportSave, importSave,
+    exportGameDatabase, exportPlayerData, importGameDatabase, importPlayerData,
     // Méthodes appelées depuis le HTML (onclick)
     _previewPortrait,
     _saveCharacter, _editCharacter, _deleteCharacter, _clearCharForm, _upgradeCharacter,
@@ -3067,6 +3549,10 @@ const AdminPanel = (() => {
     _saveResources, _addResources, _saveEnergyConfig, _fillEnergy, _resetStats,
     _saveCombatConfig, _savePlayerLevelConfig, _saveAdaptiveScaling, _previewAdaptiveScaling, _saveEnemyRarityWeights, _resetEnemyRarityWeights, _updateEnemyWeightTotal, _saveEnemyXpBonus,
     _uploadAudioFile, _removeAudioFile, _saveAudioEnabled,
+    _saveLoginCycle, _editLoginCycle, _clearLoginCycleForm, _deleteLoginCycle, _toggleLoginCycleActive,
+    _addCycleDay, _removeCycleDay,
+    _editDailyQuestReward, _saveDailyQuestReward, _toggleDailyQuestActive,
+    _savePatchNotes, _clearPatchNotes,
     _dragStart, _dragOver, _dragLeave, _dragEnd, _dragDropChar, _dragDropEquip, _dragDropEvoStage, _dragDropType,
     _sortCharList, _sortEquipList,
   };

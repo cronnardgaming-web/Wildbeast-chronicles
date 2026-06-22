@@ -165,6 +165,7 @@ const GachaSystem = (() => {
     GameState.updatePlayer({
       stats: { ...player.stats, totalPulls: player.stats.totalPulls + pullCount },
     });
+    if (typeof QuestSystem !== 'undefined') QuestSystem.trackPullChar(pullCount);
   }
 
   // ─── API PUBLIQUE ─────────────────────────────────────────────────────────────
