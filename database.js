@@ -631,9 +631,37 @@ const GameDatabase = (() => {
       progress: {},         // { questId: number } compteur courant
       claimed: {},          // { questId: true } déjà réclamée aujourd'hui
     },
+    // ── Boutique : suivi des achats pour faire respecter les limites ─────────
+    // { [shopItemId]: { lifetimeCount: number, dailyCount: number, dailyDate: 'YYYY-MM-DD' } }
+    shopPurchaseState: {},
   };
 
   // ─── ITEMS ────────────────────────────────────────────────────────────────────
+  //
+  // Système d'effets génériques : chaque objet porte une liste `effects`, où
+  // chaque effet a un `type` (cf. ITEM_EFFECT_TYPES ci-dessous) et des
+  // paramètres propres à ce type. Un objet peut combiner plusieurs effets
+  // (ex: +50 énergie ET +100 or en un seul objet).
+  //
+  // `targetsCharacter: true` indique que l'objet doit s'appliquer à une
+  // créature précise choisie par le joueur au moment de l'utilisation
+  // (ex: gainCharLevel, gainCharXp) — l'UI doit alors demander une sélection
+  // avant d'autoriser le bouton "Utiliser", exactement comme la Pillule de
+  // Puissance aujourd'hui.
+
+  /**
+   * Catalogue fermé des types d'effets utilisables sur un objet. L'admin
+   * choisit parmi cette liste et remplit les `params` associés ; ItemSystem
+   * (à l'exécution) sait appliquer chacun de ces types.
+   */
+  const ITEM_EFFECT_TYPES = [
+    { type: 'gainEnergy',     label: '⚡ Donner de l\'Énergie',         targetsCharacter: false, params: [{ key: 'amount', label: 'Quantité', default: 50 }] },
+    { type: 'healEnergyFull', label: '🔋 Régénérer l\'Énergie au max',  targetsCharacter: false, params: [] },
+    { type: 'grantCurrency',  label: '💰 Donner Gemmes / Or',           targetsCharacter: false, params: [{ key: 'crystals', label: 'Gemmes', default: 0 }, { key: 'gold', label: 'Or', default: 0 }] },
+    { type: 'gainPlayerXp',   label: '🌟 Donner de l\'XP Joueur',       targetsCharacter: false, params: [{ key: 'amount', label: 'Quantité XP', default: 100 }] },
+    { type: 'gainCharLevel',  label: '💊 Faire monter une créature de niveau(x)', targetsCharacter: true, params: [{ key: 'levels', label: 'Nombre de niveaux', default: 1 }] },
+    { type: 'gainCharXp',     label: '✨ Donner de l\'XP à une créature', targetsCharacter: true, params: [{ key: 'amount', label: 'Quantité XP', default: 100 }] },
+  ];
 
   const DEFAULT_ITEMS = [
     {
@@ -642,6 +670,7 @@ const GameDatabase = (() => {
       icon: '💊',
       description: 'Fait gagner immédiatement 1 niveau à n\'importe quelle créature.',
       stackable: true,
+      effects: [{ type: 'gainCharLevel', levels: 1 }],
     },
     {
       id: 'item_energy_potion',
@@ -649,8 +678,27 @@ const GameDatabase = (() => {
       icon: '🧪',
       description: 'Redonne immédiatement 50 points d\'énergie.',
       stackable: true,
+      effects: [{ type: 'gainEnergy', amount: 50 }],
     },
   ];
+
+  // ─── BOUTIQUE ─────────────────────────────────────────────────────────────────
+  //
+  // Catalogue d'articles achetables avec Gemmes ou Or, paramétrable en admin.
+  // Chaque article référence un objet existant (equipment/items/characters)
+  // par son ID, plus son propre prix/devise/limites — la même créature ou le
+  // même équipement peuvent donc avoir un prix différent de leur valeur "native"
+  // ailleurs dans le jeu (gacha, etc.), puisque le prix est porté par l'article
+  // de boutique lui-même, pas par la définition d'origine.
+  //
+  // category: 'equipment' | 'item' | 'character'
+  // currency: 'crystals' | 'gold'
+  // limit: { type: 'none'|'daily'|'lifetime', amount: number } — quota d'achat
+  //   - 'none'    : achats illimités
+  //   - 'daily'   : max `amount` achats par jour calendaire (reset à minuit)
+  //   - 'lifetime': max `amount` achats au total sur le compte, pour toujours
+
+  const DEFAULT_SHOP_ITEMS = [];
 
   // ─── QUÊTES QUOTIDIENNES ──────────────────────────────────────────────────────
   // Catalogue fixe de 14 types de quêtes (le "type" pilote le tracking automatique
@@ -773,6 +821,8 @@ const GameDatabase = (() => {
     DEFAULT_BANNERS,
     DEFAULT_EQUIPMENT,
     DEFAULT_ITEMS,
+    ITEM_EFFECT_TYPES,
+    DEFAULT_SHOP_ITEMS,
     DEFAULT_DAILY_QUESTS,
     DEFAULT_LOGIN_CYCLES,
     DEFAULT_EQUIP_BANNERS,
@@ -846,6 +896,34 @@ const GameDatabase = (() => {
     xpForLevel(level, config) {
       const c = config || DEFAULT_CONFIG.level;
       return Math.floor(c.xpBase * Math.pow(level, c.xpExponent));
+    },
+
+    // ─── HELPERS RECADRAGE PORTRAITS ──────────────────────────────────────────
+
+    /** Crop par défaut pour la vignette collection (petit carré) */
+    defaultPortraitCrop() { return { x: 50, y: 20, zoom: 1 }; },
+
+    /** Crop par défaut pour la fiche personnage (grand rectangle) */
+    defaultDetailCrop() { return { x: 50, y: 10, zoom: 1 }; },
+
+    /**
+     * Crop par défaut pour le badge combat (cercle).
+     * Contrainte impérative : cy >= r pour que le cercle ne sorte pas par le haut.
+     */
+    defaultCombatCrop() { return { cx: 50, cy: 38, r: 38 }; },
+
+    /** Convertit un crop portrait/detail en valeur CSS object-position */
+    cropToObjectPosition(crop) {
+      const x = crop?.x ?? 50;
+      const y = crop?.y ?? 20;
+      return `${x}% ${y}%`;
+    },
+
+    /** Convertit un crop combat en valeur CSS object-position */
+    combatCropToObjectPosition(crop) {
+      const cx = crop?.cx ?? 50;
+      const cy = crop?.cy ?? 38;
+      return `${cx}% ${cy}%`;
     },
 
     /**

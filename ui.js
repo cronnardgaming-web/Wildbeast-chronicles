@@ -48,6 +48,72 @@ const GameUI = (() => {
   const EQUIP_SLOT_ORDER  = GameDatabase.EQUIP_SLOTS || ['weapon', 'armor', 'accessory'];
   const EQUIP_SLOT_LABELS = { weapon: '⚔️ Arme', armor: '🛡️ Armure', accessory: '💍 Accessoire' };
 
+  // ─── HELPERS RECADRAGE PORTRAITS ────────────────────────────────────────────────
+
+  /**
+   * Génère le HTML d'un <img> recadré pour la vignette collection (carré).
+   * L'image est en position:absolute → le conteneur DOIT avoir position:relative + overflow:hidden.
+   * @returns {string|null} HTML ou null si pas de src
+   */
+  function _cropImgHtml(src, name, crop) {
+    if (!src) return null;
+    const zoom = Math.max(1, Math.min(5, crop.zoom ?? 1));
+    const x = crop.x ?? 50;
+    const y = crop.y ?? 20;
+    return `<img src="${src}" alt="${name || ''}"
+      style="position:absolute;width:${zoom * 100}%;height:${zoom * 100}%;
+             max-width:none;max-height:none;object-fit:cover;
+             object-position:${x}% ${y}%;display:block;
+             left:${(1 - zoom) * x}%;top:${(1 - zoom) * y}%">`;
+  }
+
+  /**
+   * Génère le HTML d'un <img> recadré pour le badge combat (cercle).
+   * Formule géométrique indépendante de la taille du conteneur.
+   * @returns {string|null} HTML ou null si pas de src
+   */
+  function _combatCropImgHtml(src, name, crop) {
+    if (!src) return null;
+    // cx, cy = % des dimensions naturelles de l'image.
+    // r = % du plus petit côté (garantit un vrai cercle dans l'éditeur).
+    // Le conteneur en jeu (.fighter-portrait) est un carré.
+    // On zoom l'image pour que 2*r% du plus petit côté = 100% du conteneur.
+    // Formule : scale = 50/r * 100  (en % du conteneur)
+    const cx = crop.cx ?? 50;
+    const cy = crop.cy ?? 50;
+    const r  = Math.max(1, crop.r ?? 30);
+    const scale = +(50 / r * 100).toFixed(2);
+    const left  = +(50 - cx * scale / 100).toFixed(2);
+    const top   = +(50 - cy * scale / 100).toFixed(2);
+    return `<img src="${src}" alt="${name || ''}"
+      style="position:absolute;width:${scale}%;height:${scale}%;
+             left:${left}%;top:${top}%;
+             max-width:none;max-height:none;
+             object-fit:cover;object-position:${cx}% ${cy}%;
+             display:block">`;
+  }
+
+  /** Portrait pour la vignette collection et les petites cartes équipe/lobby */
+  function _portraitImgHtml(def) {
+    const crop = def?.portraitCrop || GameDatabase.defaultPortraitCrop();
+    return _cropImgHtml(def?.portrait, def?.name, crop)
+      || `<div class="card-portrait-placeholder">${(def?.name || '?').charAt(0)}</div>`;
+  }
+
+  /** Portrait pour la fiche personnage (grand rectangle vertical) */
+  function _detailPortraitImgHtml(def) {
+    const crop = def?.detailCrop || GameDatabase.defaultDetailCrop();
+    return _cropImgHtml(def?.portrait, def?.name, crop)
+      || `<div class="detail-portrait-placeholder">${(def?.name || '?').charAt(0)}</div>`;
+  }
+
+  /** Portrait pour le badge combat (cercle) */
+  function _combatPortraitImgHtml(def) {
+    const crop = def?.combatCrop || GameDatabase.defaultCombatCrop();
+    return _combatCropImgHtml(def?.portrait, def?.name, crop)
+      || `<div class="portrait-ph">${(def?.name || '?').charAt(0)}</div>`;
+  }
+
   // ─── TRI & FILTRES DES PERSONNAGES ───────────────────────────────────────────────
 
   /**
@@ -295,7 +361,7 @@ const GameUI = (() => {
   function _onStateChange(event, data) {
     // ── Animation d'évolution : priorité absolue avant tout re-render ──────
     if (event === 'evolved') {
-      _handleEvolution(data);
+      _enqueueEvolution(data);
       return; // Le re-render sera fait après la fermeture de l'animation
     }
 
@@ -310,6 +376,8 @@ const GameUI = (() => {
     if (_currentScreen === 'team') renderTeam();
     if (_currentScreen === 'bestiaire') renderBestiaire();
     if (_currentScreen === 'quests') _renderDailyQuestsList();
+    if (_currentScreen === 'inventory') renderInventory();
+    if (_currentScreen === 'shop') _renderShopGrid();
   }
 
   /**
@@ -325,23 +393,46 @@ const GameUI = (() => {
     });
   }
 
+  // ─── FILE D'ATTENTE DES ÉVOLUTIONS ────────────────────────────────────────────
+  // Plusieurs créatures peuvent évoluer dans la même action de jeu (ex: l'XP de
+  // fin de combat est distribuée à toute l'équipe en boucle synchrone). Sans file
+  // d'attente, chaque évolution appellerait EvolutionAnimator.play() pendant que
+  // l'overlay précédent est encore affiché, ce qui le coupe/écrase en plein milieu.
+  // On empile donc les événements 'evolved' reçus et on ne lance l'animation
+  // suivante qu'une fois la précédente entièrement terminée (Promise résolue).
+
+  const _evolutionQueue = [];
+  let _evolutionPlaying = false;
+
   /**
-   * Déclenche l'animation plein écran d'évolution puis rafraîchit l'UI.
+   * Met en file un événement d'évolution et démarre le traitement s'il n'est
+   * pas déjà en cours.
    * @param {object} data - { instanceId, newCharId } émis par GameState
    */
-  function _handleEvolution(data) {
+  function _enqueueEvolution(data) {
+    _evolutionQueue.push(data);
+    if (!_evolutionPlaying) _playNextEvolution();
+  }
+
+  /** Joue l'animation d'évolution suivante de la file, puis s'enchaîne sur la suivante. */
+  function _playNextEvolution() {
+    const data = _evolutionQueue.shift();
+    if (!data) { _evolutionPlaying = false; return; }
+    _evolutionPlaying = true;
+
     const { instanceId, newCharId } = data;
 
     // Récupérer la définition de la NOUVELLE forme (déjà appliquée dans l'instance)
     const nextDef = GameState.getCharDef(newCharId);
-    if (!nextDef) return;
+    if (!nextDef) { _playNextEvolution(); return; }
 
     // Retrouver l'ancienne définition via l'historique des évolutions :
     // on cherche le créature dont evolvesTo === newCharId
     const state   = GameState.get();
     const prevDef = state.characters.find(c => c.evolvesTo === newCharId) || nextDef;
 
-    // Lancer l'animation et re-render l'UI après fermeture
+    // Lancer l'animation, rafraîchir l'UI après fermeture, PUIS seulement passer
+    // à la prochaine évolution en attente (jamais en parallèle).
     EvolutionAnimator.play(prevDef, nextDef).then(() => {
       _updateHUD();
       if (_currentScreen === 'collection') renderCollection();
@@ -351,6 +442,7 @@ const GameUI = (() => {
         // Mettre à jour la carte du combattant dans la scène de combat
         _refreshCombatantCard(instanceId, nextDef);
       }
+      _playNextEvolution();
     });
   }
 
@@ -364,9 +456,7 @@ const GameUI = (() => {
     if (!card) return;
     const portrait = card.querySelector('.fighter-portrait');
     if (portrait) {
-      portrait.innerHTML = nextDef.portrait
-        ? `<img src="${nextDef.portrait}" alt="${nextDef.name}">`
-        : `<div class="portrait-ph">${nextDef.name.charAt(0)}</div>`;
+      portrait.innerHTML = _combatPortraitImgHtml(nextDef);
     }
     const nameEl = card.querySelector('.fighter-name');
     if (nameEl) {
@@ -386,6 +476,8 @@ const GameUI = (() => {
       { id: 'combat',     icon: '🔥', label: 'Combat'     },
       { id: 'gacha',      icon: '💎', label: 'Invoquer'   },
       { id: 'equip',      icon: '⚙️', label: 'Équiper'    },
+      { id: 'shop',       icon: '🛒', label: 'Boutique'   },
+      { id: 'inventory',  icon: '🎒', label: 'Inventaire' },
       { id: 'bestiaire',  icon: '📖', label: 'Bestiaire'  },
       { id: 'quests',     icon: '📜', label: 'Quêtes'     },
     ];
@@ -422,6 +514,8 @@ const GameUI = (() => {
       equip:      renderEquip,
       bestiaire:    renderBestiaire,
       quests:     renderDailyQuests,
+      inventory:  renderInventory,
+      shop:       renderShop,
     };
     renderers[screenId]?.();
     _updateHUD();
@@ -630,10 +724,8 @@ const GameUI = (() => {
 
     return `
     <div class="char-card rarity-${def.rarity} ${inTeamClass} ${awkMaxClass}" data-instance-id="${inst.instanceId}" ${opts.inTeam ? 'style="opacity:.6"' : ''}>
-      <div class="card-portrait">
-        ${def.portrait
-          ? `<img src="${def.portrait}" alt="${def.name}" style="width:100%;height:100%;object-fit:cover;object-position:center 20%;">`
-          : `<div class="card-portrait-placeholder">${def.name.charAt(0)}</div>`}
+      <div class="card-portrait" style="position:relative;overflow:hidden;">
+        ${_portraitImgHtml(def)}
         <div class="card-rarity-badge" style="background:${rarityDef.color || '#888'}">${rarityDef.name || def.rarity}</div>
         ${opts.inTeam ? '<div class="in-team-badge">ÉQUIPE</div>' : ''}
       </div>
@@ -683,10 +775,8 @@ const GameUI = (() => {
         <div class="modal-box">
           <button class="modal-close" id="modal-close">✕</button>
           <div class="detail-layout">
-            <div class="detail-portrait ${(inst.awakening || 0) >= state.config.awakening.maxLevel ? 'awakening-max' : ''}">
-              ${def.portrait
-                ? `<img src="${def.portrait}" alt="${def.name}">`
-                : `<div class="detail-portrait-placeholder">${def.name.charAt(0)}</div>`}
+            <div class="detail-portrait ${(inst.awakening || 0) >= state.config.awakening.maxLevel ? 'awakening-max' : ''}" style="position:relative;overflow:hidden;">
+              ${_detailPortraitImgHtml(def)}
               <div class="detail-rarity" style="background:${rarityDef.color}">${rarityDef.name}</div>
             </div>
             <div class="detail-info">
@@ -1008,8 +1098,8 @@ const GameUI = (() => {
           <div class="team-slot ${member ? 'filled' : 'empty'}" data-slot="${i}">
             ${member && def ? `
               <div class="team-member-card ${isAwkMax ? 'awakening-max' : ''}" data-instance-id="${member.instanceId}">
-                <div class="team-portrait">
-                  ${def.portrait ? `<img src="${def.portrait}" alt="${def.name}">` : `<div class="portrait-ph">${def.name.charAt(0)}</div>`}
+                <div class="team-portrait" style="position:relative;overflow:hidden;">
+                  ${_portraitImgHtml(def)}
                 </div>
                 <div class="team-info">
                   <div class="team-name">${def.name}</div>
@@ -1136,7 +1226,7 @@ const GameUI = (() => {
                   const stats = GameDatabase.computeStats(def, inst.level, inst.awakening||0,
                     state.config.awakening, def.rarity, state.config.level);
                   return `<div class="lobby-member">
-                    <div class="lobby-portrait">${def.portrait ? `<img src="${def.portrait}">` : def.name.charAt(0)}</div>
+                    <div class="lobby-portrait" style="position:relative;overflow:hidden;">${_portraitImgHtml(def)}</div>
                     <div><strong>${def.name}</strong> Niv.${inst.level}</div>
                     <div style="font-size:0.75rem;color:#aaa">♥${stats.hp} ⚔${stats.atk} 🛡${stats.def} 💨${stats.spd}</div>
                   </div>`;
@@ -1580,10 +1670,8 @@ const GameUI = (() => {
         <div class="modal-box">
           <button class="modal-close" id="modal-close">✕</button>
           <div class="detail-layout">
-            <div class="detail-portrait">
-              ${combatant.portrait
-                ? `<img src="${combatant.portrait}" alt="${combatant.name}">`
-                : `<div class="detail-portrait-placeholder">${combatant.name.charAt(0)}</div>`}
+            <div class="detail-portrait" style="position:relative;overflow:hidden;">
+              ${_detailPortraitImgHtml(def || combatant)}
               <div class="detail-rarity" style="background:${rarityDef.color || '#888'}">${rarityDef.name || combatant.rarity}</div>
             </div>
             <div class="detail-info">
@@ -1632,8 +1720,8 @@ const GameUI = (() => {
           const team = entry.isEnemy ? _battle.enemyTeam : _battle.playerTeam;
           const c = team.find(x => x.instanceId === entry.instanceId);
           if (!c) return '';
-          return `<div class="turn-chip ${i === 0 ? 'active' : ''} ${entry.isEnemy ? 'is-enemy' : 'is-ally'}" title="${c.name}">
-            ${c.portrait ? `<img src="${c.portrait}" alt="${c.name}">` : c.name.charAt(0)}
+          return `<div class="turn-chip ${i === 0 ? 'active' : ''} ${entry.isEnemy ? 'is-enemy' : 'is-ally'}" title="${c.name}" style="position:relative;overflow:hidden;">
+            ${_portraitImgHtml(GameState.getCharDef(c.charId) || c)}
           </div>`;
         }).join('')}
       </div>
@@ -1651,8 +1739,8 @@ const GameUI = (() => {
     return `
     <div class="fighter-card rarity-${combatant.rarity} ${combatant.alive ? '' : 'defeated'}" id="fighter-${combatant.instanceId}" style="--enter-delay:${index * 80}ms">
       <div class="fighter-status-badges" id="status-badges-${combatant.instanceId}">${_buildStatusBadgesHtml(combatant)}</div>
-      <div class="fighter-portrait ${isAwkMax ? 'awakening-max' : ''}">
-        ${combatant.portrait ? `<img src="${combatant.portrait}" alt="${combatant.name}">` : `<div class="portrait-ph">${combatant.name.charAt(0)}</div>`}
+      <div class="fighter-portrait ${isAwkMax ? 'awakening-max' : ''}" style="position:relative;overflow:hidden;">
+        ${_combatPortraitImgHtml(GameState.getCharDef(combatant.charId) || combatant)}
       </div>
       <div class="fighter-types">
         ${t1 ? `<span class="type-chip" style="background:${t1.color}" title="${t1.name}">${t1.icon}</span>` : ''}
@@ -2566,10 +2654,8 @@ const GameUI = (() => {
     const front = wrap.querySelector('.gacha-card-front');
     if (front) {
       front.innerHTML = `
-        <div class="gacha-portrait">
-          ${result.char.portrait
-            ? `<img src="${result.char.portrait}" alt="${result.char.name}">`
-            : `<div class="portrait-ph">${result.char.name.charAt(0)}</div>`}
+        <div class="gacha-portrait" style="position:relative;overflow:hidden;">
+          ${_portraitImgHtml(result.char)}
         </div>
         <div class="gacha-info">
           <div class="gacha-name">${result.char.name}</div>
@@ -2632,10 +2718,6 @@ const GameUI = (() => {
     const state  = GameState.get();
     const player = state.player;
 
-    const pillCount   = player.inventory?.['item_power_pill']   || 0;
-    const potionCount = player.inventory?.['item_energy_potion'] || 0;
-    const energyFull  = player.energy.current >= player.energy.max;
-
     el.innerHTML = `
       <div class="screen-header"><h2>⚙️ Équipements</h2></div>
 
@@ -2661,9 +2743,9 @@ const GameUI = (() => {
               return `<div class="equip-char-mini ${_equipCharId === inst.instanceId ? 'selected' : ''}"
                         data-iid="${inst.instanceId}"
                         style="border-top:3px solid ${rarityDef.color || '#888'}">
-                ${def.portrait
-                  ? `<img src="${def.portrait}" alt="${def.name}" style="width:48px;height:48px;border-radius:6px;object-fit:cover;display:block;margin:0 auto 4px">`
-                  : `<div class="portrait-ph" style="width:48px;height:48px;border-radius:6px;margin:0 auto 4px;font-size:1.2rem">${def.name.charAt(0)}</div>`}
+                <div style="width:48px;height:48px;border-radius:6px;overflow:hidden;position:relative;margin:0 auto 4px;background:var(--surface-2);">
+                  ${_portraitImgHtml(def)}
+                </div>
                 <div class="equip-char-mini-name">${def.name}</div>
                 <div class="equip-char-mini-level">Niv.${inst.level}</div>
               </div>`;
@@ -2681,44 +2763,6 @@ const GameUI = (() => {
       <div class="equip-section" id="equip-inv-section" style="margin-top:18px">
         <div class="equip-section-title">Équipements en stock <span class="badge">${player.equipInventory?.length || 0}</span></div>
         ${_renderEquipInventorySection()}
-      </div>
-
-      <!-- ── Items ── -->
-      <div class="equip-section" style="margin-top:18px">
-        <div class="equip-section-title">Objets</div>
-        <div class="item-section">
-          <div class="item-info">
-            <span class="item-icon">💊</span>
-            <div>
-              <div class="item-name">Pillule de Puissance</div>
-              <div class="item-desc">Fait gagner 1 niveau à un créature.</div>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <span class="item-count">×${pillCount}</span>
-            <button class="btn-item-use" id="btn-use-pill" ${(!pillCount || !_equipCharId) ? 'disabled' : ''}>
-              Utiliser
-            </button>
-          </div>
-        </div>
-        ${!_equipCharId && pillCount > 0 ? '<p style="font-size:.72rem;color:var(--text-faint);margin:4px 0 0;text-align:center">Sélectionne un créature pour utiliser une Pillule</p>' : ''}
-
-        <div class="item-section" style="margin-top:10px">
-          <div class="item-info">
-            <span class="item-icon">🧪</span>
-            <div>
-              <div class="item-name">Potion d'Énergie</div>
-              <div class="item-desc">Redonne 50 points d'énergie.</div>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <span class="item-count">×${potionCount}</span>
-            <button class="btn-item-use" id="btn-use-potion" ${(!potionCount || energyFull) ? 'disabled' : ''}>
-              Utiliser
-            </button>
-          </div>
-        </div>
-        ${potionCount > 0 && energyFull ? '<p style="font-size:.72rem;color:var(--text-faint);margin:4px 0 0;text-align:center">Énergie déjà au maximum</p>' : ''}
       </div>
     `;
 
@@ -2742,14 +2786,6 @@ const GameUI = (() => {
         if (!isNaN(slot) && _equipCharId) _openEquipSlotModal(_equipCharId, slot);
       });
     });
-
-    // ── Bind pill ──
-    document.getElementById('btn-use-pill')?.addEventListener('click', () => {
-      if (_equipCharId) _usePillule(_equipCharId);
-    });
-
-    // ── Bind potion d'énergie ──
-    document.getElementById('btn-use-potion')?.addEventListener('click', () => _useEnergyPotion());
 
     // ── Bind inventaire équipement (onglets + tri + filtres) ──
     _bindEquipInventorySection();
@@ -3016,9 +3052,9 @@ const GameUI = (() => {
       return `<div class="equip-char-mini ${_equipCharId === inst.instanceId ? 'selected' : ''}"
                 data-iid="${inst.instanceId}"
                 style="border-top:3px solid ${rarityDef.color || '#888'}">
-        ${def.portrait
-          ? `<img src="${def.portrait}" alt="${def.name}" style="width:48px;height:48px;border-radius:6px;object-fit:cover;display:block;margin:0 auto 4px">`
-          : `<div class="portrait-ph" style="width:48px;height:48px;border-radius:6px;margin:0 auto 4px;font-size:1.2rem">${def.name.charAt(0)}</div>`}
+        <div style="width:48px;height:48px;border-radius:6px;overflow:hidden;position:relative;margin:0 auto 4px;background:var(--surface-2);">
+          ${_portraitImgHtml(def)}
+        </div>
         <div class="equip-char-mini-name">${def.name}</div>
         <div class="equip-char-mini-level">Niv.${inst.level}</div>
       </div>`;
@@ -3064,7 +3100,7 @@ const GameUI = (() => {
           <div class="equip-inv-bonuses">${_formatEquipBonuses(def.bonuses)}</div>
           ${holder ? `
             <div class="equip-inv-holder" title="Équipé par ${holder.name}">
-              <span class="equip-inv-holder-portrait">${holder.portrait ? `<img src="${holder.portrait}" alt="${holder.name}">` : holder.name.charAt(0)}</span>
+              <span class="equip-inv-holder-portrait" style="position:relative;overflow:hidden;">${_portraitImgHtml(holder)}</span>
               <span class="equip-inv-holder-name">${holder.name}</span>
             </div>` : ''}
         </div>`;
@@ -3175,7 +3211,7 @@ const GameUI = (() => {
                       ${isCurrent ? '<div style="font-size:.62rem;color:var(--accent);margin-top:4px">Actuellement équipé</div>' : ''}
                       ${holder ? `
                         <div class="equip-inv-holder" title="Équipé par ${holder.name}">
-                          <span class="equip-inv-holder-portrait">${holder.portrait ? `<img src="${holder.portrait}" alt="${holder.name}">` : holder.name.charAt(0)}</span>
+                          <span class="equip-inv-holder-portrait" style="position:relative;overflow:hidden;">${_portraitImgHtml(holder)}</span>
                           <span class="equip-inv-holder-name">Porté par ${holder.name}</span>
                         </div>` : ''}
                     </div>`;
@@ -3301,49 +3337,251 @@ const GameUI = (() => {
     setTimeout(() => onDone?.(), results.length * 80 + 400);
   }
 
-  // ─── PILLULE DE PUISSANCE ─────────────────────────────────────────────────────
+  // ─── INVENTAIRE (objets génériques) ──────────────────────────────────────────
 
-  /** Utilise une Pillule de Puissance sur le créature sélectionné */
-  function _usePillule(instanceId) {
-    const p   = GameState.getPlayer();
-    const inv = { ...(p.inventory || {}) };
-    if (!inv['item_power_pill'] || inv['item_power_pill'] < 1) return;
+  let _inventoryPendingItemId = null; // objet en attente de sélection de cible (créature)
 
-    const inst = GameState.getPlayerChar(instanceId);
-    if (!inst) return;
-    const def = GameState.getCharDef(inst.charId);
+  /** Rendu de l'écran "Inventaire" (onglet de navigation principal). */
+  function renderInventory() {
+    const el = document.getElementById('screen-inventory');
+    if (!el) return;
 
-    // Dépenser la pillule
-    inv['item_power_pill']--;
-    GameState.updatePlayer({ inventory: inv });
+    const state = GameState.get();
+    const player = state.player;
+    const owned = (state.items || []).filter(def => (player.inventory?.[def.id] || 0) > 0);
 
-    // Donner exactement assez d'XP pour monter d'un niveau
-    const xpNeeded = GameDatabase.xpForLevel(inst.level + 1, GameState.getConfig().level);
-    const xpToGive = Math.max(1, xpNeeded - inst.xp);
-    const xpResult = GameState.addXpToCharacter(instanceId, xpToGive);
+    el.innerHTML = `
+      <div class="screen-header"><h2>🎒 Inventaire</h2></div>
+      ${owned.length === 0
+        ? '<p class="empty-msg">Aucun objet en stock. Trouve-en en jouant ou achète-en à la Boutique !</p>'
+        : `<div class="inventory-list" id="inventory-list"></div>`}
+      <div id="inventory-target-picker"></div>
+    `;
 
-    AudioSystem.playSfx(AudioSystem.SFX_KEYS.levelUp);
-    if (xpResult?.evolved) {
-      setTimeout(() => _showEvolutionShowcase([xpResult.evolved]), 350);
-    }
-
-    _showToast(`${def?.name} est passé au niveau ${inst.level + 1} ! 💊`, 'success');
-    renderEquip();
+    if (owned.length > 0) _renderInventoryList();
   }
 
-  /** Utilise une Potion d'Énergie : redonne 50 points d'énergie (plafonné au max) */
-  function _useEnergyPotion() {
-    const p   = GameState.getPlayer();
-    const inv = { ...(p.inventory || {}) };
-    if (!inv['item_energy_potion'] || inv['item_energy_potion'] < 1) return;
-    if (p.energy.current >= p.energy.max) return;
+  function _renderInventoryList() {
+    const listEl = document.getElementById('inventory-list');
+    if (!listEl) return;
 
-    inv['item_energy_potion']--;
-    GameState.updatePlayer({ inventory: inv });
-    GameState.modifyResources({ energy: 50 });
+    const state = GameState.get();
+    const player = state.player;
+    const owned = (state.items || []).filter(def => (player.inventory?.[def.id] || 0) > 0);
 
-    _showToast(`+50 ⚡ Énergie ! 🧪`, 'success');
-    renderEquip();
+    listEl.innerHTML = owned.map((def) => {
+      const count = player.inventory[def.id] || 0;
+      const needsTarget = ItemSystem.requiresCharacterTarget(def);
+      const effectLines = ItemSystem.describeEffects(def.effects);
+      const isPendingTarget = _inventoryPendingItemId === def.id;
+      return `
+        <div class="inventory-card ${isPendingTarget ? 'is-picking-target' : ''}">
+          <div class="inventory-card-icon">${def.icon || '🎁'}</div>
+          <div class="inventory-card-body">
+            <div class="inventory-card-name">${_escapeHtml(def.name)}</div>
+            ${def.description ? `<div class="inventory-card-desc">${_escapeHtml(def.description)}</div>` : ''}
+            <div class="inventory-card-effects">${effectLines.map(l => `<span class="quest-reward-chip">${l}</span>`).join('')}</div>
+          </div>
+          <div class="inventory-card-side">
+            <span class="inventory-card-count">×${count}</span>
+            <button class="btn-item-use" data-item-id="${def.id}" data-needs-target="${needsTarget ? '1' : '0'}">
+              ${isPendingTarget ? 'Annuler' : 'Utiliser'}
+            </button>
+          </div>
+        </div>`;
+    }).join('');
+
+    listEl.querySelectorAll('.btn-item-use').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const itemId = btn.dataset.itemId;
+        const needsTarget = btn.dataset.needsTarget === '1';
+        if (_inventoryPendingItemId === itemId) {
+          _inventoryPendingItemId = null;
+          _renderInventoryList();
+          document.getElementById('inventory-target-picker').innerHTML = '';
+          return;
+        }
+        if (needsTarget) {
+          _inventoryPendingItemId = itemId;
+          _renderInventoryList();
+          _renderInventoryTargetPicker(itemId);
+        } else {
+          _runUseItem(itemId, null);
+        }
+      });
+    });
+  }
+
+  /** Affiche un sélecteur de créature pour les objets qui ciblent un personnage. */
+  function _renderInventoryTargetPicker(itemId) {
+    const host = document.getElementById('inventory-target-picker');
+    if (!host) return;
+    const state = GameState.get();
+    const player = state.player;
+
+    if (player.collection.length === 0) {
+      host.innerHTML = '<p class="empty-msg">Aucune créature dans ta collection.</p>';
+      return;
+    }
+
+    host.innerHTML = `
+      <div class="equip-section" style="margin-top:14px;">
+        <div class="equip-section-title">Choisis une créature</div>
+        <div class="equip-char-picker">
+          ${_decorateInstances(player.collection, state).map(({ inst, def }) => {
+            const rarityDef = GameDatabase.RARITIES[def.rarity] || {};
+            return `<div class="equip-char-mini" data-iid="${inst.instanceId}" style="border-top:3px solid ${rarityDef.color || '#888'}">
+              <div style="width:48px;height:48px;border-radius:6px;overflow:hidden;position:relative;margin:0 auto 4px;background:var(--surface-2);">
+                ${_portraitImgHtml(def)}
+              </div>
+              <div class="equip-char-mini-name">${def.name}</div>
+              <div class="equip-char-mini-level">Niv.${inst.level}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    `;
+    host.querySelectorAll('.equip-char-mini').forEach(card => {
+      card.addEventListener('click', () => _runUseItem(itemId, card.dataset.iid));
+    });
+  }
+
+  /** Exécute réellement l'utilisation d'un objet et affiche le résultat. */
+  function _runUseItem(itemId, targetInstanceId) {
+    const res = ItemSystem.useItem(itemId, targetInstanceId);
+    if (!res.success) {
+      _showToast(res.error || 'Impossible d\'utiliser cet objet.', 'error');
+      return;
+    }
+
+    _inventoryPendingItemId = null;
+    AudioSystem.playSfx(AudioSystem.SFX_KEYS.levelUp);
+
+    // Message de résumé selon les effets appliqués
+    const lines = [];
+    let evolved = null;
+    res.results.forEach((r) => {
+      if (r.type === 'gainEnergy' || r.type === 'healEnergyFull') lines.push(`+${r.amount} ⚡`);
+      if (r.type === 'grantCurrency') {
+        if (r.crystals) lines.push(`+${r.crystals} 💎`);
+        if (r.gold) lines.push(`+${r.gold} 🪙`);
+      }
+      if (r.type === 'gainPlayerXp') lines.push(`+${r.amount} 🌟 XP`);
+      if (r.type === 'gainCharLevel' || r.type === 'gainCharXp') {
+        if (r.evolved) evolved = r.evolved;
+      }
+    });
+    const targetName = res.targetDef?.name ? ` sur ${res.targetDef.name}` : '';
+    _showToast(`${res.itemDef.icon || ''} ${res.itemDef.name} utilisé${targetName} ! ${lines.join(' ')}`.trim(), 'success');
+
+    if (evolved) setTimeout(() => _showEvolutionShowcase([evolved]), 350);
+
+    renderInventory();
+    _updateHUD();
+  }
+
+  // ─── BOUTIQUE ─────────────────────────────────────────────────────────────────
+
+  let _shopFilter = 'all'; // 'all' | 'equipment' | 'item' | 'character'
+
+  const SHOP_CATEGORY_LABELS = {
+    all:       'Tout',
+    equipment: '⚙️ Équipements',
+    item:      '🎁 Objets',
+    character: '✦ Créatures',
+  };
+
+  /** Rendu de l'écran "Boutique" (onglet de navigation principal). */
+  function renderShop() {
+    const el = document.getElementById('screen-shop');
+    if (!el) return;
+
+    el.innerHTML = `
+      <div class="screen-header"><h2>🛒 Boutique</h2></div>
+      <div class="shop-filter-bar" id="shop-filter-bar">
+        ${Object.keys(SHOP_CATEGORY_LABELS).map(key =>
+          `<button class="shop-filter-btn ${_shopFilter === key ? 'active' : ''}" data-filter="${key}">${SHOP_CATEGORY_LABELS[key]}</button>`
+        ).join('')}
+      </div>
+      <div class="shop-grid" id="shop-grid"></div>
+    `;
+
+    document.querySelectorAll('.shop-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        _shopFilter = btn.dataset.filter;
+        renderShop();
+      });
+    });
+
+    _renderShopGrid();
+  }
+
+  function _renderShopGrid() {
+    const gridEl = document.getElementById('shop-grid');
+    if (!gridEl) return;
+
+    const category = _shopFilter === 'all' ? null : _shopFilter;
+    const listing = ShopSystem.getShopListing(category);
+
+    if (listing.length === 0) {
+      gridEl.innerHTML = '<p class="empty-msg">Aucun article disponible dans cette catégorie pour le moment.</p>';
+      return;
+    }
+
+    gridEl.innerHTML = listing.map(({ shopItem, refDef, remaining, blocked }) => {
+      const currencyIcon = shopItem.currency === 'gold' ? '🪙' : '💎';
+      const visual = shopItem.category === 'character'
+        ? (refDef.portrait
+            ? `<img class="shop-card-portrait" src="${refDef.portrait}" alt="${refDef.name}">`
+            : `<div class="shop-card-icon">${refDef.name.charAt(0)}</div>`)
+        : `<div class="shop-card-icon">${refDef.icon || (shopItem.category === 'equipment' ? '⚙️' : '🎁')}</div>`;
+
+      const limitText = shopItem.limit?.type === 'daily'
+        ? `Limite : ${remaining}/${shopItem.limit.amount} aujourd'hui`
+        : shopItem.limit?.type === 'lifetime'
+          ? `Limite : ${remaining}/${shopItem.limit.amount} au total`
+          : '';
+
+      return `
+        <div class="shop-card ${blocked ? 'is-blocked' : ''}">
+          ${visual}
+          <div class="shop-card-name">${_escapeHtml(refDef.name)}</div>
+          ${limitText ? `<div class="shop-card-limit">${limitText}</div>` : ''}
+          <div class="shop-card-price">${shopItem.price} ${currencyIcon}</div>
+          <button class="shop-buy-btn" data-shop-id="${shopItem.id}" ${blocked ? 'disabled' : ''}>
+            ${blocked ? 'Épuisé' : 'Acheter'}
+          </button>
+        </div>`;
+    }).join('');
+
+    gridEl.querySelectorAll('.shop-buy-btn:not([disabled])').forEach(btn => {
+      btn.addEventListener('click', () => _runShopPurchase(btn.dataset.shopId));
+    });
+  }
+
+  function _runShopPurchase(shopItemId) {
+    const res = ShopSystem.purchase(shopItemId);
+    if (!res.success) {
+      _showToast(res.error || 'Achat impossible.', 'error');
+      return;
+    }
+
+    AudioSystem.playSfx(AudioSystem.SFX_KEYS.gachaPull);
+
+    let msg = `${refDefIcon(res)} ${res.refDef.name} acheté !`;
+    if (res.category === 'character' && res.addResult?.awakening) {
+      msg = `${res.refDef.name} déjà possédé : éveil amélioré ! ✦`;
+    }
+    _showToast(msg, 'success');
+
+    _renderShopGrid();
+    _updateHUD();
+  }
+
+  function refDefIcon(res) {
+    if (res.category === 'item') return res.refDef.icon || '🎁';
+    if (res.category === 'equipment') return '⚙️';
+    return '✦';
   }
 
   // ─── POKÉDEX ─────────────────────────────────────────────────────────────────
@@ -3383,8 +3621,8 @@ const GameUI = (() => {
           const lineDiscovered = lineChars.filter(c => bestiaire[c.id]).length;
           return `
           <div class="bestiaire-entry ${entry ? 'discovered' : 'unknown'}" data-line="${char.evolutionLine}" style="cursor:pointer">
-            <div class="bestiaire-portrait">
-              ${entry && char.portrait ? `<img src="${char.portrait}" alt="${char.name}">` :
+            <div class="bestiaire-portrait" style="position:relative;overflow:hidden;">
+              ${entry && char.portrait ? _portraitImgHtml(char) :
                 entry ? `<div class="portrait-ph">${char.name.charAt(0)}</div>` :
                 `<div class="unknown-silhouette">?</div>`}
             </div>
@@ -3492,7 +3730,7 @@ const GameUI = (() => {
   return {
     init, showScreen,
     renderCollection, renderTeam, renderGacha, renderEquip, renderBestiaire, renderCombatLobby, renderCombatByLine,
-    renderDailyQuests,
+    renderDailyQuests, renderInventory, renderShop,
     _showEvolutionShowcase,
     _updateQuestsBadge,
   };

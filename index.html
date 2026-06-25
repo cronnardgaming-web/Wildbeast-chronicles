@@ -312,18 +312,23 @@
   #main-nav{
     flex:0 0 auto;
     display:flex;
+    overflow-x:auto;
+    scrollbar-width:none;
+    -ms-overflow-style:none;
     border-top:1px solid var(--border-soft);
     background:rgba(12,10,22,.55);
     backdrop-filter:blur(6px);
     padding-bottom:env(safe-area-inset-bottom);
   }
+  #main-nav::-webkit-scrollbar{ display:none; }
   .nav-btn{
-    flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
+    flex:1 0 72px; display:flex; flex-direction:column; align-items:center; gap:3px;
     background:none; border:none; color:var(--text-faint);
     padding:10px 2px 9px; cursor:pointer;
     font-family:var(--font-body);
     transition:color .15s ease;
     position:relative;
+    white-space:nowrap;
   }
   .nav-btn .nav-icon{ font-size:1.25rem; line-height:1; filter:grayscale(.4); transition:filter .15s; }
   .nav-btn .nav-label{ font-size:.62rem; font-weight:600; letter-spacing:.03em; }
@@ -658,15 +663,86 @@
     .quest-card{ flex-wrap:wrap; }
     .quest-claim-btn{ width:100%; }
   }
+
+  /* ============================================================
+     INVENTAIRE — écran de navigation
+     ============================================================ */
+  .inventory-list{ display:flex; flex-direction:column; gap:12px; }
+  .inventory-card{
+    display:flex; align-items:flex-start; gap:14px;
+    background:var(--surface-2); border:1px solid var(--border-soft);
+    border-radius:var(--radius-lg); padding:16px;
+  }
+  .inventory-card.is-picking-target{ border-color:var(--accent2); box-shadow:0 0 0 1px var(--accent2); }
+  .inventory-card-icon{
+    flex-shrink:0; width:42px; height:42px; border-radius:50%;
+    background:var(--surface); border:1px solid var(--border-soft);
+    display:flex; align-items:center; justify-content:center; font-size:1.3rem;
+  }
+  .inventory-card-body{ flex:1; min-width:0; }
+  .inventory-card-name{ font-weight:700; font-size:.95rem; color:var(--text); margin-bottom:4px; }
+  .inventory-card-desc{ font-size:.78rem; color:var(--text-dim); margin-bottom:8px; }
+  .inventory-card-effects{ display:flex; flex-wrap:wrap; gap:6px; }
+  .inventory-card-side{
+    flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:8px;
+  }
+  .inventory-card-count{ font-family:var(--font-mono); font-size:.85rem; color:var(--text-dim); }
+  @media (max-width:420px){
+    .inventory-card{ flex-wrap:wrap; }
+    .inventory-card-side{ flex-direction:row; width:100%; justify-content:space-between; }
+  }
+
+  /* ============================================================
+     BOUTIQUE — écran de navigation
+     ============================================================ */
+  .shop-filter-bar{ display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+  .shop-filter-btn{
+    padding:8px 16px; border-radius:999px; border:1px solid var(--border-soft);
+    background:var(--surface-2); color:var(--text-dim); font-size:.82rem; font-weight:600;
+    cursor:pointer; font-family:var(--font-body); transition:all .15s;
+  }
+  .shop-filter-btn.active{ background:var(--accent2); color:#000; border-color:var(--accent2); }
+  .shop-grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:12px;
+  }
+  .shop-card{
+    background:var(--surface-2); border:1px solid var(--border-soft);
+    border-radius:var(--radius-lg); padding:14px; display:flex; flex-direction:column;
+    align-items:center; gap:8px; text-align:center;
+  }
+  .shop-card.is-blocked{ opacity:.5; }
+  .shop-card-portrait{
+    width:64px; height:64px; border-radius:var(--radius); object-fit:cover;
+    background:var(--surface);
+  }
+  .shop-card-icon{
+    width:64px; height:64px; border-radius:var(--radius); background:var(--surface);
+    display:flex; align-items:center; justify-content:center; font-size:2rem;
+  }
+  .shop-card-name{ font-size:.85rem; font-weight:700; color:var(--text); line-height:1.2; }
+  .shop-card-limit{ font-size:.68rem; color:var(--text-faint); }
+  .shop-card-price{
+    display:flex; align-items:center; gap:4px; font-size:.85rem; font-weight:700; color:var(--accent);
+  }
+  .shop-buy-btn{
+    width:100%; padding:9px 10px; border-radius:999px;
+    background:var(--accent2); color:#000; font-weight:700;
+    font-family:var(--font-display); font-size:.78rem;
+    border:none; cursor:pointer; transition:opacity .15s, transform .1s;
+  }
+  .shop-buy-btn:hover:not([disabled]){ opacity:.85; transform:translateY(-1px); }
+  .shop-buy-btn[disabled]{ background:var(--surface-3, var(--border-soft)); color:var(--text-faint); cursor:default; }
+
   .detail-layout{ display:flex; gap:16px; flex-wrap:wrap; }
   .detail-portrait{
     width:140px; flex-shrink:0; position:relative;
     border-radius:var(--radius); overflow:hidden;
     background:linear-gradient(150deg, var(--surface-2), var(--surface-3));
-    aspect-ratio:1/1;
+    height:510px;
     display:flex; align-items:center; justify-content:center;
   }
-  .detail-portrait img{ width:100%; height:100%; object-fit:cover; object-position:center 20%; }
+  /* Fallback pour les images sans crop (galerie, etc.) — les crops inline ont priorité */
+  .detail-portrait img:not([style*="position:absolute"]){ width:100%; height:100%; object-fit:cover; object-position:center 20%; }
   .detail-portrait-placeholder{
     font-family:var(--font-display); font-size:3.2rem; font-weight:700; color:var(--text-faint);
   }
@@ -781,8 +857,9 @@
     background:var(--surface-2); flex-shrink:0; overflow:hidden;
     display:flex; align-items:center; justify-content:center;
     font-family:var(--font-display); font-weight:700; color:var(--text-faint);
+    position:relative;
   }
-  .team-portrait img{ width:100%; height:100%; object-fit:cover; object-position:center 20%; }
+  .team-portrait img:not([style*="position:absolute"]){ width:100%; height:100%; object-fit:cover; object-position:center 20%; }
   .team-info{ flex:1; min-width:0; display:flex; flex-direction:column; gap:3px; }
   .team-name{ font-weight:800; font-size:.85rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .team-level{ font-size:.72rem; color:var(--text-dim); }
@@ -846,8 +923,9 @@
     width:46px; height:46px; border-radius:var(--radius-sm);
     background:var(--surface-2); display:flex; align-items:center; justify-content:center;
     overflow:hidden; font-family:var(--font-display); font-weight:700; font-size:1.1rem;
+    position:relative;
   }
-  .lobby-portrait img{ width:100%; height:100%; object-fit:cover; object-position:center 20%; }
+  .lobby-portrait img:not([style*="position:absolute"]){ width:100%; height:100%; object-fit:cover; object-position:center 20%; }
 
   .combat-line-title{
     font-family:var(--font-display); font-size:.95rem; margin:4px 0 10px; color:var(--text-dim);
@@ -1001,7 +1079,7 @@
     cursor:pointer; transition:transform .15s, box-shadow .15s;
   }
   .fighter-portrait:hover{ transform:scale(1.08); box-shadow:0 0 0 3px rgba(0,0,0,.25), 0 6px 20px -4px var(--rc, transparent), 0 0 0 2px var(--accent2); }
-  .fighter-portrait img{ width:100%; height:100%; object-fit:cover; object-position:center 20%; }
+  .fighter-portrait img:not([style*="position:absolute"]){ width:100%; height:100%; object-fit:cover; object-position:center 20%; }
   @media (max-width:380px){
     .fighter-portrait{ width:58px; height:58px; font-size:1.2rem; }
   }
@@ -2189,6 +2267,8 @@
       <section id="screen-combat" class="screen"></section>
       <section id="screen-gacha" class="screen"></section>
       <section id="screen-equip" class="screen"></section>
+      <section id="screen-shop" class="screen"></section>
+      <section id="screen-inventory" class="screen"></section>
       <section id="screen-bestiaire" class="screen"></section>
       <section id="screen-quests" class="screen"></section>
     </main>
@@ -2235,6 +2315,7 @@
   <script src="database.js"></script>
   <script src="state.js"></script>
   <script src="quests.js"></script>
+  <script src="shop.js"></script>
   <script src="gacha.js"></script>
   <script src="passives.js"></script>
   <script src="engine.js"></script>

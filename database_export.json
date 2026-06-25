@@ -1,7 +1,7 @@
 {
   "_exportType": "wildbeast_db_export",
   "_exportVersion": "1.0",
-  "exportDate": "2026-06-22T20:14:24.732Z",
+  "exportDate": "2026-06-25T12:36:05.200Z",
   "gameVersion": "1.0.0",
   "config": {
     "game": {
@@ -72,7 +72,7 @@
     },
     "playerLevel": {
       "xpFormula": "base * (level ** expo)",
-      "xpBase": 70,
+      "xpBase": 40,
       "xpExponent": 1.02,
       "energyPerLevel": 5,
       "xpPerEnemyKill": 3,
@@ -498,7 +498,22 @@
         "type": "level",
         "value": 8
       },
-      "evolvesTo": "Abeille1"
+      "evolvesTo": "Abeille1",
+      "portraitCrop": {
+        "x": 0,
+        "y": 100,
+        "zoom": 1.1
+      },
+      "detailCrop": {
+        "x": 45.77922077922079,
+        "y": 100,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 47.19739152244796,
+        "cy": 71.9656283566058,
+        "r": 45
+      }
     },
     {
       "id": "Abeille1",
@@ -520,7 +535,22 @@
         "type": "level",
         "value": 19
       },
-      "evolvesTo": "Abeille2"
+      "evolvesTo": "Abeille2",
+      "portraitCrop": {
+        "x": 46.91666666666667,
+        "y": 53.083333333333336,
+        "zoom": 1.2
+      },
+      "detailCrop": {
+        "x": 28.246753246753247,
+        "y": 74.01190476190476,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 51.5,
+        "cy": 46.5,
+        "r": 36.5
+      }
     },
     {
       "id": "Abeille2",
@@ -539,7 +569,22 @@
         "spd": 137
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 100,
+        "y": 2.5,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 90.9090909090909,
+        "y": 4.25,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 67.5,
+        "cy": 32.5,
+        "r": 32.5
+      }
     },
     {
       "id": "Aigle0",
@@ -561,7 +606,22 @@
         "type": "level",
         "value": 8
       },
-      "evolvesTo": "Aiglon1"
+      "evolvesTo": "Aiglon1",
+      "portraitCrop": {
+        "x": 0,
+        "y": 48.878787878787875,
+        "zoom": 1.1
+      },
+      "detailCrop": {
+        "x": 31.818181818181817,
+        "y": 12,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 44,
+        "cy": 56,
+        "r": 44
+      }
     },
     {
       "id": "Aigle1",
@@ -583,7 +643,22 @@
         "type": "level",
         "value": 18
       },
-      "evolvesTo": "Aiglon2"
+      "evolvesTo": "Aiglon2",
+      "portraitCrop": {
+        "x": 55.5,
+        "y": 10.5,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 38.18181818181818,
+        "y": 9.25,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 39.775647704382855,
+        "cy": 25.25,
+        "r": 39
+      }
     },
     {
       "id": "Aigle2",
@@ -605,7 +680,22 @@
         "type": "level",
         "value": 50
       },
-      "evolvesTo": "Aiglon3"
+      "evolvesTo": "Aiglon3",
+      "portraitCrop": {
+        "x": 81.5,
+        "y": 20.5,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 91.81818181818181,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 68,
+        "cy": 32,
+        "r": 32
+      }
     },
     {
       "id": "Aigle3",
@@ -627,7 +717,22 @@
         "type": "level",
         "value": 100
       },
-      "evolvesTo": "Aiglon4"
+      "evolvesTo": "Aiglon4",
+      "portraitCrop": {
+        "x": 58.5,
+        "y": 35,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 81.81818181818181,
+        "y": 10.25,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 57,
+        "cy": 51.25,
+        "r": 43
+      }
     },
     {
       "id": "Aigle4",
@@ -646,7 +751,22 @@
         "spd": 190
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 50,
+        "y": 20,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 50.90909090909091,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 50.5,
+        "cy": 53,
+        "r": 45
+      }
     },
     {
       "id": "Anaconda1",
@@ -668,7 +788,23 @@
         "type": "level",
         "value": 18
       },
-      "evolvesTo": "Anaconda2"
+      "evolvesTo": "Anaconda2",
+      "portraitCrop": {
+        "x": 50,
+        "y": 20,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 62.72727272727273,
+        "y": 7,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 55.5,
+        "cy": 48.49999999999999,
+        "r": 28.5
+      },
+      "availableInLineCombat": false
     },
     {
       "id": "Anaconda2",
@@ -690,7 +826,22 @@
         "type": "level",
         "value": 40
       },
-      "evolvesTo": "Anaconda3"
+      "evolvesTo": "Anaconda3",
+      "portraitCrop": {
+        "x": 43,
+        "y": 85,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 61.81818181818183,
+        "y": 9.5,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 55,
+        "cy": 74.6875,
+        "r": 45
+      }
     },
     {
       "id": "Anaconda3",
@@ -712,7 +863,22 @@
         "type": "level",
         "value": 100
       },
-      "evolvesTo": "Anaconda4"
+      "evolvesTo": "Anaconda4",
+      "portraitCrop": {
+        "x": 50,
+        "y": 20,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 31.81818181818182,
+        "y": 6.25,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 37.84989239658196,
+        "cy": 55,
+        "r": 45
+      }
     },
     {
       "id": "Anaconda4",
@@ -731,7 +897,22 @@
         "spd": 128
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 50,
+        "y": 20,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 20,
+        "y": 6.25,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 40,
+        "cy": 30.62571103526735,
+        "r": 40
+      }
     },
     {
       "id": "Aye-Aye0",
@@ -753,7 +934,23 @@
         "type": "level",
         "value": 12
       },
-      "evolvesTo": "Aye-Aye1"
+      "evolvesTo": "Aye-Aye1",
+      "portraitCrop": {
+        "x": 12.5,
+        "y": 27,
+        "zoom": 1.4
+      },
+      "detailCrop": {
+        "x": 32.72727272727273,
+        "y": 7,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 41.66666666666667,
+        "cy": 29.25,
+        "r": 30
+      },
+      "availableInLineCombat": false
     },
     {
       "id": "Aye-Aye1",
@@ -772,7 +969,22 @@
         "spd": 239
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 50,
+        "y": 20,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 55.45454545454545,
+        "y": 10.25,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 50.375895688946315,
+        "cy": 43.5,
+        "r": 45
+      }
     },
     {
       "id": "Baleine0",
@@ -794,7 +1006,23 @@
         "type": "level",
         "value": 20
       },
-      "evolvesTo": "Baleine01"
+      "evolvesTo": "Baleine01",
+      "portraitCrop": {
+        "x": 38.5,
+        "y": 45,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 44.54545454545455,
+        "y": 10.25,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 46,
+        "cy": 55,
+        "r": 45
+      },
+      "availableInLineCombat": false
     },
     {
       "id": "Baleine1",
@@ -816,7 +1044,22 @@
         "type": "level",
         "value": 38
       },
-      "evolvesTo": "Baleine2"
+      "evolvesTo": "Baleine2",
+      "portraitCrop": {
+        "x": 57.5,
+        "y": 75.5,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 50,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 49.24997070198055,
+        "cy": 60.5,
+        "r": 45
+      }
     },
     {
       "id": "Baleine2",
@@ -835,7 +1078,22 @@
         "spd": 102
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 57,
+        "y": 23,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 96.36363636363636,
+        "y": 9.75,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 72,
+        "cy": 72.35,
+        "r": 28
+      }
     },
     {
       "id": "Belette0",
@@ -857,7 +1115,22 @@
         "type": "level",
         "value": 10
       },
-      "evolvesTo": "Belette1"
+      "evolvesTo": "Belette1",
+      "portraitCrop": {
+        "x": 61.575630252100844,
+        "y": 67.03781512605043,
+        "zoom": 1.7
+      },
+      "detailCrop": {
+        "x": 58.18181818181818,
+        "y": 10.5,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 57.33371529767175,
+        "cy": 57.42244128732966,
+        "r": 37
+      }
     },
     {
       "id": "Belette1",
@@ -876,7 +1149,22 @@
         "spd": 91
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 39.833333333333336,
+        "y": 21.666666666666668,
+        "zoom": 1.5
+      },
+      "detailCrop": {
+        "x": 51.81818181818182,
+        "y": 10.25,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 50.333333333333336,
+        "cy": 32.22222222222222,
+        "r": 30
+      }
     },
     {
       "id": "Carpe0",
@@ -898,7 +1186,22 @@
         "type": "level",
         "value": 15
       },
-      "evolvesTo": "Carpe1"
+      "evolvesTo": "Carpe1",
+      "portraitCrop": {
+        "x": 45.5,
+        "y": 20,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 28.181818181818183,
+        "y": 7.25,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 38,
+        "cy": 57.046070460704605,
+        "r": 30
+      }
     },
     {
       "id": "Carpe1",
@@ -917,7 +1220,22 @@
         "spd": 64
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 50,
+        "y": 20,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 90,
+        "y": 7.5,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 67,
+        "cy": 54.333333333333336,
+        "r": 30
+      }
     },
     {
       "id": "Chat0",
@@ -939,7 +1257,22 @@
         "type": "level",
         "value": 10
       },
-      "evolvesTo": "Chat1"
+      "evolvesTo": "Chat1",
+      "portraitCrop": {
+        "x": 100,
+        "y": 19.285714285714285,
+        "zoom": 1.3
+      },
+      "detailCrop": {
+        "x": 100,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 55,
+        "cy": 34.25,
+        "r": 45
+      }
     },
     {
       "id": "Chat1",
@@ -961,7 +1294,22 @@
         "type": "level",
         "value": 25
       },
-      "evolvesTo": "Chat2"
+      "evolvesTo": "Chat2",
+      "portraitCrop": {
+        "x": 50.88235294117647,
+        "y": 6.470588235294118,
+        "zoom": 1.7
+      },
+      "detailCrop": {
+        "x": 50,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 48.333333333333336,
+        "cy": 30,
+        "r": 30
+      }
     },
     {
       "id": "Chat2",
@@ -980,7 +1328,22 @@
         "spd": 111
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 46.875,
+        "y": 8.4375,
+        "zoom": 1.6
+      },
+      "detailCrop": {
+        "x": 50,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 51.333333333333336,
+        "cy": 30,
+        "r": 30
+      }
     },
     {
       "id": "Chevreuil0",
@@ -1002,7 +1365,22 @@
         "type": "level",
         "value": 20
       },
-      "evolvesTo": "Chevreuil1"
+      "evolvesTo": "Chevreuil1",
+      "portraitCrop": {
+        "x": 46.138888888888886,
+        "y": 34.166666666666664,
+        "zoom": 2
+      },
+      "detailCrop": {
+        "x": 40,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 46.666666666666664,
+        "cy": 42,
+        "r": 27
+      }
     },
     {
       "id": "Chevreuil1",
@@ -1024,7 +1402,22 @@
         "type": "level",
         "value": 40
       },
-      "evolvesTo": "Chevreuil2"
+      "evolvesTo": "Chevreuil2",
+      "portraitCrop": {
+        "x": 0,
+        "y": 26.520979020979023,
+        "zoom": 1.1
+      },
+      "detailCrop": {
+        "x": 41.81818181818182,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 41.004392386530014,
+        "cy": 35.5,
+        "r": 41
+      }
     },
     {
       "id": "Chevreuil2",
@@ -1043,7 +1436,22 @@
         "spd": 79
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 54.23076923076923,
+        "y": 22.692307692307693,
+        "zoom": 1.3
+      },
+      "detailCrop": {
+        "x": 58.18181818181818,
+        "y": 11,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 52.249560632688926,
+        "cy": 36,
+        "r": 34
+      }
     },
     {
       "id": "Corbeau0",
@@ -1065,7 +1473,22 @@
         "type": "level",
         "value": 9
       },
-      "evolvesTo": "Corbeau1"
+      "evolvesTo": "Corbeau1",
+      "portraitCrop": {
+        "x": 50,
+        "y": 20,
+        "zoom": 1.7
+      },
+      "detailCrop": {
+        "x": 50,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 49.66664930465129,
+        "cy": 39.997684649224354,
+        "r": 34
+      }
     },
     {
       "id": "Corbeau1",
@@ -1087,7 +1510,22 @@
         "type": "level",
         "value": 19
       },
-      "evolvesTo": "Corbeau2"
+      "evolvesTo": "Corbeau2",
+      "portraitCrop": {
+        "x": 50,
+        "y": 10.357142857142856,
+        "zoom": 1.4
+      },
+      "detailCrop": {
+        "x": 65.45454545454545,
+        "y": 9.5,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 57.666666666666664,
+        "cy": 30.833333333333332,
+        "r": 30
+      }
     },
     {
       "id": "Corbeau2",
@@ -1106,7 +1544,22 @@
         "spd": 137
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 57.77777777777778,
+        "y": 28.055555555555554,
+        "zoom": 1.8
+      },
+      "detailCrop": {
+        "x": 50,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 51.66675347674358,
+        "cy": 40.1299845781009,
+        "r": 30
+      }
     },
     {
       "id": "Eléphant0",
@@ -1129,7 +1582,22 @@
         "value": 23
       },
       "evolvesTo": "Eléphant1",
-      "availableInLineCombat": false
+      "availableInLineCombat": false,
+      "portraitCrop": {
+        "x": 55.35714285714286,
+        "y": 20,
+        "zoom": 1.4
+      },
+      "detailCrop": {
+        "x": 50,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 53,
+        "cy": 45,
+        "r": 45
+      }
     },
     {
       "id": "Eléphant1",
@@ -1151,7 +1619,22 @@
         "type": "level",
         "value": 43
       },
-      "evolvesTo": "Eléphant2"
+      "evolvesTo": "Eléphant2",
+      "portraitCrop": {
+        "x": 100,
+        "y": 41.42857142857144,
+        "zoom": 1.4
+      },
+      "detailCrop": {
+        "x": 98.18181818181819,
+        "y": 10.25,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 64,
+        "cy": 44,
+        "r": 36
+      }
     },
     {
       "id": "Eléphant2",
@@ -1173,7 +1656,22 @@
         "type": "level",
         "value": 63
       },
-      "evolvesTo": "Eléphant3"
+      "evolvesTo": "Eléphant3",
+      "portraitCrop": {
+        "x": 42.5,
+        "y": 53.5,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 42.72727272727273,
+        "y": 10.5,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 49.62498535099027,
+        "cy": 41.75,
+        "r": 39
+      }
     },
     {
       "id": "Eléphant3",
@@ -1195,7 +1693,22 @@
         "type": "level",
         "value": 78
       },
-      "evolvesTo": "Eléphant4"
+      "evolvesTo": "Eléphant4",
+      "portraitCrop": {
+        "x": 55,
+        "y": 11.428571428571429,
+        "zoom": 1.4
+      },
+      "detailCrop": {
+        "x": 53.63636363636363,
+        "y": 9.75,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 51,
+        "cy": 33.76318874560375,
+        "r": 45
+      }
     },
     {
       "id": "Eléphant4",
@@ -1217,7 +1730,22 @@
         "type": "level",
         "value": 93
       },
-      "evolvesTo": "Eléphant5"
+      "evolvesTo": "Eléphant5",
+      "portraitCrop": {
+        "x": 43.214285714285715,
+        "y": 22.857142857142858,
+        "zoom": 1.4
+      },
+      "detailCrop": {
+        "x": 39.09090909090909,
+        "y": 7,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 33.99916662326163,
+        "cy": 37.647172360548154,
+        "r": 34
+      }
     },
     {
       "id": "Eléphant5",
@@ -1239,7 +1767,22 @@
         "type": "level",
         "value": 100
       },
-      "evolvesTo": "Eléphant6"
+      "evolvesTo": "Eléphant6",
+      "portraitCrop": {
+        "x": 39.5,
+        "y": 0,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 40.90909090909091,
+        "y": 0,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 42.333298609302574,
+        "cy": 27.122330097087378,
+        "r": 36
+      }
     },
     {
       "id": "Eléphant6",
@@ -1258,7 +1801,22 @@
         "spd": 218
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 71.51515151515153,
+        "y": 0,
+        "zoom": 1.1
+      },
+      "detailCrop": {
+        "x": 85.45454545454545,
+        "y": 7.25,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 71,
+        "cy": 29,
+        "r": 29
+      }
     },
     {
       "id": "Fourmi0",
@@ -1280,7 +1838,22 @@
         "type": "level",
         "value": 5
       },
-      "evolvesTo": "Fourmi1"
+      "evolvesTo": "Fourmi1",
+      "portraitCrop": {
+        "x": 94.6923076923077,
+        "y": 73.3076923076923,
+        "zoom": 1.3
+      },
+      "detailCrop": {
+        "x": 50,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 50,
+        "cy": 50,
+        "r": 30
+      }
     },
     {
       "id": "Fourmi1",
@@ -1299,7 +1872,22 @@
         "spd": 138
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 51.5,
+        "y": 12,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 53.63636363636363,
+        "y": 7.75,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 48.66652776330868,
+        "cy": 42.968019680196804,
+        "r": 41
+      }
     },
     {
       "id": "Grenouille0",
@@ -1321,7 +1909,22 @@
         "type": "level",
         "value": 15
       },
-      "evolvesTo": "Grenouille1"
+      "evolvesTo": "Grenouille1",
+      "portraitCrop": {
+        "x": 50,
+        "y": 20,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 77.27272727272727,
+        "y": 2.750000000000001,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 36.166805562789726,
+        "cy": 33.5,
+        "r": 33.5
+      }
     },
     {
       "id": "Grenouille1",
@@ -1343,7 +1946,22 @@
         "type": "level",
         "value": 33
       },
-      "evolvesTo": "Grenouille2"
+      "evolvesTo": "Grenouille2",
+      "portraitCrop": {
+        "x": 75,
+        "y": 27.307692307692307,
+        "zoom": 1.3
+      },
+      "detailCrop": {
+        "x": 84.54545454545455,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 70,
+        "cy": 64.66666666666667,
+        "r": 30
+      }
     },
     {
       "id": "Grenouille2",
@@ -1362,7 +1980,22 @@
         "spd": 79
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 8.499999999999996,
+        "y": 5.785714285714285,
+        "zoom": 1.4
+      },
+      "detailCrop": {
+        "x": 11.818181818181813,
+        "y": 10.5,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 28.96670493685419,
+        "cy": 30,
+        "r": 30
+      }
     },
     {
       "id": "Guêpe0",
@@ -1384,7 +2017,22 @@
         "type": "level",
         "value": 8
       },
-      "evolvesTo": "Guêpe1"
+      "evolvesTo": "Guêpe1",
+      "portraitCrop": {
+        "x": 81.78571428571429,
+        "y": 100,
+        "zoom": 1.4
+      },
+      "detailCrop": {
+        "x": 61.81818181818182,
+        "y": 11.5,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 57.333333333333336,
+        "cy": 61.627906976744185,
+        "r": 30
+      }
     },
     {
       "id": "Guêpe1",
@@ -1406,7 +2054,22 @@
         "type": "level",
         "value": 19
       },
-      "evolvesTo": "Guêpe2"
+      "evolvesTo": "Guêpe2",
+      "portraitCrop": {
+        "x": 50,
+        "y": 20,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 79.99999999999999,
+        "y": 11.25,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 70,
+        "cy": 33,
+        "r": 30
+      }
     },
     {
       "id": "Guêpe2",
@@ -1425,7 +2088,22 @@
         "spd": 169
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 51.19230769230769,
+        "y": 0,
+        "zoom": 1.3
+      },
+      "detailCrop": {
+        "x": 67.27272727272728,
+        "y": 9.5,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 61.666666666666664,
+        "cy": 30,
+        "r": 30
+      }
     },
     {
       "id": "Hérisson0",
@@ -1447,7 +2125,22 @@
         "type": "level",
         "value": 12
       },
-      "evolvesTo": "Hérisson1"
+      "evolvesTo": "Hérisson1",
+      "portraitCrop": {
+        "x": 49.642857142857146,
+        "y": 6.428571428571427,
+        "zoom": 1.4
+      },
+      "detailCrop": {
+        "x": 50,
+        "y": 10.5,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 48.99994791395385,
+        "cy": 45,
+        "r": 45
+      }
     },
     {
       "id": "Hérisson1",
@@ -1466,7 +2159,22 @@
         "spd": 106
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 31.666666666666664,
+        "y": 52.00000000000001,
+        "zoom": 1.5
+      },
+      "detailCrop": {
+        "x": 25.454545454545453,
+        "y": 9.25,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 35.99927079535393,
+        "cy": 55.338894681960376,
+        "r": 39
+      }
     },
     {
       "id": "Hibou0",
@@ -1488,7 +2196,22 @@
         "type": "level",
         "value": 8
       },
-      "evolvesTo": "Hibou1"
+      "evolvesTo": "Hibou1",
+      "portraitCrop": {
+        "x": 45.5,
+        "y": 88,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 50,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 50.357142857142854,
+        "cy": 56,
+        "r": 45
+      }
     },
     {
       "id": "Hibou1",
@@ -1510,7 +2233,22 @@
         "type": "level",
         "value": 23
       },
-      "evolvesTo": "Hibou2"
+      "evolvesTo": "Hibou2",
+      "portraitCrop": {
+        "x": 12.071428571428571,
+        "y": 4.285714285714286,
+        "zoom": 1.4
+      },
+      "detailCrop": {
+        "x": 32.72727272727273,
+        "y": 10.5,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 35,
+        "cy": 23.61873508353222,
+        "r": 35
+      }
     },
     {
       "id": "Hibou2",
@@ -1532,7 +2270,22 @@
         "type": "level",
         "value": 38
       },
-      "evolvesTo": "Hibou3"
+      "evolvesTo": "Hibou3",
+      "portraitCrop": {
+        "x": 37.64705882352941,
+        "y": 27.352941176470587,
+        "zoom": 1.7
+      },
+      "detailCrop": {
+        "x": 32.42424242424242,
+        "y": 20.833333333333336,
+        "zoom": 1.5
+      },
+      "combatCrop": {
+        "cx": 36.9326799673317,
+        "cy": 30.5,
+        "r": 25
+      }
     },
     {
       "id": "Hibou3",
@@ -1551,7 +2304,22 @@
         "spd": 179
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 67.5,
+        "y": 7.5,
+        "zoom": 1.4
+      },
+      "detailCrop": {
+        "x": 70,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 61.66666666666667,
+        "cy": 30,
+        "r": 30
+      }
     },
     {
       "id": "Lapin0",
@@ -1573,7 +2341,22 @@
         "type": "level",
         "value": 20
       },
-      "evolvesTo": "Lapin1"
+      "evolvesTo": "Lapin1",
+      "portraitCrop": {
+        "x": 50,
+        "y": 20,
+        "zoom": 1.2
+      },
+      "detailCrop": {
+        "x": 66.36363636363636,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 53.10868245294475,
+        "cy": 36.25,
+        "r": 45
+      }
     },
     {
       "id": "Lapin1",
@@ -1592,7 +2375,22 @@
         "spd": 64
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 50,
+        "y": 20,
+        "zoom": 1.6
+      },
+      "detailCrop": {
+        "x": 57.27272727272727,
+        "y": 10.5,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 49.33333333333333,
+        "cy": 35.333333333333336,
+        "r": 35
+      }
     },
     {
       "id": "Lion0",
@@ -1615,7 +2413,22 @@
         "value": 15
       },
       "evolvesTo": "Lion1",
-      "availableInLineCombat": false
+      "availableInLineCombat": false,
+      "portraitCrop": {
+        "x": 61.333333333333336,
+        "y": 32,
+        "zoom": 1.5
+      },
+      "detailCrop": {
+        "x": 52.72727272727273,
+        "y": 10.5,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 53.33350695348716,
+        "cy": 40.013263634235784,
+        "r": 34
+      }
     },
     {
       "id": "Lion1",
@@ -1637,7 +2450,22 @@
         "type": "level",
         "value": 25
       },
-      "evolvesTo": "Lion2"
+      "evolvesTo": "Lion2",
+      "portraitCrop": {
+        "x": 33.526315789473685,
+        "y": 59.421052631578945,
+        "zoom": 1.9
+      },
+      "detailCrop": {
+        "x": 43.86363636363636,
+        "y": 70.625,
+        "zoom": 1.6
+      },
+      "combatCrop": {
+        "cx": 42.87472166881519,
+        "cy": 52.75,
+        "r": 27
+      }
     },
     {
       "id": "Lion2",
@@ -1659,7 +2487,22 @@
         "type": "level",
         "value": 45
       },
-      "evolvesTo": "Lion3"
+      "evolvesTo": "Lion3",
+      "portraitCrop": {
+        "x": 26,
+        "y": 37.33333333333333,
+        "zoom": 1.5
+      },
+      "detailCrop": {
+        "x": 47.27272727272727,
+        "y": 10,
+        "zoom": 1.2
+      },
+      "combatCrop": {
+        "cx": 43.99976561584437,
+        "cy": 45,
+        "r": 36
+      }
     },
     {
       "id": "Lion3",
@@ -1681,7 +2524,22 @@
         "type": "level",
         "value": 65
       },
-      "evolvesTo": "Lion4"
+      "evolvesTo": "Lion4",
+      "portraitCrop": {
+        "x": 50,
+        "y": 20,
+        "zoom": 1.2
+      },
+      "detailCrop": {
+        "x": 50,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 51.33340278139487,
+        "cy": 39.33244437036419,
+        "r": 41
+      }
     },
     {
       "id": "Lion4",
@@ -1703,7 +2561,22 @@
         "type": "level",
         "value": 90
       },
-      "evolvesTo": "Lion5"
+      "evolvesTo": "Lion5",
+      "portraitCrop": {
+        "x": 50.357142857142854,
+        "y": 45,
+        "zoom": 1.4
+      },
+      "detailCrop": {
+        "x": 59.790209790209786,
+        "y": 60.19230769230769,
+        "zoom": 1.3
+      },
+      "combatCrop": {
+        "cx": 50.375366568914956,
+        "cy": 43.75,
+        "r": 36
+      }
     },
     {
       "id": "Lion5",
@@ -1725,7 +2598,22 @@
         "type": "level",
         "value": 100
       },
-      "evolvesTo": "Lion6"
+      "evolvesTo": "Lion6",
+      "portraitCrop": {
+        "x": 16.5,
+        "y": 11.5,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 35.45454545454545,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 45,
+        "cy": 33.25125628140704,
+        "r": 45
+      }
     },
     {
       "id": "Lion6",
@@ -1744,7 +2632,22 @@
         "spd": 274
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 73.21428571428572,
+        "y": 4.642857142857142,
+        "zoom": 1.4
+      },
+      "detailCrop": {
+        "x": 80.9090909090909,
+        "y": 10.5,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 67,
+        "cy": 33,
+        "r": 33
+      }
     },
     {
       "id": "Loup0",
@@ -1767,7 +2670,22 @@
         "value": 10
       },
       "evolvesTo": "Loup1",
-      "availableInLineCombat": false
+      "availableInLineCombat": false,
+      "portraitCrop": {
+        "x": 70.58333333333333,
+        "y": 3.8333333333333335,
+        "zoom": 1.3
+      },
+      "detailCrop": {
+        "x": 50.90909090909091,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 51.33340278139486,
+        "cy": 25.506376594148538,
+        "r": 34
+      }
     },
     {
       "id": "Loup1",
@@ -1789,7 +2707,22 @@
         "type": "level",
         "value": 25
       },
-      "evolvesTo": "Loup2"
+      "evolvesTo": "Loup2",
+      "portraitCrop": {
+        "x": 52,
+        "y": 13.4375,
+        "zoom": 1.6
+      },
+      "detailCrop": {
+        "x": 50,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 52.62710373541312,
+        "cy": 25.75,
+        "r": 35
+      }
     },
     {
       "id": "Loup2",
@@ -1811,7 +2744,22 @@
         "type": "level",
         "value": 45
       },
-      "evolvesTo": "Loup3"
+      "evolvesTo": "Loup3",
+      "portraitCrop": {
+        "x": 64.16666666666667,
+        "y": 24.583333333333336,
+        "zoom": 1.2
+      },
+      "detailCrop": {
+        "x": 79.0909090909091,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 66,
+        "cy": 31,
+        "r": 34
+      }
     },
     {
       "id": "Loup3",
@@ -1833,7 +2781,22 @@
         "type": "level",
         "value": 65
       },
-      "evolvesTo": "Loup4"
+      "evolvesTo": "Loup4",
+      "portraitCrop": {
+        "x": 47.30769230769231,
+        "y": 34.61538461538461,
+        "zoom": 1.1
+      },
+      "detailCrop": {
+        "x": 50,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 50.37501464900973,
+        "cy": 42,
+        "r": 45
+      }
     },
     {
       "id": "Loup4",
@@ -1852,7 +2815,22 @@
         "spd": 174
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 50,
+        "y": 20,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 37.27272727272727,
+        "y": 10.25,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 38.37727006444054,
+        "cy": 37.5,
+        "r": 36
+      }
     },
     {
       "id": "Phoque0",
@@ -1875,7 +2853,22 @@
         "value": 15
       },
       "evolvesTo": "Phoque1",
-      "availableInLineCombat": false
+      "availableInLineCombat": false,
+      "portraitCrop": {
+        "x": 50,
+        "y": 20,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 50,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 50,
+        "cy": 39.5,
+        "r": 45
+      }
     },
     {
       "id": "Phoque1",
@@ -1897,7 +2890,22 @@
         "type": "level",
         "value": 30
       },
-      "evolvesTo": "Phoque2"
+      "evolvesTo": "Phoque2",
+      "portraitCrop": {
+        "x": 50,
+        "y": 20,
+        "zoom": 1.2
+      },
+      "detailCrop": {
+        "x": 58.18181818181818,
+        "y": 9.5,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 55.33361112557946,
+        "cy": 37.590664272890486,
+        "r": 38
+      }
     },
     {
       "id": "Phoque2",
@@ -1919,7 +2927,22 @@
         "type": "level",
         "value": 45
       },
-      "evolvesTo": "Phoque3"
+      "evolvesTo": "Phoque3",
+      "portraitCrop": {
+        "x": 93.66666666666666,
+        "y": 19.166666666666668,
+        "zoom": 1.5
+      },
+      "detailCrop": {
+        "x": 76.36363636363636,
+        "y": 11.75,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 69.33333333333333,
+        "cy": 27,
+        "r": 27
+      }
     },
     {
       "id": "Phoque3",
@@ -1941,7 +2964,22 @@
         "type": "level",
         "value": 65
       },
-      "evolvesTo": "Phoque4"
+      "evolvesTo": "Phoque4",
+      "portraitCrop": {
+        "x": 47.5,
+        "y": 45.35714285714286,
+        "zoom": 1.4
+      },
+      "detailCrop": {
+        "x": 62.72727272727273,
+        "y": 10.5,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 50.33335069534871,
+        "cy": 46.996362783057606,
+        "r": 40
+      }
     },
     {
       "id": "Phoque4",
@@ -1960,7 +2998,22 @@
         "spd": 148
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 57,
+        "y": 0,
+        "zoom": 1.2
+      },
+      "detailCrop": {
+        "x": 59.09090909090909,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 55.66696182092817,
+        "cy": 29.85870755750274,
+        "r": 39
+      }
     },
     {
       "id": "Rat0",
@@ -1982,7 +3035,22 @@
         "type": "level",
         "value": 10
       },
-      "evolvesTo": "Rat1"
+      "evolvesTo": "Rat1",
+      "portraitCrop": {
+        "x": 67.22222222222221,
+        "y": 51.94444444444444,
+        "zoom": 2.4
+      },
+      "detailCrop": {
+        "x": 51.13636363636363,
+        "y": 71.40625,
+        "zoom": 1.6
+      },
+      "combatCrop": {
+        "cx": 58.99999999999999,
+        "cy": 53,
+        "r": 28
+      }
     },
     {
       "id": "Rat1",
@@ -2001,7 +3069,22 @@
         "spd": 106
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 74,
+        "y": 18.333333333333332,
+        "zoom": 1.5
+      },
+      "detailCrop": {
+        "x": 70.9090909090909,
+        "y": 10.25,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 62,
+        "cy": 46,
+        "r": 36
+      }
     },
     {
       "id": "Renard0",
@@ -2023,7 +3106,22 @@
         "type": "level",
         "value": 10
       },
-      "evolvesTo": "Renard1"
+      "evolvesTo": "Renard1",
+      "portraitCrop": {
+        "x": 38.30882352941177,
+        "y": 0,
+        "zoom": 2
+      },
+      "detailCrop": {
+        "x": 38.18181818181818,
+        "y": 10.5,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 39.33277774884108,
+        "cy": 54.687024337414286,
+        "r": 27
+      }
     },
     {
       "id": "Renard1",
@@ -2045,7 +3143,22 @@
         "type": "level",
         "value": 23
       },
-      "evolvesTo": "Renard2"
+      "evolvesTo": "Renard2",
+      "portraitCrop": {
+        "x": 16.125,
+        "y": 13.75,
+        "zoom": 1.6
+      },
+      "detailCrop": {
+        "x": 29.09090909090909,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 38.381869422263975,
+        "cy": 25,
+        "r": 35
+      }
     },
     {
       "id": "Renard2",
@@ -2067,7 +3180,22 @@
         "type": "level",
         "value": 44
       },
-      "evolvesTo": "Renard3"
+      "evolvesTo": "Renard3",
+      "portraitCrop": {
+        "x": 57,
+        "y": 16,
+        "zoom": 1.5
+      },
+      "detailCrop": {
+        "x": 50,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 52.00010417209229,
+        "cy": 29.248778844534275,
+        "r": 30
+      }
     },
     {
       "id": "Renard3",
@@ -2086,7 +3214,22 @@
         "spd": 138
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 26.166666666666668,
+        "y": 13,
+        "zoom": 1.5
+      },
+      "detailCrop": {
+        "x": 31.818181818181817,
+        "y": 9.75,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 38.59245630174793,
+        "cy": 24.75,
+        "r": 34
+      }
     },
     {
       "id": "Requin0",
@@ -2109,7 +3252,22 @@
         "value": 13
       },
       "evolvesTo": "Requin1",
-      "availableInLineCombat": false
+      "availableInLineCombat": false,
+      "portraitCrop": {
+        "x": 57.75,
+        "y": 60.5,
+        "zoom": 2
+      },
+      "detailCrop": {
+        "x": 59.696969696969695,
+        "y": 54.083333333333336,
+        "zoom": 1.5
+      },
+      "combatCrop": {
+        "cx": 56.333663211625606,
+        "cy": 57.120011125017385,
+        "r": 30
+      }
     },
     {
       "id": "Requin1",
@@ -2131,7 +3289,22 @@
         "type": "level",
         "value": 28
       },
-      "evolvesTo": "Requin2"
+      "evolvesTo": "Requin2",
+      "portraitCrop": {
+        "x": 26.785714285714285,
+        "y": 43.214285714285715,
+        "zoom": 1.4
+      },
+      "detailCrop": {
+        "x": 31.818181818181817,
+        "y": 11.25,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 39.33333333333333,
+        "cy": 50,
+        "r": 35
+      }
     },
     {
       "id": "Requin2",
@@ -2153,7 +3326,22 @@
         "type": "level",
         "value": 45
       },
-      "evolvesTo": "Requin3"
+      "evolvesTo": "Requin3",
+      "portraitCrop": {
+        "x": 43.5,
+        "y": 0,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 75.45454545454545,
+        "y": 6.75,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 60.000520860461485,
+        "cy": 45,
+        "r": 45
+      }
     },
     {
       "id": "Requin3",
@@ -2175,7 +3363,22 @@
         "type": "level",
         "value": 45
       },
-      "evolvesTo": "Requin4"
+      "evolvesTo": "Requin4",
+      "portraitCrop": {
+        "x": 50.357142857142854,
+        "y": 69.28571428571428,
+        "zoom": 1.4
+      },
+      "detailCrop": {
+        "x": 40.90909090909091,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 50.66666666666667,
+        "cy": 64,
+        "r": 36
+      }
     },
     {
       "id": "Requin4",
@@ -2197,7 +3400,22 @@
         "type": "level",
         "value": 65
       },
-      "evolvesTo": "Requin5"
+      "evolvesTo": "Requin5",
+      "portraitCrop": {
+        "x": 68.4375,
+        "y": 27.5,
+        "zoom": 1.6
+      },
+      "detailCrop": {
+        "x": 56.36363636363637,
+        "y": 11.25,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 61.333333333333336,
+        "cy": 37.666666666666664,
+        "r": 35
+      }
     },
     {
       "id": "Requin5",
@@ -2219,7 +3437,22 @@
         "type": "level",
         "value": 85
       },
-      "evolvesTo": "Requin6"
+      "evolvesTo": "Requin6",
+      "portraitCrop": {
+        "x": 36.07142857142857,
+        "y": 32.57142857142857,
+        "zoom": 1.4
+      },
+      "detailCrop": {
+        "x": 38.18181818181818,
+        "y": 8.75,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 45.333333333333336,
+        "cy": 48.490566037735846,
+        "r": 44
+      }
     },
     {
       "id": "Requin6",
@@ -2238,7 +3471,22 @@
         "spd": 218
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 38.666666666666664,
+        "y": 21,
+        "zoom": 1.2
+      },
+      "detailCrop": {
+        "x": 39.090909090909086,
+        "y": 10.75,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 49,
+        "cy": 39.33333333333333,
+        "r": 30
+      }
     },
     {
       "id": "Rhinocéros0",
@@ -2261,7 +3509,22 @@
         "value": 20
       },
       "evolvesTo": "Rhinocéros1",
-      "availableInLineCombat": false
+      "availableInLineCombat": false,
+      "portraitCrop": {
+        "x": 48.333333333333336,
+        "y": 45.745098039215684,
+        "zoom": 1.7
+      },
+      "detailCrop": {
+        "x": 70,
+        "y": 9.75,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 47.99989582790771,
+        "cy": 49.669233552121554,
+        "r": 38
+      }
     },
     {
       "id": "Rhinocéros1",
@@ -2283,7 +3546,22 @@
         "type": "level",
         "value": 43
       },
-      "evolvesTo": "Rhinocéros2"
+      "evolvesTo": "Rhinocéros2",
+      "portraitCrop": {
+        "x": 50,
+        "y": 20,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 51.81818181818182,
+        "y": 10.5,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 55,
+        "cy": 55,
+        "r": 45
+      }
     },
     {
       "id": "Rhinocéros2",
@@ -2305,7 +3583,22 @@
         "type": "level",
         "value": 63
       },
-      "evolvesTo": "Rhinocéros3"
+      "evolvesTo": "Rhinocéros3",
+      "portraitCrop": {
+        "x": 23.333333333333336,
+        "y": 48.5,
+        "zoom": 1.5
+      },
+      "detailCrop": {
+        "x": 19.090909090909093,
+        "y": 11.75,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 26.333333333333332,
+        "cy": 54.888888888888886,
+        "r": 25
+      }
     },
     {
       "id": "Rhinocéros3",
@@ -2327,7 +3620,22 @@
         "type": "level",
         "value": 78
       },
-      "evolvesTo": "Rhinocéros4"
+      "evolvesTo": "Rhinocéros4",
+      "portraitCrop": {
+        "x": 61.25,
+        "y": 21.5625,
+        "zoom": 1.6
+      },
+      "detailCrop": {
+        "x": 70,
+        "y": 9.75,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 63.334027813948644,
+        "cy": 35.73482887546736,
+        "r": 30
+      }
     },
     {
       "id": "Rhinocéros4",
@@ -2349,7 +3657,22 @@
         "type": "level",
         "value": 93
       },
-      "evolvesTo": "Rhinocéros5"
+      "evolvesTo": "Rhinocéros5",
+      "portraitCrop": {
+        "x": 59.833333333333336,
+        "y": 0,
+        "zoom": 1.2
+      },
+      "detailCrop": {
+        "x": 67.27272727272728,
+        "y": 8.5,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 68.13483858312655,
+        "cy": 37,
+        "r": 37
+      }
     },
     {
       "id": "Rhinocéros5",
@@ -2368,7 +3691,22 @@
         "spd": 155
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 44.411764705882355,
+        "y": 18.529411764705884,
+        "zoom": 1.7
+      },
+      "detailCrop": {
+        "x": 35.45454545454545,
+        "y": 11.75,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 41.333333333333336,
+        "cy": 34.77777777777778,
+        "r": 33
+      }
     },
     {
       "id": "Sanglier0",
@@ -2390,7 +3728,22 @@
         "type": "level",
         "value": 20
       },
-      "evolvesTo": "Sanglier1"
+      "evolvesTo": "Sanglier1",
+      "portraitCrop": {
+        "x": 45.333333333333336,
+        "y": 84.66666666666667,
+        "zoom": 1.5
+      },
+      "detailCrop": {
+        "x": 62.72727272727273,
+        "y": 100,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 57.333333333333336,
+        "cy": 54.333333333333336,
+        "r": 30
+      }
     },
     {
       "id": "Sanglier1",
@@ -2412,7 +3765,22 @@
         "type": "level",
         "value": 40
       },
-      "evolvesTo": "Sanglier2"
+      "evolvesTo": "Sanglier2",
+      "portraitCrop": {
+        "x": 50.333333333333336,
+        "y": 29.333333333333336,
+        "zoom": 1.5
+      },
+      "detailCrop": {
+        "x": 50,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 48,
+        "cy": 49.407407407407405,
+        "r": 45
+      }
     },
     {
       "id": "Sanglier2",
@@ -2434,7 +3802,22 @@
         "type": "level",
         "value": 60
       },
-      "evolvesTo": "Sanglier3"
+      "evolvesTo": "Sanglier3",
+      "portraitCrop": {
+        "x": 7.5,
+        "y": 73.5,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 58.18181818181818,
+        "y": 19.5,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 50.41555743133563,
+        "cy": 59.5,
+        "r": 45
+      }
     },
     {
       "id": "Sanglier3",
@@ -2453,7 +3836,22 @@
         "spd": 98
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 38.36363636363637,
+        "y": 60.95454545454545,
+        "zoom": 1.1
+      },
+      "detailCrop": {
+        "x": 52.72727272727273,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 50,
+        "cy": 55,
+        "r": 45
+      }
     },
     {
       "id": "Scolopendre0",
@@ -2476,7 +3874,22 @@
         "value": 5
       },
       "evolvesTo": "Scolopendre1",
-      "availableInLineCombat": false
+      "availableInLineCombat": false,
+      "portraitCrop": {
+        "x": 50,
+        "y": 20,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 29.090909090909093,
+        "y": 8.75,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 34.33251731861034,
+        "cy": 30,
+        "r": 30
+      }
     },
     {
       "id": "Scolopendre1",
@@ -2498,7 +3911,22 @@
         "type": "level",
         "value": 15
       },
-      "evolvesTo": "Scolopendre2"
+      "evolvesTo": "Scolopendre2",
+      "portraitCrop": {
+        "x": 56.5,
+        "y": 63.5,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 50,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 51.33340278139487,
+        "cy": 50.252954428678706,
+        "r": 41
+      }
     },
     {
       "id": "Scolopendre2",
@@ -2520,7 +3948,22 @@
         "type": "level",
         "value": 34
       },
-      "evolvesTo": "Scolopendre3"
+      "evolvesTo": "Scolopendre3",
+      "portraitCrop": {
+        "x": 53.666666666666664,
+        "y": 67.66666666666666,
+        "zoom": 1.5
+      },
+      "detailCrop": {
+        "x": 55.45454545454545,
+        "y": 9.25,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 47.666666666666664,
+        "cy": 75,
+        "r": 25
+      }
     },
     {
       "id": "Scolopendre3",
@@ -2542,7 +3985,22 @@
         "type": "level",
         "value": 55
       },
-      "evolvesTo": "Scolopendre4"
+      "evolvesTo": "Scolopendre4",
+      "portraitCrop": {
+        "x": 59,
+        "y": 2.5,
+        "zoom": 1.5
+      },
+      "detailCrop": {
+        "x": 50,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 54.50281425891182,
+        "cy": 19.9875,
+        "r": 30
+      }
     },
     {
       "id": "Scolopendre4",
@@ -2564,7 +4022,22 @@
         "type": "level",
         "value": 85
       },
-      "evolvesTo": "Scolopendre5"
+      "evolvesTo": "Scolopendre5",
+      "portraitCrop": {
+        "x": 70.76923076923077,
+        "y": 4.230769230769232,
+        "zoom": 1.3
+      },
+      "detailCrop": {
+        "x": 60,
+        "y": 10.5,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 52.959537572254334,
+        "cy": 22.30078125,
+        "r": 33
+      }
     },
     {
       "id": "Scolopendre5",
@@ -2586,7 +4059,22 @@
         "type": "level",
         "value": 100
       },
-      "evolvesTo": "Scolopendre6"
+      "evolvesTo": "Scolopendre6",
+      "portraitCrop": {
+        "x": 39,
+        "y": 45,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 50,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 47.32683605986773,
+        "cy": 36,
+        "r": 42
+      }
     },
     {
       "id": "Scolopendre6",
@@ -2605,7 +4093,22 @@
         "spd": 418
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 59.5,
+        "y": 22,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 50,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 50.8456100944705,
+        "cy": 34.5,
+        "r": 45
+      }
     },
     {
       "id": "Tigre0",
@@ -2628,7 +4131,22 @@
         "value": 15
       },
       "evolvesTo": "Tigre1",
-      "availableInLineCombat": false
+      "availableInLineCombat": false,
+      "portraitCrop": {
+        "x": 96,
+        "y": 18,
+        "zoom": 1
+      },
+      "detailCrop": {
+        "x": 75.45454545454545,
+        "y": 7.75,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 69.33333333333333,
+        "cy": 36.666666666666664,
+        "r": 30
+      }
     },
     {
       "id": "Tigre1",
@@ -2650,7 +4168,22 @@
         "type": "level",
         "value": 25
       },
-      "evolvesTo": "Tigre2"
+      "evolvesTo": "Tigre2",
+      "portraitCrop": {
+        "x": 50,
+        "y": 20,
+        "zoom": 1.3
+      },
+      "detailCrop": {
+        "x": 40,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 37.999531231688735,
+        "cy": 31.75,
+        "r": 32
+      }
     },
     {
       "id": "Tigre2",
@@ -2672,7 +4205,22 @@
         "type": "level",
         "value": 45
       },
-      "evolvesTo": "Tigre3"
+      "evolvesTo": "Tigre3",
+      "portraitCrop": {
+        "x": 49.23076923076923,
+        "y": 15,
+        "zoom": 1.3
+      },
+      "detailCrop": {
+        "x": 50,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 52,
+        "cy": 35.333333333333336,
+        "r": 35
+      }
     },
     {
       "id": "Tigre3",
@@ -2694,7 +4242,22 @@
         "type": "level",
         "value": 65
       },
-      "evolvesTo": "Tigre4"
+      "evolvesTo": "Tigre4",
+      "portraitCrop": {
+        "x": 50,
+        "y": 13.571428571428571,
+        "zoom": 1.4
+      },
+      "detailCrop": {
+        "x": 50,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 50,
+        "cy": 35.333333333333336,
+        "r": 30
+      }
     },
     {
       "id": "Tigre4",
@@ -2716,7 +4279,22 @@
         "type": "level",
         "value": 90
       },
-      "evolvesTo": "Tigre5"
+      "evolvesTo": "Tigre5",
+      "portraitCrop": {
+        "x": 42.916666666666664,
+        "y": 0,
+        "zoom": 1.2
+      },
+      "detailCrop": {
+        "x": 50,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 46.333333333333336,
+        "cy": 40.666666666666664,
+        "r": 37
+      }
     },
     {
       "id": "Tigre5",
@@ -2735,7 +4313,22 @@
         "spd": 219
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 45,
+        "y": 17.272727272727273,
+        "zoom": 1.1
+      },
+      "detailCrop": {
+        "x": 50,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 49.84369964550435,
+        "cy": 40.75,
+        "r": 45
+      }
     },
     {
       "id": "Tortue0",
@@ -2757,7 +4350,22 @@
         "type": "level",
         "value": 18
       },
-      "evolvesTo": "Tortue1"
+      "evolvesTo": "Tortue1",
+      "portraitCrop": {
+        "x": 41.875,
+        "y": 62.625,
+        "zoom": 1.7
+      },
+      "detailCrop": {
+        "x": 47.83216783216784,
+        "y": 98.57692307692308,
+        "zoom": 1.3
+      },
+      "combatCrop": {
+        "cx": 44.65367211973547,
+        "cy": 59.5,
+        "r": 30
+      }
     },
     {
       "id": "Tortue1",
@@ -2779,7 +4387,22 @@
         "type": "level",
         "value": 35
       },
-      "evolvesTo": "Tortue2"
+      "evolvesTo": "Tortue2",
+      "portraitCrop": {
+        "x": 60.38461538461539,
+        "y": 55.76923076923077,
+        "zoom": 1.3
+      },
+      "detailCrop": {
+        "x": 75.45454545454545,
+        "y": 11.75,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 65,
+        "cy": 62,
+        "r": 35
+      }
     },
     {
       "id": "Tortue2",
@@ -2801,7 +4424,22 @@
         "type": "level",
         "value": 60
       },
-      "evolvesTo": "Tortue3"
+      "evolvesTo": "Tortue3",
+      "portraitCrop": {
+        "x": 23.714285714285715,
+        "y": 51.142857142857146,
+        "zoom": 1.4
+      },
+      "detailCrop": {
+        "x": 63.63636363636363,
+        "y": 10.5,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 50,
+        "cy": 50,
+        "r": 36
+      }
     },
     {
       "id": "Tortue3",
@@ -2820,7 +4458,22 @@
         "spd": 83
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 55,
+        "y": 62.5,
+        "zoom": 1.4
+      },
+      "detailCrop": {
+        "x": 70,
+        "y": 10.75,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 57,
+        "cy": 51.333333333333336,
+        "r": 37
+      }
     },
     {
       "id": "Vache",
@@ -2843,7 +4496,22 @@
         "value": 20
       },
       "evolvesTo": "Vache2",
-      "availableInLineCombat": false
+      "availableInLineCombat": false,
+      "portraitCrop": {
+        "x": 5,
+        "y": 32.08333333333333,
+        "zoom": 1.2
+      },
+      "detailCrop": {
+        "x": 38.18181818181818,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 40,
+        "cy": 34,
+        "r": 40
+      }
     },
     {
       "id": "Vache2",
@@ -2865,7 +4533,22 @@
         "type": "level",
         "value": 40
       },
-      "evolvesTo": "Vache3"
+      "evolvesTo": "Vache3",
+      "portraitCrop": {
+        "x": 67.5,
+        "y": 51,
+        "zoom": 1.5
+      },
+      "detailCrop": {
+        "x": 54.54545454545455,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 56,
+        "cy": 50,
+        "r": 38
+      }
     },
     {
       "id": "Vache3",
@@ -2887,7 +4570,22 @@
         "type": "level",
         "value": 60
       },
-      "evolvesTo": "Vache4"
+      "evolvesTo": "Vache4",
+      "portraitCrop": {
+        "x": 64.42307692307692,
+        "y": 0,
+        "zoom": 1.3
+      },
+      "detailCrop": {
+        "x": 51.81818181818182,
+        "y": 9.75,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 53.33350695348716,
+        "cy": 43,
+        "r": 43
+      }
     },
     {
       "id": "Vache4",
@@ -2909,62 +4607,241 @@
         "type": "level",
         "value": 78
       },
-      "evolvesTo": "Vache5"
+      "evolvesTo": "Vache5",
+      "portraitCrop": {
+        "x": 53.333333333333336,
+        "y": 7.333333333333334,
+        "zoom": 1.5
+      },
+      "detailCrop": {
+        "x": 50,
+        "y": 10,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 50,
+        "cy": 31.670103092783506,
+        "r": 42
+      }
     },
     {
-      "id": "Vache5",
+      "id": "Bison0",
+      "name": "Bisoneau",
+      "description": "",
+      "portrait": "https://static.actu.fr/uploads/2024/04/img-2150-960x640.jpg",
+      "rarity": "rare",
+      "evolutionLine": "Bison",
+      "evolutionStage": 0,
+      "type1": "nature",
+      "type2": null,
+      "baseStats": {
+        "hp": 1280,
+        "atk": 54,
+        "def": 142,
+        "spd": 81
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 20
+      },
+      "evolvesTo": "Bison1",
+      "portraitCrop": {
+        "x": 50,
+        "y": 20,
+        "zoom": 1.5
+      },
+      "detailCrop": {
+        "x": 48.18181818181818,
+        "y": 13.25,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 52,
+        "cy": 36,
+        "r": 36
+      }
+    },
+    {
+      "id": "Bison1",
       "name": "Bison",
       "description": "",
-      "portrait": "https://vetmed.tamu.edu/wp-content/uploads/2025/03/bison-single-population.jpg",
-      "rarity": "epic",
-      "evolutionLine": "Vache",
-      "evolutionStage": 4,
+      "portrait": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ69A1Dlk0rMOmHWx5oz8sagbdMiJBsshScRAb5t88aCHpf0Zaj45pE2SU9&s=10",
+      "rarity": "rare",
+      "evolutionLine": "Bison",
+      "evolutionStage": 1,
       "type1": "nature",
       "type2": "light",
       "baseStats": {
-        "hp": 2190,
-        "atk": 128,
-        "def": 215,
-        "spd": 123
+        "hp": 1540,
+        "atk": 90,
+        "def": 151,
+        "spd": 86
+      },
+      "evolutionCondition": {
+        "type": "level",
+        "value": 43
+      },
+      "evolvesTo": "Bison2",
+      "portraitCrop": {
+        "x": 58.333333333333336,
+        "y": 19.333333333333332,
+        "zoom": 1.5
+      },
+      "detailCrop": {
+        "x": 64.54545454545455,
+        "y": 13,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 52,
+        "cy": 40,
+        "r": 40
+      }
+    },
+    {
+      "id": "Bison2",
+      "name": "Bison des Steppes",
+      "description": "",
+      "portrait": "https://www.hominides.com/wp-content/uploads/2022/06/bison-reconstitution-chauvet2-1.jpg",
+      "rarity": "rare",
+      "evolutionLine": "Bison",
+      "evolutionStage": 2,
+      "type1": "nature",
+      "type2": "light",
+      "baseStats": {
+        "hp": 1633,
+        "atk": 96,
+        "def": 161,
+        "spd": 92
       },
       "evolutionCondition": null,
-      "evolvesTo": null
+      "evolvesTo": null,
+      "portraitCrop": {
+        "x": 16.000000000000004,
+        "y": 84.33333333333333,
+        "zoom": 1.5
+      },
+      "detailCrop": {
+        "x": 22.727272727272723,
+        "y": 38.25,
+        "zoom": 1
+      },
+      "combatCrop": {
+        "cx": 28.99880202093859,
+        "cy": 60,
+        "r": 38
+      }
     }
   ],
   "equipment": [
     {
-      "id": "ArmeC",
-      "name": "Mini Croc",
+      "id": "AccC",
+      "name": "Anneau du Renard",
       "rarity": "common",
       "slot": "weapon",
       "description": "",
       "level": 1,
       "maxLevel": 10,
       "bonuses": {
-        "hp": 0,
-        "atk": 15,
+        "hp": 50,
+        "atk": 0,
         "def": 0,
+        "spd": 2
+      }
+    },
+    {
+      "id": "ArmureL",
+      "name": "Armure du Tigre",
+      "rarity": "legendary",
+      "slot": "armor",
+      "description": "Permet des déplacements foudroyants.",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 180,
+        "atk": 20,
+        "def": 150,
+        "spd": 5
+      }
+    },
+    {
+      "id": "equip_002",
+      "name": "Cape du Lynx",
+      "slot": "armor",
+      "description": "Blindage naturel renforcé.",
+      "rarity": "rare",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 55,
+        "atk": 0,
+        "def": 45,
         "spd": 0
       }
     },
     {
-      "id": "ArmeU",
-      "name": "Griffe Aiguisée",
-      "rarity": "uncommon",
+      "id": "AccM",
+      "name": "Coeur de Lion",
+      "rarity": "mythic",
+      "slot": "accessory",
+      "description": "Canalise l'énergie vitale animale.",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 900,
+        "atk": 20,
+        "def": 20,
+        "spd": 15
+      }
+    },
+    {
+      "id": "AccL",
+      "name": "Coeur du Tigre",
+      "rarity": "legendary",
+      "slot": "accessory",
+      "description": "Canalise l'énergie vitale animale.",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 550,
+        "atk": 20,
+        "def": 20,
+        "spd": 10
+      }
+    },
+    {
+      "id": "AccM2",
+      "name": "Couronne du Lion",
+      "rarity": "mythic",
+      "slot": "accessory",
+      "description": "Canalise l'énergie vitale animale.",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 750,
+        "atk": 35,
+        "def": 35,
+        "spd": 35
+      }
+    },
+    {
+      "id": "ArmeM2",
+      "name": "Crinière de Lion",
+      "rarity": "mythic",
       "slot": "weapon",
       "description": "",
       "level": 1,
       "maxLevel": 10,
       "bonuses": {
-        "hp": 0,
-        "atk": 25,
-        "def": 0,
-        "spd": 0
+        "hp": 220,
+        "atk": 230,
+        "def": 50,
+        "spd": 30
       }
     },
     {
       "id": "ArmeR",
-      "name": "Esprit Bagarreur",
+      "name": "Croc de Lynx",
       "rarity": "rare",
       "slot": "weapon",
       "description": "",
@@ -2972,14 +4849,104 @@
       "maxLevel": 10,
       "bonuses": {
         "hp": 20,
-        "atk": 40,
-        "def": 5,
+        "atk": 55,
+        "def": 10,
+        "spd": 4
+      }
+    },
+    {
+      "id": "ArmeC",
+      "name": "Croc de Renard",
+      "rarity": "common",
+      "slot": "weapon",
+      "description": "",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 5,
+        "atk": 18,
+        "def": 0,
+        "spd": 2
+      }
+    },
+    {
+      "id": "AccL2",
+      "name": "Emblème du Tigre",
+      "rarity": "legendary",
+      "slot": "accessory",
+      "description": "Canalise l'énergie vitale animale.",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 450,
+        "atk": 30,
+        "def": 30,
+        "spd": 18
+      }
+    },
+    {
+      "id": "ArmureE2",
+      "name": "Etreinte de la Panthère",
+      "rarity": "epic",
+      "slot": "armor",
+      "description": "Permet des déplacements foudroyants.",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 110,
+        "atk": 20,
+        "def": 85,
+        "spd": 8
+      }
+    },
+    {
+      "id": "ArmureU2",
+      "name": "Fourrure de Loup",
+      "rarity": "uncommon",
+      "slot": "armor",
+      "description": "Permet des déplacements foudroyants.",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 30,
+        "atk": 0,
+        "def": 25,
         "spd": 5
       }
     },
     {
+      "id": "ArmeL2",
+      "name": "Fureur du Tigre",
+      "rarity": "legendary",
+      "slot": "weapon",
+      "description": "Le croc de l'alpha légendaire.",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 120,
+        "atk": 145,
+        "def": 35,
+        "spd": 20
+      }
+    },
+    {
+      "id": "ArmeU2",
+      "name": "Griffe de Loup",
+      "rarity": "uncommon",
+      "slot": "weapon",
+      "description": "",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 15,
+        "atk": 28,
+        "def": 8,
+        "spd": 4
+      }
+    },
+    {
       "id": "ArmeE",
-      "name": "Puissance Alpha",
+      "name": "Griffe de Panthère",
       "rarity": "epic",
       "slot": "weapon",
       "description": "",
@@ -2987,219 +4954,324 @@
       "maxLevel": 10,
       "bonuses": {
         "hp": 50,
-        "atk": 60,
-        "def": 10,
-        "spd": 5
+        "atk": 95,
+        "def": 15,
+        "spd": 10
+      }
+    },
+    {
+      "id": "equip_003",
+      "name": "Insigne du Loup",
+      "slot": "accessory",
+      "description": "Permet des déplacements foudroyants.",
+      "rarity": "uncommon",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 75,
+        "atk": 5,
+        "def": 5,
+        "spd": 4
+      }
+    },
+    {
+      "id": "equip_004_copymqtd6fvt",
+      "name": "Joyau de la Panthère",
+      "slot": "accessory",
+      "description": "Canalise l'énergie vitale animale.",
+      "rarity": "epic",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 260,
+        "atk": 15,
+        "def": 15,
+        "spd": 15
+      }
+    },
+    {
+      "id": "ArmeU",
+      "name": "Machoire de Loup",
+      "rarity": "uncommon",
+      "slot": "weapon",
+      "description": "",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 10,
+        "atk": 35,
+        "def": 5,
+        "spd": 2
       }
     },
     {
       "id": "equip_005",
-      "name": "Croc Mythique",
+      "name": "Mâchoire de Tigre",
       "slot": "weapon",
       "description": "Le croc de l'alpha légendaire.",
       "rarity": "legendary",
       "level": 1,
       "maxLevel": 10,
       "bonuses": {
-        "hp": 100,
-        "atk": 80,
+        "hp": 90,
+        "atk": 170,
         "def": 20,
-        "spd": 15
+        "spd": 10
       }
     },
     {
-      "id": "ArmeM",
-      "name": "Âme du Dragon",
+      "id": "ArmureM2",
+      "name": "Majesté du Lion",
       "rarity": "mythic",
-      "slot": "weapon",
-      "description": "",
+      "slot": "armor",
+      "description": "Permet des déplacements foudroyants.",
       "level": 1,
       "maxLevel": 10,
       "bonuses": {
-        "hp": 250,
-        "atk": 250,
-        "def": 50,
-        "spd": 40
+        "hp": 280,
+        "atk": 0,
+        "def": 220,
+        "spd": 35
+      }
+    },
+    {
+      "id": "ArmureE",
+      "name": "Mante de la Panthère",
+      "rarity": "epic",
+      "slot": "armor",
+      "description": "Permet des déplacements foudroyants.",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 90,
+        "atk": 20,
+        "def": 75,
+        "spd": 12
       }
     },
     {
       "id": "ArmureC",
-      "name": "Peau Epaisse",
+      "name": "Manteau du Renard",
       "rarity": "common",
       "slot": "armor",
       "description": "Permet des déplacements foudroyants.",
       "level": 1,
       "maxLevel": 10,
       "bonuses": {
-        "hp": 0,
+        "hp": 20,
         "atk": 0,
         "def": 10,
-        "spd": 0
+        "spd": 1
+      }
+    },
+    {
+      "id": "AccR",
+      "name": "Médaillon du Lynx",
+      "rarity": "rare",
+      "slot": "accessory",
+      "description": "Canalise l'énergie vitale animale.",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 180,
+        "atk": 5,
+        "def": 5,
+        "spd": 5
+      }
+    },
+    {
+      "id": "AccR2",
+      "name": "Oeil de Lynx",
+      "rarity": "rare",
+      "slot": "accessory",
+      "description": "Canalise l'énergie vitale animale.",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 150,
+        "atk": 10,
+        "def": 10,
+        "spd": 8
+      }
+    },
+    {
+      "id": "ArmeE2",
+      "name": "Ombre de la Panthère",
+      "rarity": "epic",
+      "slot": "weapon",
+      "description": "",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 60,
+        "atk": 85,
+        "def": 20,
+        "spd": 15
       }
     },
     {
       "id": "ArmureU",
-      "name": "Fourrure Touffue",
+      "name": "Peau de Loup",
       "rarity": "uncommon",
       "slot": "armor",
       "description": "Permet des déplacements foudroyants.",
       "level": 1,
       "maxLevel": 10,
       "bonuses": {
-        "hp": 10,
+        "hp": 35,
         "atk": 0,
-        "def": 20,
-        "spd": 0
+        "def": 28,
+        "spd": 2
       }
     },
     {
-      "id": "equip_002",
-      "name": "Carapace Cristalline",
-      "slot": "armor",
-      "description": "Blindage naturel renforcé.",
-      "rarity": "rare",
-      "level": 1,
-      "maxLevel": 10,
-      "bonuses": {
-        "hp": 50,
-        "atk": 0,
-        "def": 30,
-        "spd": 0
-      }
-    },
-    {
-      "id": "ArmureE",
-      "name": "Epines Pointues",
-      "rarity": "epic",
-      "slot": "armor",
-      "description": "Permet des déplacements foudroyants.",
-      "level": 1,
-      "maxLevel": 10,
-      "bonuses": {
-        "hp": 50,
-        "atk": 20,
-        "def": 55,
-        "spd": 0
-      }
-    },
-    {
-      "id": "ArmureL",
-      "name": "Robustesse Magique",
+      "id": "ArmureL2",
+      "name": "Peau de Tigre",
       "rarity": "legendary",
       "slot": "armor",
       "description": "Permet des déplacements foudroyants.",
       "level": 1,
       "maxLevel": 10,
       "bonuses": {
-        "hp": 80,
-        "atk": 20,
-        "def": 80,
-        "spd": 0
+        "hp": 150,
+        "atk": 0,
+        "def": 130,
+        "spd": 15
       }
     },
     {
-      "id": "ArmureM",
-      "name": "Âme de l'Hydre",
-      "rarity": "mythic",
+      "id": "ArmureC2",
+      "name": "Pelage de Renard",
+      "rarity": "common",
       "slot": "armor",
       "description": "Permet des déplacements foudroyants.",
       "level": 1,
       "maxLevel": 10,
       "bonuses": {
-        "hp": 300,
-        "atk": 35,
-        "def": 500,
-        "spd": 50
+        "hp": 15,
+        "atk": 0,
+        "def": 8,
+        "spd": 3
+      }
+    },
+    {
+      "id": "ArmureR2",
+      "name": "Pelisse du Lynx",
+      "rarity": "rare",
+      "slot": "armor",
+      "description": "Blindage naturel renforcé.",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 45,
+        "atk": 0,
+        "def": 40,
+        "spd": 0
+      }
+    },
+    {
+      "id": "AccC2",
+      "name": "Pendentif du Renard",
+      "rarity": "common",
+      "slot": "weapon",
+      "description": "",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 40,
+        "atk": 2,
+        "def": 2,
+        "spd": 3
+      }
+    },
+    {
+      "id": "ArmeC2",
+      "name": "Queue de Renard",
+      "rarity": "common",
+      "slot": "weapon",
+      "description": "",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 3,
+        "atk": 15,
+        "def": 2,
+        "spd": 3
+      }
+    },
+    {
+      "id": "ArmeM",
+      "name": "Rugissement du Lion",
+      "rarity": "mythic",
+      "slot": "weapon",
+      "description": "",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 180,
+        "atk": 260,
+        "def": 35,
+        "spd": 20
+      }
+    },
+    {
+      "id": "equip_004",
+      "name": "Sceau de la Panthère",
+      "slot": "accessory",
+      "description": "Canalise l'énergie vitale animale.",
+      "rarity": "epic",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 320,
+        "atk": 10,
+        "def": 10,
+        "spd": 12
       }
     },
     {
       "id": "equip_001",
-      "name": "Collier de Rubis",
+      "name": "Talisman du Loup",
       "slot": "accessory",
       "description": "Renforce les griffes de la créature.",
       "rarity": "uncommon",
       "level": 1,
       "maxLevel": 10,
       "bonuses": {
-        "hp": 15,
-        "atk": 5,
-        "def": 0,
-        "spd": 0
+        "hp": 90,
+        "atk": 3,
+        "def": 3,
+        "spd": 2
       }
     },
     {
-      "id": "equip_003",
-      "name": "Plumes du Vent",
-      "slot": "accessory",
-      "description": "Permet des déplacements foudroyants.",
-      "rarity": "uncommon",
-      "level": 1,
-      "maxLevel": 10,
-      "bonuses": {
-        "hp": 15,
-        "atk": 0,
-        "def": 0,
-        "spd": 5
-      }
-    },
-    {
-      "id": "AccR",
-      "name": "Endurance du Chasseur",
-      "rarity": "rare",
-      "slot": "accessory",
-      "description": "Canalise l'énergie vitale animale.",
-      "level": 1,
-      "maxLevel": 10,
-      "bonuses": {
-        "hp": 100,
-        "atk": 0,
-        "def": 0,
-        "spd": 0
-      }
-    },
-    {
-      "id": "equip_004",
-      "name": "Esprit de Vitalité",
-      "slot": "accessory",
-      "description": "Canalise l'énergie vitale animale.",
-      "rarity": "epic",
-      "level": 1,
-      "maxLevel": 10,
-      "bonuses": {
-        "hp": 200,
-        "atk": 10,
-        "def": 10,
-        "spd": 5
-      }
-    },
-    {
-      "id": "AccL",
-      "name": "Bénédiction de la Fôret",
-      "rarity": "legendary",
-      "slot": "accessory",
-      "description": "Canalise l'énergie vitale animale.",
-      "level": 1,
-      "maxLevel": 10,
-      "bonuses": {
-        "hp": 300,
-        "atk": 20,
-        "def": 20,
-        "spd": 15
-      }
-    },
-    {
-      "id": "AccM",
-      "name": "Âme du Phénix",
+      "id": "ArmureM",
+      "name": "Trône du Lion",
       "rarity": "mythic",
-      "slot": "accessory",
-      "description": "Canalise l'énergie vitale animale.",
+      "slot": "armor",
+      "description": "Permet des déplacements foudroyants.",
       "level": 1,
       "maxLevel": 10,
       "bonuses": {
-        "hp": 800,
-        "atk": 35,
-        "def": 50,
-        "spd": 30
+        "hp": 320,
+        "atk": 0,
+        "def": 250,
+        "spd": 20
+      }
+    },
+    {
+      "id": "ArmeR2",
+      "name": "Vision de Lynx",
+      "rarity": "rare",
+      "slot": "weapon",
+      "description": "",
+      "level": 1,
+      "maxLevel": 10,
+      "bonuses": {
+        "hp": 30,
+        "atk": 45,
+        "def": 15,
+        "spd": 6
       }
     }
   ],
@@ -3209,14 +5281,26 @@
       "name": "Pillule de Puissance",
       "icon": "💊",
       "description": "Fait gagner immédiatement 1 niveau à n'importe quelle créature.",
-      "stackable": true
+      "stackable": true,
+      "effects": [
+        {
+          "type": "gainCharLevel",
+          "levels": 1
+        }
+      ]
     },
     {
       "id": "item_energy_potion",
       "name": "Potion d'Énergie",
       "icon": "🧪",
-      "description": "Redonne immédiatement 50 points d'énergie.",
-      "stackable": true
+      "description": "Redonne immédiatement 25 points d'énergie.",
+      "stackable": true,
+      "effects": [
+        {
+          "type": "gainEnergy",
+          "amount": 25
+        }
+      ]
     }
   ],
   "equipBanners": [
@@ -3540,8 +5624,154 @@
       ]
     }
   ],
+  "shopItems": [
+    {
+      "id": "shop_1782364433839",
+      "category": "item",
+      "refId": "item_power_pill",
+      "price": 100,
+      "currency": "crystals",
+      "active": true,
+      "limit": {
+        "type": "none",
+        "amount": 0
+      }
+    },
+    {
+      "id": "shop_1782364448445",
+      "category": "item",
+      "refId": "item_energy_potion",
+      "price": 200,
+      "currency": "gold",
+      "active": true,
+      "limit": {
+        "type": "none",
+        "amount": 0
+      }
+    },
+    {
+      "id": "shop_1782364529195",
+      "category": "equipment",
+      "refId": "ArmeC",
+      "price": 500,
+      "currency": "gold",
+      "active": true,
+      "limit": {
+        "type": "none",
+        "amount": 0
+      }
+    },
+    {
+      "id": "shop_1782364537816",
+      "category": "equipment",
+      "refId": "ArmureC",
+      "price": 500,
+      "currency": "gold",
+      "active": true,
+      "limit": {
+        "type": "none",
+        "amount": 0
+      }
+    },
+    {
+      "id": "shop_1782364560735",
+      "category": "equipment",
+      "refId": "equip_001",
+      "price": 750,
+      "currency": "gold",
+      "active": true,
+      "limit": {
+        "type": "none",
+        "amount": 0
+      }
+    },
+    {
+      "id": "shop_1782364570059",
+      "category": "equipment",
+      "refId": "equip_003",
+      "price": 750,
+      "currency": "gold",
+      "active": true,
+      "limit": {
+        "type": "none",
+        "amount": 0
+      }
+    },
+    {
+      "id": "shop_1782364601739",
+      "category": "character",
+      "refId": "Abeille0",
+      "price": 300,
+      "currency": "crystals",
+      "active": true,
+      "limit": {
+        "type": "daily",
+        "amount": 1
+      }
+    },
+    {
+      "id": "shop_1782364662219",
+      "category": "character",
+      "refId": "Anaconda1",
+      "price": 1200,
+      "currency": "crystals",
+      "active": true,
+      "limit": {
+        "type": "daily",
+        "amount": 1
+      }
+    },
+    {
+      "id": "shop_1782364711873",
+      "category": "character",
+      "refId": "Aye-Aye0",
+      "price": 4800,
+      "currency": "crystals",
+      "active": true,
+      "limit": {
+        "type": "none",
+        "amount": 0
+      }
+    },
+    {
+      "id": "shop_1782364731112",
+      "category": "character",
+      "refId": "Aigle0",
+      "price": 600,
+      "currency": "crystals",
+      "active": true,
+      "limit": {
+        "type": "none",
+        "amount": 0
+      }
+    },
+    {
+      "id": "shop_1782364764736",
+      "category": "character",
+      "refId": "Baleine0",
+      "price": 2400,
+      "currency": "crystals",
+      "active": true,
+      "limit": {
+        "type": "none",
+        "amount": 0
+      }
+    },
+    {
+      "id": "shop_1782364816891",
+      "category": "equipment",
+      "refId": "ArmeC",
+      "price": 100,
+      "currency": "crystals",
+      "active": true,
+      "limit": {
+        "type": "none",
+        "amount": 0
+      }
+    }
+  ],
   "patchNotes": {
-    "id": "pn_mqpm4ycs",
-    "text": "22/06/2026\nPatch Note 0.2.0 :\n\n-Ajout d'un système de récompense de connexion quotidienne\n-Ajout de quêtes journalières\n-La fiche info dans Collection donnent les faiblesses et résistances de chaque animal pour chacun de ses types\n-Pour les animaux à double type, seul le premier type de chaque animal étant prix en compte dans le calcul de faiblesse et de résistance. Dorénavant, pour chaque attaque, c'est le type le plus avantageux qui est choisi en fonction des faiblesses et résistances de l'animal adverse.\n-Réajustement des gains de niveau de joueur\n\n-4 nouvelles lignes évolutives"
+    "id": "pn_mqthjsed",
+    "text": "Mise à jour 0.3.0 :\n\n-Recadrage des images\n-Résolution du bug qui n'affichait qu'une seule évolution lorsque plusieurs avaient lieu en même temps\n-Nouveaux équipements\n-Ouverture de la boutique en jeu\n-Les objets sont désormais stocké dans l'Inventaire\n-Rééquilibrage des niveaux de joueur (les niveaux montent plus rapidement)\n\n-Ajout d' 1 lignée évolutive"
   }
 }

@@ -37,6 +37,7 @@ const APP_SHELL = [
   './database.js',
   './state.js',
   './quests.js',
+  './shop.js',
   './engine.js',
   './evolution.js',
   './playerlevelup.js',

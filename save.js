@@ -60,6 +60,7 @@ const SaveSystem = (() => {
       banners:    gameState.banners,
       dailyQuests: gameState.dailyQuests,
       loginCycles: gameState.loginCycles,
+      shopItems:   gameState.shopItems,
       patchNotes:  gameState.patchNotes,
     };
   }
@@ -138,6 +139,7 @@ const SaveSystem = (() => {
         banners:    global.banners,
         dailyQuests: global.dailyQuests,
         loginCycles: global.loginCycles,
+        shopItems:   global.shopItems,
         patchNotes:  global.patchNotes,
         player:     player.player,
       };
@@ -234,6 +236,7 @@ const SaveSystem = (() => {
         banners:    gameState.banners,
         dailyQuests: gameState.dailyQuests,
         loginCycles: gameState.loginCycles,
+        shopItems:   gameState.shopItems,
         patchNotes:  gameState.patchNotes,
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -323,6 +326,7 @@ const SaveSystem = (() => {
         banners:     gameState.banners,
         dailyQuests: gameState.dailyQuests,
         loginCycles: gameState.loginCycles,
+        shopItems:   gameState.shopItems,
         patchNotes:  gameState.patchNotes,
         // ── NON inclus : player (collection, monnaies, progression…) ─────────
       };

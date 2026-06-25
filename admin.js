@@ -26,6 +26,8 @@ const AdminPanel = (() => {
     { id: 'types',      label: '🔮 Types'       },
     { id: 'passives',   label: '💫 Passifs'     },
     { id: 'equipment',  label: '⚙️ Équipements'  },
+    { id: 'items',      label: '🎁 Objets'       },
+    { id: 'shop',       label: '🛒 Boutique'     },
     { id: 'gacha',      label: '🎲 Gacha'        },
     { id: 'evolutions', label: '🌀 Évolutions'   },
     { id: 'awakening',  label: '⭐ Awakening'    },
@@ -492,6 +494,8 @@ const AdminPanel = (() => {
           case 'types':      content.innerHTML = _renderTypesTab();      break;
           case 'passives':   content.innerHTML = _renderPassivesTab();   break;
           case 'equipment':  content.innerHTML = _renderEquipmentTab();  break;
+          case 'items':      content.innerHTML = _renderItemsTab();      break;
+          case 'shop':       content.innerHTML = _renderShopTab();       break;
           case 'gacha':      content.innerHTML = _renderGachaTab();      break;
           case 'evolutions': content.innerHTML = _renderEvolutionsTab(); break;
           case 'awakening':  content.innerHTML = _renderAwakeningTab();  break;
@@ -604,6 +608,7 @@ const AdminPanel = (() => {
             <label>Portrait (URL ou base64)</label>
             <input type="text" id="char-portrait" placeholder="https://... ou vide" oninput="AdminPanel._previewPortrait(this.value)" />
             <img id="char-portrait-preview" class="admin-portrait-preview" src="" alt="Aperçu" style="margin-top:8px; display:none;" />
+            <button type="button" class="admin-btn admin-btn-primary admin-btn-sm" style="margin-top:8px;" onclick="AdminPanel._openCropEditor()">✂️ Recadrer les portraits</button>
           </div>
         </div>
         <div class="admin-actions">
@@ -731,6 +736,12 @@ const AdminPanel = (() => {
       },
       evolutionCondition: condVal > 0 ? { type: condType, value: condVal } : null,
       evolvesTo: evolvesTo || null,
+      // Inclure les crops si l'éditeur a été utilisé pour ce nouveau personnage
+      ...(_cropCurrentCharId === id || !GameState.getCharDef(id) ? {
+        portraitCrop: { ..._cropVign   },
+        detailCrop:   { ..._cropDetail },
+        combatCrop:   { ..._cropCombat },
+      } : {}),
     };
 
     const existing = GameState.getCharDef(id);
@@ -1285,6 +1296,377 @@ const AdminPanel = (() => {
     _setVal('eq-slot', 'weapon');
     _setVal('eq-maxlevel', '10');
     ['eq-hp','eq-atk','eq-def','eq-spd'].forEach(id => _setVal(id, '0'));
+  }
+
+  // ─── ONGLET OBJETS ───────────────────────────────────────────────────────────
+  //
+  // Chaque objet porte une liste `effects`, chacun choisi parmi le catalogue
+  // fermé GameDatabase.ITEM_EFFECT_TYPES. L'admin compose librement les effets
+  // d'un objet (ex: +50 énergie ET +100 or, en un seul objet).
+
+  let _itemFormEffects = []; // état transitoire des effets en cours de composition
+
+  function _renderItemsTab() {
+    const state = GameState.get();
+    const items = state.items || [];
+
+    const list = items.map((it) => `
+      <div class="admin-list-item" data-drag-id="${it.id}">
+        <div class="admin-list-item-info">
+          <div class="admin-list-item-name">${it.icon || '🎁'} ${_escapeAttr(it.name)}</div>
+          <div class="admin-list-item-sub">ID: ${it.id}</div>
+          <div class="admin-list-item-sub">${ItemSystem.describeEffects(it.effects).join('   ') || 'Aucun effet'}</div>
+        </div>
+        <div class="admin-list-item-actions">
+          <button class="admin-btn admin-btn-primary admin-btn-sm" onclick="AdminPanel._editItem('${it.id}')">✏️</button>
+          <button class="admin-btn admin-btn-danger admin-btn-sm" onclick="AdminPanel._deleteItem('${it.id}')">🗑️</button>
+        </div>
+      </div>
+    `).join('');
+
+    return `
+      <div class="admin-section">
+        <div class="admin-section-title">Créer / Modifier un objet</div>
+        <input type="hidden" id="it-id" />
+        <div class="admin-grid">
+          <div class="admin-field"><label>Nom *</label><input type="text" id="it-name" placeholder="Élixir de Force" /></div>
+          <div class="admin-field"><label>Icône (emoji)</label><input type="text" id="it-icon" placeholder="🧪" maxlength="4" /></div>
+        </div>
+        <div class="admin-field" style="margin-top:10px;">
+          <label>Description</label>
+          <textarea id="it-desc" placeholder="Description affichée au joueur..."></textarea>
+        </div>
+        <p style="font-size:.8rem;color:#aaa;margin:14px 0 6px;">Effets de l'objet</p>
+        <div id="it-effects-list">${_renderItemEffectsRows()}</div>
+        <div class="admin-actions">
+          <button type="button" class="admin-btn admin-btn-primary admin-btn-sm" onclick="AdminPanel._addItemEffect()">➕ Ajouter un effet</button>
+        </div>
+        <div class="admin-actions">
+          <button class="admin-btn admin-btn-success" onclick="AdminPanel._saveItem()">💾 Enregistrer</button>
+          <button class="admin-btn admin-btn-primary" onclick="AdminPanel._clearItemForm()">🗑️ Vider</button>
+        </div>
+      </div>
+      <hr class="admin-sep" />
+      <div class="admin-section">
+        <div class="admin-section-title">Objets (${items.length})</div>
+        <div class="admin-list">${list || '<p style="color:#888;">Aucun objet créé.</p>'}</div>
+      </div>
+    `;
+  }
+
+  /** Construit les lignes de sélection d'effet (type + ses paramètres propres). */
+  function _renderItemEffectsRows() {
+    if (_itemFormEffects.length === 0) {
+      return '<p style="color:#888;font-size:.82rem;">Aucun effet — ajoute-en au moins un.</p>';
+    }
+    const typeOptions = GameDatabase.ITEM_EFFECT_TYPES.map(t => `<option value="${t.type}">${t.label}</option>`).join('');
+
+    return _itemFormEffects.map((eff, i) => {
+      const def = GameDatabase.ITEM_EFFECT_TYPES.find(t => t.type === eff.type) || GameDatabase.ITEM_EFFECT_TYPES[0];
+      const paramsHtml = (def.params || []).map(p => `
+        <div class="admin-field">
+          <label>${p.label}</label>
+          <input type="number" class="it-eff-param" data-effect="${i}" data-param="${p.key}" value="${eff[p.key] ?? p.default}" />
+        </div>
+      `).join('');
+
+      return `
+        <div class="admin-grid" style="align-items:end; border:1px solid var(--border-soft,#333); border-radius:8px; padding:10px; margin-bottom:8px;">
+          <div class="admin-field">
+            <label>Effet</label>
+            <select class="it-eff-type" data-effect="${i}" onchange="AdminPanel._onItemEffectTypeChange(${i}, this.value)">${typeOptions.replace(`value="${eff.type}"`, `value="${eff.type}" selected`)}</select>
+          </div>
+          ${paramsHtml}
+          <div class="admin-field">
+            <button type="button" class="admin-btn admin-btn-danger admin-btn-sm" onclick="AdminPanel._removeItemEffect(${i})">🗑️ Retirer</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function _addItemEffect() {
+    _syncItemEffectsFromDom();
+    const firstType = GameDatabase.ITEM_EFFECT_TYPES[0];
+    const newEff = { type: firstType.type };
+    (firstType.params || []).forEach(p => { newEff[p.key] = p.default; });
+    _itemFormEffects.push(newEff);
+    document.getElementById('it-effects-list').innerHTML = _renderItemEffectsRows();
+  }
+
+  function _removeItemEffect(index) {
+    _syncItemEffectsFromDom();
+    _itemFormEffects.splice(index, 1);
+    document.getElementById('it-effects-list').innerHTML = _renderItemEffectsRows();
+  }
+
+  /** Quand on change le TYPE d'un effet, on réinitialise ses paramètres aux défauts de ce type. */
+  function _onItemEffectTypeChange(index, newType) {
+    _syncItemEffectsFromDom();
+    const def = GameDatabase.ITEM_EFFECT_TYPES.find(t => t.type === newType);
+    const newEff = { type: newType };
+    (def?.params || []).forEach(p => { newEff[p.key] = p.default; });
+    _itemFormEffects[index] = newEff;
+    document.getElementById('it-effects-list').innerHTML = _renderItemEffectsRows();
+  }
+
+  /** Relit les valeurs actuellement saisies dans le DOM vers _itemFormEffects. */
+  function _syncItemEffectsFromDom() {
+    document.querySelectorAll('.it-eff-param').forEach(el => {
+      const i = Number(el.dataset.effect);
+      const key = el.dataset.param;
+      if (_itemFormEffects[i]) _itemFormEffects[i][key] = parseInt(el.value || '0');
+    });
+  }
+
+  function _saveItem() {
+    _syncItemEffectsFromDom();
+    const name = document.getElementById('it-name')?.value.trim();
+    if (!name) { _notify('❌ Nom obligatoire.', 'error'); return; }
+    if (_itemFormEffects.length === 0) { _notify('❌ Ajoute au moins un effet.', 'error'); return; }
+
+    const idInput = document.getElementById('it-id')?.value.trim();
+    const id = idInput || `item_${Date.now()}`;
+    const data = {
+      id, name,
+      icon: document.getElementById('it-icon')?.value.trim() || '🎁',
+      description: document.getElementById('it-desc')?.value.trim() || '',
+      stackable: true,
+      effects: JSON.parse(JSON.stringify(_itemFormEffects)),
+    };
+
+    const state = GameState.get();
+    const items = [...(state.items || [])];
+    const idx = items.findIndex(i => i.id === id);
+    if (idx >= 0) items[idx] = data; else items.push(data);
+
+    GameState.updateItemDefs(items);
+    _notify(`✅ Objet "${name}" enregistré.`);
+    _clearItemForm();
+    switchTab('items');
+  }
+
+  function _editItem(id) {
+    const state = GameState.get();
+    const it = (state.items || []).find(i => i.id === id);
+    if (!it) return;
+    _setVal('it-id', it.id);
+    _setVal('it-name', it.name);
+    _setVal('it-icon', it.icon || '');
+    _setVal('it-desc', it.description || '');
+    _itemFormEffects = JSON.parse(JSON.stringify(it.effects || []));
+    document.getElementById('it-effects-list').innerHTML = _renderItemEffectsRows();
+    document.getElementById('admin-content')?.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function _deleteItem(id) {
+    if (!confirm(`Supprimer définitivement cet objet ?`)) return;
+    const state = GameState.get();
+    GameState.updateItemDefs((state.items || []).filter(i => i.id !== id));
+    _notify('🗑️ Objet supprimé.');
+    switchTab('items');
+  }
+
+  function _clearItemForm() {
+    ['it-id','it-name','it-icon','it-desc'].forEach(id => _setVal(id, ''));
+    _itemFormEffects = [];
+    const list = document.getElementById('it-effects-list');
+    if (list) list.innerHTML = _renderItemEffectsRows();
+  }
+
+  // ─── ONGLET BOUTIQUE ─────────────────────────────────────────────────────────
+
+  const SHOP_CATEGORY_LABELS_ADMIN = { equipment: '⚙️ Équipement', item: '🎁 Objet', character: '✦ Créature' };
+
+  function _renderShopTab() {
+    const state = GameState.get();
+    const shopItems = state.shopItems || [];
+
+    const list = shopItems.map((s) => {
+      const refDef = _shopResolveRefDef(state, s);
+      const limitText = s.limit?.type === 'daily' ? `${s.limit.amount}/jour`
+        : s.limit?.type === 'lifetime' ? `${s.limit.amount} à vie` : 'Illimité';
+      return `
+        <div class="admin-list-item" data-drag-id="${s.id}">
+          <div class="admin-list-item-info">
+            <div class="admin-list-item-name">
+              ${refDef ? _escapeAttr(refDef.name) : '⚠️ Référence manquante'}
+              <span class="badge" style="background:${s.active ? 'var(--admin-success,#2e7d32)' : '#555'};color:#fff;">
+                ${s.active ? 'Actif' : 'Inactif'}
+              </span>
+            </div>
+            <div class="admin-list-item-sub">${SHOP_CATEGORY_LABELS_ADMIN[s.category] || s.category} — ID réf: ${s.refId}</div>
+            <div class="admin-list-item-sub">Prix : ${s.price} ${s.currency === 'gold' ? '🪙' : '💎'} — Limite : ${limitText}</div>
+          </div>
+          <div class="admin-list-item-actions">
+            <button class="admin-btn admin-btn-sm ${s.active ? 'admin-btn-warning' : 'admin-btn-success'}" onclick="AdminPanel._toggleShopItemActive('${s.id}')">
+              ${s.active ? '⏸️' : '▶️'}
+            </button>
+            <button class="admin-btn admin-btn-primary admin-btn-sm" onclick="AdminPanel._editShopItem('${s.id}')">✏️</button>
+            <button class="admin-btn admin-btn-danger admin-btn-sm" onclick="AdminPanel._deleteShopItem('${s.id}')">🗑️</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="admin-section">
+        <div class="admin-section-title">Ajouter / Modifier un article</div>
+        <input type="hidden" id="sh-id" />
+        <div class="admin-grid">
+          <div class="admin-field">
+            <label>Catégorie</label>
+            <select id="sh-category" onchange="AdminPanel._onShopCategoryChange(this.value)">
+              <option value="equipment">⚙️ Équipement</option>
+              <option value="item">🎁 Objet</option>
+              <option value="character">✦ Créature</option>
+            </select>
+          </div>
+          <div class="admin-field">
+            <label>Article</label>
+            <select id="sh-refid">${_shopRefOptionsHtml('equipment')}</select>
+          </div>
+          <div class="admin-field"><label>Prix *</label><input type="number" id="sh-price" min="0" value="100" /></div>
+          <div class="admin-field">
+            <label>Devise</label>
+            <select id="sh-currency">
+              <option value="crystals">💎 Gemmes</option>
+              <option value="gold">🪙 Or</option>
+            </select>
+          </div>
+          <div class="admin-field">
+            <label>Type de limite</label>
+            <select id="sh-limit-type" onchange="AdminPanel._onShopLimitTypeChange(this.value)">
+              <option value="none">Illimité</option>
+              <option value="daily">Par jour</option>
+              <option value="lifetime">À vie (par compte)</option>
+            </select>
+          </div>
+          <div class="admin-field" id="sh-limit-amount-field" style="display:none;">
+            <label>Quantité limite</label>
+            <input type="number" id="sh-limit-amount" min="1" value="1" />
+          </div>
+          <div class="admin-field">
+            <label>Actif</label>
+            <select id="sh-active">
+              <option value="1">Oui</option>
+              <option value="0">Non</option>
+            </select>
+          </div>
+        </div>
+        <div class="admin-actions">
+          <button class="admin-btn admin-btn-success" onclick="AdminPanel._saveShopItem()">💾 Enregistrer</button>
+          <button class="admin-btn admin-btn-primary" onclick="AdminPanel._clearShopItemForm()">🗑️ Vider</button>
+        </div>
+      </div>
+      <hr class="admin-sep" />
+      <div class="admin-section">
+        <div class="admin-section-title">Articles en boutique (${shopItems.length})</div>
+        <div class="admin-list">${list || '<p style="color:#888;">Aucun article créé.</p>'}</div>
+      </div>
+    `;
+  }
+
+  function _shopResolveRefDef(state, shopItem) {
+    if (shopItem.category === 'equipment') return state.equipment.find(e => e.id === shopItem.refId);
+    if (shopItem.category === 'item') return state.items.find(i => i.id === shopItem.refId);
+    if (shopItem.category === 'character') return state.characters.find(c => c.id === shopItem.refId);
+    return null;
+  }
+
+  /** Construit les options du select "Article" selon la catégorie choisie. */
+  function _shopRefOptionsHtml(category, selectedId) {
+    const state = GameState.get();
+    let pool = [];
+    if (category === 'equipment') pool = state.equipment;
+    else if (category === 'item') pool = state.items;
+    else if (category === 'character') pool = state.characters.filter(c => c.evolutionStage === 0);
+
+    return pool.map(p => `<option value="${p.id}" ${p.id === selectedId ? 'selected' : ''}>${p.icon ? p.icon + ' ' : ''}${p.name}</option>`).join('')
+      || '<option value="">— Aucun élément disponible —</option>';
+  }
+
+  function _onShopCategoryChange(category) {
+    const sel = document.getElementById('sh-refid');
+    if (sel) sel.innerHTML = _shopRefOptionsHtml(category);
+  }
+
+  function _onShopLimitTypeChange(type) {
+    const field = document.getElementById('sh-limit-amount-field');
+    if (field) field.style.display = type === 'none' ? 'none' : '';
+  }
+
+  function _saveShopItem() {
+    const category = document.getElementById('sh-category')?.value;
+    const refId = document.getElementById('sh-refid')?.value;
+    const price = parseInt(document.getElementById('sh-price')?.value || '0');
+    if (!refId) { _notify('❌ Choisis un article à vendre.', 'error'); return; }
+    if (price <= 0) { _notify('❌ Le prix doit être supérieur à 0.', 'error'); return; }
+
+    const limitType = document.getElementById('sh-limit-type')?.value || 'none';
+    const limitAmount = parseInt(document.getElementById('sh-limit-amount')?.value || '1');
+
+    const idInput = document.getElementById('sh-id')?.value.trim();
+    const id = idInput || `shop_${Date.now()}`;
+    const data = {
+      id, category, refId, price,
+      currency: document.getElementById('sh-currency')?.value || 'crystals',
+      active: document.getElementById('sh-active')?.value === '1',
+      limit: { type: limitType, amount: limitType === 'none' ? 0 : limitAmount },
+    };
+
+    const state = GameState.get();
+    const shopItems = [...(state.shopItems || [])];
+    const idx = shopItems.findIndex(s => s.id === id);
+    if (idx >= 0) shopItems[idx] = data; else shopItems.push(data);
+
+    GameState.updateShopItems(shopItems);
+    _notify('✅ Article de boutique enregistré.');
+    _clearShopItemForm();
+    switchTab('shop');
+  }
+
+  function _editShopItem(id) {
+    const state = GameState.get();
+    const s = (state.shopItems || []).find(x => x.id === id);
+    if (!s) return;
+    _setVal('sh-id', s.id);
+    _setVal('sh-category', s.category);
+    document.getElementById('sh-refid').innerHTML = _shopRefOptionsHtml(s.category, s.refId);
+    _setVal('sh-price', s.price);
+    _setVal('sh-currency', s.currency);
+    _setVal('sh-limit-type', s.limit?.type || 'none');
+    _setVal('sh-limit-amount', s.limit?.amount || 1);
+    _setVal('sh-active', s.active ? '1' : '0');
+    _onShopLimitTypeChange(s.limit?.type || 'none');
+    document.getElementById('admin-content')?.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function _toggleShopItemActive(id) {
+    const state = GameState.get();
+    const shopItems = (state.shopItems || []).map(s => s.id === id ? { ...s, active: !s.active } : s);
+    GameState.updateShopItems(shopItems);
+    switchTab('shop');
+  }
+
+  function _deleteShopItem(id) {
+    if (!confirm('Supprimer définitivement cet article de la boutique ?')) return;
+    const state = GameState.get();
+    GameState.updateShopItems((state.shopItems || []).filter(s => s.id !== id));
+    _notify('🗑️ Article supprimé.');
+    switchTab('shop');
+  }
+
+  function _clearShopItemForm() {
+    _setVal('sh-id', '');
+    _setVal('sh-category', 'equipment');
+    document.getElementById('sh-refid').innerHTML = _shopRefOptionsHtml('equipment');
+    _setVal('sh-price', '100');
+    _setVal('sh-currency', 'crystals');
+    _setVal('sh-limit-type', 'none');
+    _setVal('sh-limit-amount', '1');
+    _setVal('sh-active', '1');
+    _onShopLimitTypeChange('none');
   }
 
   // ─── ONGLET GACHA ────────────────────────────────────────────────────────────
@@ -3528,6 +3910,412 @@ const AdminPanel = (() => {
     _notifTimeout = setTimeout(() => { el.className = ''; }, 3000);
   }
 
+  // ─── ÉDITEUR DE RECADRAGE DE PORTRAITS ───────────────────────────────────────
+
+  let _cropCurrentCharId = null; // ID du personnage en cours d'édition (null = nouveau)
+  let _cropVign   = { x: 50, y: 20, zoom: 1 };   // état courant vignette
+  let _cropDetail = { x: 50, y: 30, zoom: 1 };   // état courant fiche
+  let _cropCombat = { cx: 50, cy: 38, r: 38 };   // état courant cercle combat
+  let _imgSrc     = null; // URL du portrait (lue au moment de l'ouverture)
+
+  /** Ouvre l'éditeur de recadrage pour le personnage en cours d'édition. */
+  function _openCropEditor() {
+    _cropCurrentCharId = document.getElementById('char-id')?.value.trim() || null;
+    _imgSrc = document.getElementById('char-portrait')?.value.trim() || null;
+
+    // Charger les crops existants si le perso est déjà enregistré
+    const existing = _cropCurrentCharId ? GameState.getCharDef(_cropCurrentCharId) : null;
+    _cropVign   = existing?.portraitCrop ? { ...existing.portraitCrop } : GameDatabase.defaultPortraitCrop();
+    _cropDetail = existing?.detailCrop   ? { ...existing.detailCrop   } : GameDatabase.defaultDetailCrop();
+    _cropCombat = existing?.combatCrop   ? { ...existing.combatCrop   } : GameDatabase.defaultCombatCrop();
+
+    _injectCropEditorStyles();
+    _buildCropEditor();
+  }
+
+  function _injectCropEditorStyles() {
+    if (document.getElementById('crop-editor-styles')) return;
+    const s = document.createElement('style');
+    s.id = 'crop-editor-styles';
+    s.textContent = `
+#crop-editor-overlay {
+  position:fixed; inset:0; z-index:100000;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(0,0,0,.85); backdrop-filter:blur(6px);
+  padding:12px; box-sizing:border-box;
+}
+#crop-editor-box {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:20px;
+  max-width:860px; width:100%; max-height:90vh; overflow-y:auto;
+  display:flex; flex-direction:column; gap:16px;
+}
+.crop-editor-title { font-family:var(--font-display); font-weight:700; font-size:1.1rem; color:var(--accent); }
+.crop-editor-cols {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px;
+}
+.crop-col { display:flex; flex-direction:column; align-items:center; gap:8px; }
+.crop-col-label { font-size:.78rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:.04em; }
+.crop-zone {
+  position:relative; overflow:hidden; cursor:grab; user-select:none;
+  background:#111; flex-shrink:0;
+}
+.crop-zone:active { cursor:grabbing; }
+.crop-zone img { position:absolute; object-fit:cover; top:0; left:0; }
+#ce-vign-zone  { width:200px; height:200px; border-radius:var(--radius); }
+#ce-detail-zone { width:110px; height:400px; border-radius:var(--radius); }
+#ce-com-wrapper { position:relative; display:inline-block; cursor:grab; user-select:none; }
+#ce-com-wrapper:active { cursor:grabbing; }
+#ce-com-bg {
+  display:block; max-width:300px; max-height:400px;
+  width:auto; height:auto; pointer-events:none;
+}
+#ce-com-svg { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; overflow:visible; }
+#ce-com-circle { pointer-events:none; }
+.crop-zoom-row { display:flex; align-items:center; gap:8px; width:100%; }
+.crop-zoom-row input[type=range] { flex:1; }
+.crop-zoom-val { font-size:.72rem; color:var(--text-dim); min-width:32px; }
+.crop-previews { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
+.crop-prev-block { display:flex; flex-direction:column; align-items:center; gap:4px; }
+.crop-prev-label { font-size:.68rem; color:var(--text-dim); }
+.crop-prev-vign { width:64px; height:64px; position:relative; overflow:hidden; border-radius:6px; background:#111; }
+.crop-prev-detail { width:38px; height:138px; position:relative; overflow:hidden; border-radius:6px; background:#111; }
+.crop-prev-combat { width:56px; height:56px; position:relative; overflow:hidden; border-radius:50%; background:#111; }
+.crop-actions { display:flex; gap:10px; flex-wrap:wrap; }
+.crop-btn { padding:10px 22px; border-radius:999px; border:none; cursor:pointer; font-weight:700;
+            font-family:var(--font-display); font-size:.9rem; transition:opacity .15s; }
+.crop-btn-confirm { background:var(--accent2); color:#000; }
+.crop-btn-cancel  { background:var(--surface-2); color:var(--text); border:1px solid var(--border); }
+.crop-btn:hover { opacity:.85; }
+`;
+    document.head.appendChild(s);
+  }
+
+  function _buildCropEditor() {
+    document.getElementById('crop-editor-overlay')?.remove();
+
+    const hasImg = !!_imgSrc;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'crop-editor-overlay';
+    overlay.innerHTML = `
+      <div id="crop-editor-box">
+        <div class="crop-editor-title">✂️ Recadrage des portraits</div>
+        ${!hasImg ? '<p style="color:var(--text-dim);font-size:.85rem;">⚠️ Aucun portrait défini. Ajoutez une URL de portrait puis rouvrez l\'éditeur.</p>' : ''}
+        <div class="crop-editor-cols">
+
+          <div class="crop-col">
+            <div class="crop-col-label">Toutes images carrées (1:1)</div>
+            <div class="crop-zone" id="ce-vign-zone">
+              ${hasImg ? `<img id="ce-vign-img" src="${_imgSrc}" alt="">` : ''}
+            </div>
+            <div class="crop-zoom-row">
+              <span style="font-size:.72rem;color:var(--text-dim)">Zoom</span>
+              <input type="range" id="ce-vign-zoom" min="1" max="5" step="0.05" value="${_cropVign.zoom}">
+              <span class="crop-zoom-val" id="ce-vign-zoom-val">×${(+_cropVign.zoom).toFixed(2)}</span>
+            </div>
+          </div>
+
+          <div class="crop-col">
+            <div class="crop-col-label">Fiche personnage (1:3,64)</div>
+            <div class="crop-zone" id="ce-detail-zone">
+              ${hasImg ? `<img id="ce-detail-img" src="${_imgSrc}" alt="">` : ''}
+            </div>
+            <div class="crop-zoom-row">
+              <span style="font-size:.72rem;color:var(--text-dim)">Zoom</span>
+              <input type="range" id="ce-detail-zoom" min="1" max="5" step="0.05" value="${_cropDetail.zoom}">
+              <span class="crop-zoom-val" id="ce-detail-zoom-val">×${(+_cropDetail.zoom).toFixed(2)}</span>
+            </div>
+          </div>
+
+          <div class="crop-col">
+            <div class="crop-col-label">Combat (cercle)</div>
+            <div id="ce-com-wrapper">
+              ${hasImg ? `<img id="ce-com-bg" src="${_imgSrc}" alt="">` : ''}
+              <svg id="ce-com-svg" viewBox="0 0 1 1" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                  <mask id="ce-com-mask">
+                    <rect id="ce-com-mask-bg" width="1" height="1" fill="white"/>
+                    <circle id="ce-com-mask-hole" cx="0.5" cy="0.5" r="0.3" fill="black"/>
+                  </mask>
+                </defs>
+                <rect id="ce-com-mask-rect" width="1" height="1" fill="rgba(0,0,0,0.55)" mask="url(#ce-com-mask)" pointer-events="none"/>
+                <circle id="ce-com-circle" cx="0.5" cy="0.5" r="0.3"
+                  fill="none" stroke="white" stroke-width="0.008"
+                  stroke-dasharray="0.025 0.015"/>
+              </svg>
+            </div>
+            <div style="font-size:.7rem;color:var(--text-dim);text-align:center;margin-top:4px;">
+              Glisser · Molette = taille du cercle
+            </div>
+          </div>
+
+          <div class="crop-col">
+            <div class="crop-col-label">Aperçu</div>
+            <div class="crop-previews" style="flex-direction:column;">
+              <div class="crop-prev-block">
+                <div class="crop-prev-vign"><img id="ce-prev-vign" src="${_imgSrc || ''}" style="position:absolute;"></div>
+                <span class="crop-prev-label">Collection</span>
+              </div>
+              <div class="crop-prev-block">
+                <div class="crop-prev-detail"><img id="ce-prev-detail" src="${_imgSrc || ''}" style="position:absolute;"></div>
+                <span class="crop-prev-label">Fiche</span>
+              </div>
+              <div class="crop-prev-block">
+                <div class="crop-prev-combat"><img id="ce-prev-com" src="${_imgSrc || ''}" style="position:absolute;object-fit:cover;object-position:50% 0%;"></div>
+                <span class="crop-prev-label">Combat</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="crop-actions">
+          <button class="crop-btn crop-btn-confirm" onclick="AdminPanel._confirmCrop()">✅ Confirmer et enregistrer</button>
+          <button class="crop-btn crop-btn-cancel"  onclick="AdminPanel._closeCropEditor()">Annuler</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    if (hasImg) {
+      _initCropZone('vign');
+      _initCropZone('detail');
+      _initCombatCropZone();
+      _applyVign();
+      _applyDetail();
+      _applyCombatPreview();
+    }
+  }
+
+  function _initCropZone(kind) {
+    const zone = document.getElementById(`ce-${kind}-zone`);
+    const zoomInput = document.getElementById(`ce-${kind}-zoom`);
+    const zoomVal   = document.getElementById(`ce-${kind}-zoom-val`);
+    if (!zone) return;
+
+    let dragging = false, startX, startY, startCrop;
+
+    zone.addEventListener('mousedown', (e) => {
+      dragging = true;
+      startX = e.clientX; startY = e.clientY;
+      startCrop = kind === 'vign' ? { ..._cropVign } : { ..._cropDetail };
+      e.preventDefault();
+    });
+    window.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      const rect = zone.getBoundingClientRect();
+      const dx = ((e.clientX - startX) / rect.width)  * 100;
+      const dy = ((e.clientY - startY) / rect.height) * 100;
+      const zoom = startCrop.zoom;
+      if (kind === 'vign') {
+        _cropVign.x = Math.max(0, Math.min(100, startCrop.x - dx / zoom));
+        _cropVign.y = Math.max(0, Math.min(100, startCrop.y - dy / zoom));
+        _applyVign();
+      } else {
+        _cropDetail.x = Math.max(0, Math.min(100, startCrop.x - dx / zoom));
+        _cropDetail.y = Math.max(0, Math.min(100, startCrop.y - dy / zoom));
+        _applyDetail();
+      }
+    });
+    window.addEventListener('mouseup', () => { dragging = false; });
+
+    zone.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -0.1 : 0.1;
+      if (kind === 'vign') {
+        _cropVign.zoom = Math.max(1, Math.min(5, +(_cropVign.zoom + delta).toFixed(2)));
+        zoomInput.value = _cropVign.zoom;
+        zoomVal.textContent = `×${_cropVign.zoom.toFixed(2)}`;
+        _applyVign();
+      } else {
+        _cropDetail.zoom = Math.max(1, Math.min(5, +(_cropDetail.zoom + delta).toFixed(2)));
+        zoomInput.value = _cropDetail.zoom;
+        zoomVal.textContent = `×${_cropDetail.zoom.toFixed(2)}`;
+        _applyDetail();
+      }
+    }, { passive: false });
+
+    zoomInput?.addEventListener('input', () => {
+      const v = parseFloat(zoomInput.value);
+      if (kind === 'vign') { _cropVign.zoom = v; _applyVign(); }
+      else                  { _cropDetail.zoom = v; _applyDetail(); }
+      if (zoomVal) zoomVal.textContent = `×${v.toFixed(2)}`;
+    });
+  }
+
+  function _applyVign() {
+    const img  = document.getElementById('ce-vign-img');
+    const prev = document.getElementById('ce-prev-vign');
+    if (!img) return;
+    const zoom = _cropVign.zoom;
+    const x = _cropVign.x, y = _cropVign.y;
+    const applyTo = (el) => {
+      el.style.width  = `${zoom * 100}%`;
+      el.style.height = `${zoom * 100}%`;
+      el.style.left   = `${(1 - zoom) * x}%`;
+      el.style.top    = `${(1 - zoom) * y}%`;
+      el.style.objectFit = 'cover';
+      el.style.objectPosition = `${x}% ${y}%`;
+    };
+    applyTo(img);
+    if (prev) { prev.src = _imgSrc; applyTo(prev); }
+  }
+
+  function _applyDetail() {
+    const img  = document.getElementById('ce-detail-img');
+    const prev = document.getElementById('ce-prev-detail');
+    if (!img) return;
+    const zoom = _cropDetail.zoom;
+    const x = _cropDetail.x, y = _cropDetail.y;
+    const applyTo = (el) => {
+      el.style.width  = `${zoom * 100}%`;
+      el.style.height = `${zoom * 100}%`;
+      el.style.left   = `${(1 - zoom) * x}%`;
+      el.style.top    = `${(1 - zoom) * y}%`;
+      el.style.objectFit = 'cover';
+      el.style.objectPosition = `${x}% ${y}%`;
+    };
+    applyTo(img);
+    if (prev) { prev.src = _imgSrc; applyTo(prev); }
+  }
+
+  function _initCombatCropZone() {
+    const wrapper  = document.getElementById('ce-com-wrapper');
+    const bgImg    = document.getElementById('ce-com-bg');
+    const svg      = document.getElementById('ce-com-svg');
+    const circ     = document.getElementById('ce-com-circle');
+    const maskHole = document.getElementById('ce-com-mask-hole');
+    const maskBg   = document.getElementById('ce-com-mask-bg');
+    const maskRect = document.getElementById('ce-com-mask-rect');
+    if (!wrapper || !circ || !bgImg || !svg) return;
+
+    // cx, cy, r = % des dimensions NATURELLES de l'image (0-100).
+    if (_cropCombat.cx === 50 && _cropCombat.cy === 38 && _cropCombat.r === 38) {
+      _cropCombat.cx = 50; _cropCombat.cy = 50; _cropCombat.r = 30;
+    }
+
+    let imgW = 1, imgH = 1;
+
+    // Met à jour le SVG viewBox et les attributs du cercle
+    // Le viewBox = "0 0 imgW imgH" → le cercle en px image est toujours rond
+    const syncCircle = () => {
+      const cx = _cropCombat.cx / 100 * imgW;
+      const cy = _cropCombat.cy / 100 * imgH;
+      const r  = _cropCombat.r  / 100 * Math.min(imgW, imgH); // rayon = % du plus petit côté → cercle parfait
+      svg.setAttribute('viewBox', `0 0 ${imgW} ${imgH}`);
+      if (maskBg)   { maskBg.setAttribute('width', imgW);  maskBg.setAttribute('height', imgH); }
+      if (maskRect) { maskRect.setAttribute('width', imgW); maskRect.setAttribute('height', imgH); }
+      circ.setAttribute('cx', cx);
+      circ.setAttribute('cy', cy);
+      circ.setAttribute('r',  r);
+      circ.setAttribute('stroke-width', Math.min(imgW, imgH) * 0.008);
+      circ.setAttribute('stroke-dasharray', `${Math.min(imgW,imgH)*0.025} ${Math.min(imgW,imgH)*0.015}`);
+      if (maskHole) {
+        maskHole.setAttribute('cx', cx);
+        maskHole.setAttribute('cy', cy);
+        maskHole.setAttribute('r',  r);
+      }
+      _applyCombatPreview();
+    };
+
+    const init = () => {
+      imgW = bgImg.naturalWidth  || 1;
+      imgH = bgImg.naturalHeight || 1;
+      syncCircle();
+    };
+    if (bgImg.complete && bgImg.naturalWidth) init();
+    else bgImg.addEventListener('load', init);
+
+    let dragging = false, startMX, startMY, startCX, startCY;
+
+    wrapper.addEventListener('mousedown', (e) => {
+      dragging = true;
+      startMX = e.clientX; startMY = e.clientY;
+      startCX = _cropCombat.cx; startCY = _cropCombat.cy;
+      e.preventDefault();
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      const rect = bgImg.getBoundingClientRect();
+      const dx = (e.clientX - startMX) / rect.width  * 100;
+      const dy = (e.clientY - startMY) / rect.height * 100;
+      const r  = _cropCombat.r;
+      // Contraindre pour que le cercle reste dans l'image
+      const rX = r * Math.min(imgW, imgH) / imgW;  // rayon en % de la largeur
+      const rY = r * Math.min(imgW, imgH) / imgH;  // rayon en % de la hauteur
+      _cropCombat.cx = Math.max(rX, Math.min(100 - rX, startCX + dx));
+      _cropCombat.cy = Math.max(rY, Math.min(100 - rY, startCY + dy));
+      syncCircle();
+    });
+
+    window.addEventListener('mouseup', () => { dragging = false; });
+
+    wrapper.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -1 : 1;
+      const newR  = Math.max(5, Math.min(45, _cropCombat.r + delta));
+      _cropCombat.r  = newR;
+      const rX = newR * Math.min(imgW, imgH) / imgW;
+      const rY = newR * Math.min(imgW, imgH) / imgH;
+      _cropCombat.cx = Math.max(rX, Math.min(100 - rX, _cropCombat.cx));
+      _cropCombat.cy = Math.max(rY, Math.min(100 - rY, _cropCombat.cy));
+      syncCircle();
+    }, { passive: false });
+  }
+
+  function _applyCombatPreview() {
+    const prev  = document.getElementById('ce-prev-com');
+    const bgImg = document.getElementById('ce-com-bg');
+    if (!prev || !_imgSrc) return;
+
+    const prevSize = 56; // px — taille du .crop-prev-combat
+    const imgW = bgImg?.naturalWidth  || 1;
+    const imgH = bgImg?.naturalHeight || 1;
+
+    // Rayon en pixels image (sur le plus petit côté, comme dans syncCircle)
+    const r_px = _cropCombat.r / 100 * Math.min(imgW, imgH);
+    // Centre en pixels image
+    const cx_px = _cropCombat.cx / 100 * imgW;
+    const cy_px = _cropCombat.cy / 100 * imgH;
+
+    // Scale : le diamètre du cercle (2*r_px) doit tenir dans prevSize
+    const scale = prevSize / (2 * r_px);
+
+    prev.src = _imgSrc;
+    prev.style.position      = 'absolute';
+    prev.style.width         = `${imgW * scale}px`;
+    prev.style.height        = `${imgH * scale}px`;
+    prev.style.left          = `${prevSize / 2 - cx_px * scale}px`;
+    prev.style.top           = `${prevSize / 2 - cy_px * scale}px`;
+    prev.style.objectFit     = 'cover';
+    prev.style.objectPosition= '50% 50%';
+    prev.style.maxWidth      = 'none';
+    prev.style.maxHeight     = 'none';
+    prev.style.transform     = '';
+    prev.style.clipPath      = '';
+  }
+
+  /** Confirme et sauvegarde les 3 crops directement dans le state */
+  function _confirmCrop() {
+    if (!_cropCurrentCharId) {
+      _notify('💡 Recadrage mémorisé — cliquez sur 💾 Enregistrer pour finaliser.');
+      _closeCropEditor();
+      return;
+    }
+    GameState.updateCharDef(_cropCurrentCharId, {
+      portraitCrop: { ..._cropVign   },
+      detailCrop:   { ..._cropDetail },
+      combatCrop:   { ..._cropCombat },
+    });
+    _notify('✅ Recadrages enregistrés.');
+    _closeCropEditor();
+  }
+
+  function _closeCropEditor() {
+    document.getElementById('crop-editor-overlay')?.remove();
+  }
+
   // ─── API PUBLIQUE ─────────────────────────────────────────────────────────────
 
   return {
@@ -3536,6 +4324,7 @@ const AdminPanel = (() => {
     exportGameDatabase, exportPlayerData, importGameDatabase, importPlayerData,
     // Méthodes appelées depuis le HTML (onclick)
     _previewPortrait,
+    _openCropEditor, _confirmCrop, _closeCropEditor,
     _saveCharacter, _editCharacter, _deleteCharacter, _clearCharForm, _upgradeCharacter,
     _saveType, _editType, _deleteType, _clearTypeForm,
     _savePassives, _resetPassivesToDefault,
@@ -3553,6 +4342,9 @@ const AdminPanel = (() => {
     _addCycleDay, _removeCycleDay,
     _editDailyQuestReward, _saveDailyQuestReward, _toggleDailyQuestActive,
     _savePatchNotes, _clearPatchNotes,
+    _saveItem, _editItem, _deleteItem, _clearItemForm, _addItemEffect, _removeItemEffect, _onItemEffectTypeChange,
+    _saveShopItem, _editShopItem, _deleteShopItem, _clearShopItemForm, _toggleShopItemActive,
+    _onShopCategoryChange, _onShopLimitTypeChange,
     _dragStart, _dragOver, _dragLeave, _dragEnd, _dragDropChar, _dragDropEquip, _dragDropEvoStage, _dragDropType,
     _sortCharList, _sortEquipList,
   };

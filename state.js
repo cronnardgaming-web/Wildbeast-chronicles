@@ -85,6 +85,7 @@ const GameState = (() => {
       banners:      JSON.parse(JSON.stringify(GameDatabase.DEFAULT_BANNERS)),
       dailyQuests:  JSON.parse(JSON.stringify(GameDatabase.DEFAULT_DAILY_QUESTS)),
       loginCycles:  JSON.parse(JSON.stringify(GameDatabase.DEFAULT_LOGIN_CYCLES)),
+      shopItems:    JSON.parse(JSON.stringify(GameDatabase.DEFAULT_SHOP_ITEMS)),
       patchNotes:   { id: '', text: '' },
       player:       JSON.parse(JSON.stringify(GameDatabase.DEFAULT_PLAYER)),
     };
@@ -104,6 +105,7 @@ const GameState = (() => {
       banners:      saved.banners      || defaults.banners,
       dailyQuests:  saved.dailyQuests  || defaults.dailyQuests,
       loginCycles:  saved.loginCycles  || defaults.loginCycles,
+      shopItems:    saved.shopItems    || defaults.shopItems,
       patchNotes:   saved.patchNotes   || defaults.patchNotes,
       player:       _mergePlayer(defaults.player, saved.player),
     };
@@ -164,6 +166,7 @@ const GameState = (() => {
         progress: { ...(saved.dailyQuestState?.progress || {}) },
         claimed:  { ...(saved.dailyQuestState?.claimed  || {}) },
       },
+      shopPurchaseState: { ...defaults.shopPurchaseState, ...(saved.shopPurchaseState || {}) },
     };
   }
 
@@ -182,6 +185,7 @@ const GameState = (() => {
   const getItemDefs  = () => _state.items;
   const getDailyQuestDefs = () => _state.dailyQuests;
   const getLoginCycles    = () => _state.loginCycles;
+  const getShopItems      = () => _state.shopItems;
 
   /** Retourne la définition d'un créature par son ID */
   const getCharDef = (id) => _state.characters.find(c => c.id === id);
@@ -569,6 +573,20 @@ const GameState = (() => {
     _autoSave();
   }
 
+  /** Remplace complètement le catalogue d'objets (admin) */
+  function updateItemDefs(items) {
+    _state.items = JSON.parse(JSON.stringify(items));
+    _notify('itemDefsChanged');
+    _autoSave();
+  }
+
+  /** Remplace complètement le catalogue d'articles de la boutique (admin) */
+  function updateShopItems(shopItems) {
+    _state.shopItems = JSON.parse(JSON.stringify(shopItems));
+    _notify('shopItemsChanged');
+    _autoSave();
+  }
+
   /**
    * Met à jour les notes de mise à jour (admin).
    * @param {{ id: string, text: string }} patchNotes
@@ -718,6 +736,7 @@ const GameState = (() => {
     if (data.banners)     _state.banners     = data.banners;
     if (data.dailyQuests) _state.dailyQuests = data.dailyQuests;
     if (data.loginCycles) _state.loginCycles = data.loginCycles;
+    if (data.shopItems)   _state.shopItems   = data.shopItems;
     if (data.patchNotes)  _state.patchNotes  = data.patchNotes;
     // player inchangé : aucune donnée joueur n'est touchée.
     // ⚠️ Pas d'_autoSave() ici : applyGameDatabase peut être exécuté depuis
@@ -749,13 +768,13 @@ const GameState = (() => {
   return {
     init, get,
     getPlayer, getConfig, getTypes, getMatrix,
-    getCharDefs, getEquipDefs, getBanners, getItemDefs, getDailyQuestDefs, getLoginCycles,
+    getCharDefs, getEquipDefs, getBanners, getItemDefs, getDailyQuestDefs, getLoginCycles, getShopItems,
     getCharDef, getPlayerChar, getTeam,
     addCharacterToCollection, addXpToCharacter, addPlayerXp, setTeam, equipItem,
     modifyResources, grantReward, regenEnergy,
     updateConfig, updateCharDef, addCharDef, removeCharDef, reorderCharDefs,
     updateTypeMatrix, updateTypes, reorderTypes, addEquipDef, updateEquipDef, removeEquipDef, reorderEquipDefs,
-    updateBanners, updateDailyQuestDefs, updateLoginCycles, updatePatchNotes, updatePlayer,
+    updateBanners, updateDailyQuestDefs, updateLoginCycles, updateItemDefs, updateShopItems, updatePatchNotes, updatePlayer,
     applyGameDatabase, applyPlayerData,
     subscribe, setAutoSaveFn,
     getStoryNext, completeStoryLevel,
