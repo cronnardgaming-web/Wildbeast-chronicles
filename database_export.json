@@ -1,7 +1,7 @@
 {
   "_exportType": "wildbeast_db_export",
   "_exportVersion": "1.0",
-  "exportDate": "2026-06-25T12:36:05.200Z",
+  "exportDate": "2026-06-25T12:40:38.858Z",
   "gameVersion": "1.0.0",
   "config": {
     "game": {
@@ -592,7 +592,7 @@
       "description": "",
       "portrait": "https://france3-regions.franceinfo.fr/image/ju7mJOQ9Cf_iEHJy8ETibNTPeP4/1200x1200/regions/2021/08/17/611bcbad6ea34_aigle-royal-photo-cd30-5427093.jpg",
       "rarity": "rare",
-      "evolutionLine": "Aiglon",
+      "evolutionLine": "Aigle",
       "evolutionStage": 0,
       "type1": "ice",
       "type2": null,
@@ -606,7 +606,7 @@
         "type": "level",
         "value": 8
       },
-      "evolvesTo": "Aiglon1",
+      "evolvesTo": "Aigle1",
       "portraitCrop": {
         "x": 0,
         "y": 48.878787878787875,
@@ -629,7 +629,7 @@
       "description": "",
       "portrait": "https://zoo-boissiere.com/wp-content/uploads/2025/06/aigle-steppe-passeport2.jpg",
       "rarity": "rare",
-      "evolutionLine": "Aiglon",
+      "evolutionLine": "Aigle",
       "evolutionStage": 1,
       "type1": "ice",
       "type2": null,
@@ -643,7 +643,7 @@
         "type": "level",
         "value": 18
       },
-      "evolvesTo": "Aiglon2",
+      "evolvesTo": "Aigle2",
       "portraitCrop": {
         "x": 55.5,
         "y": 10.5,
@@ -666,7 +666,7 @@
       "description": "",
       "portrait": "https://www.monde-animal.fr/wp-content/uploads/2020/04/aigle-royal-photo-mise-en-avant.jpg",
       "rarity": "rare",
-      "evolutionLine": "Aiglon",
+      "evolutionLine": "Aigle",
       "evolutionStage": 2,
       "type1": "ice",
       "type2": null,
@@ -680,7 +680,7 @@
         "type": "level",
         "value": 50
       },
-      "evolvesTo": "Aiglon3",
+      "evolvesTo": "Aigle3",
       "portraitCrop": {
         "x": 81.5,
         "y": 20.5,
@@ -703,7 +703,7 @@
       "description": "",
       "portrait": "https://preview.redd.it/haasts-eagle-attacking-a-human-v0-0wp7nbg8qvh31.jpg?auto=webp&s=614d1a5a82e8849a962b077f0bc15a4761a6cdcd",
       "rarity": "rare",
-      "evolutionLine": "Aiglon",
+      "evolutionLine": "Aigle",
       "evolutionStage": 3,
       "type1": "ice",
       "type2": "light",
@@ -717,7 +717,7 @@
         "type": "level",
         "value": 100
       },
-      "evolvesTo": "Aiglon4",
+      "evolvesTo": "Aigle4",
       "portraitCrop": {
         "x": 58.5,
         "y": 35,
@@ -740,7 +740,7 @@
       "description": "",
       "portrait": "https://www.dol-celeb.com/wp-content/uploads/2024/04/phenix.jpg",
       "rarity": "rare",
-      "evolutionLine": "Aiglon",
+      "evolutionLine": "Aigle",
       "evolutionStage": 4,
       "type1": "ice",
       "type2": "Cryptide",
