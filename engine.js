@@ -455,11 +455,13 @@ const CombatEngine = (() => {
    * @param {string} [options.arenaType] - ID du type d'arène (mode 'arena')
    * @param {number} [options.storyWorld] - Sanctuaire Odyssée (mode 'story')
    * @param {number} [options.storySubLevel] - Épreuve Odyssée (mode 'story')
+   * @param {string} [options.eventTagId] - Tag de l'event (modes 'eventInvasion' / 'eventDefi')
    * @returns {object|null} État initial du combat, ou null si erreur
    */
   function start(onEvent, options = {}) {
     const mode = options.mode || (options.lineId ? 'line' : 'random');
-    const { lineId = null, arenaType = null, storyWorld = 1, storySubLevel = 1 } = options;
+    const { lineId = null, arenaType = null, storyWorld = 1, storySubLevel = 1,
+            eventTagId = null } = options;
 
     _onEvent = onEvent;
     const state = GameState.get();
@@ -470,7 +472,15 @@ const CombatEngine = (() => {
 
     // Vérifier l'énergie (coût spécifique au mode)
     const player = GameState.getPlayer();
-    const energyCost = cfg.energy.costs?.[mode] ?? cfg.energy.combatCost ?? 10;
+    // Coût énergie — pour les modes event, lire depuis l'event courant
+    let energyCost = cfg.energy.costs?.[mode] ?? cfg.energy.combatCost ?? 10;
+    if (mode === 'eventInvasion') {
+      const evt = EventSystem.getCurrent();
+      energyCost = evt?.invasionConfig?.energyCost ?? 15;
+    } else if (mode === 'eventDefi') {
+      const evt = EventSystem.getCurrent();
+      energyCost = evt?.defiConfig?.energyCost ?? 20;
+    }
     if (cfg.energy.enabled && player.energy.current < energyCost) {
       _emit('error', { message: 'Énergie insuffisante !' });
       return null;
@@ -516,6 +526,45 @@ const CombatEngine = (() => {
       if (enemyTeam.length === 0) {
         if (restoreTeam) GameState.setTeam(restoreTeam);
         _emit('error', { message: 'Aucun personnage disponible pour cette arène !' });
+        return null;
+      }
+    } else if (mode === 'eventInvasion' || mode === 'eventDefi') {
+      const evt = EventSystem.getCurrent();
+      if (!evt) {
+        if (restoreTeam) GameState.setTeam(restoreTeam);
+        _emit('error', { message: 'Aucun événement actif en ce moment !' });
+        return null;
+      }
+      // Mode Défi : valider que toute l'équipe joueur est du bon tag
+      if (mode === 'eventDefi') {
+        const check = EventSystem.validateDefiTeam(evt.tagId);
+        if (!check.ok) {
+          if (restoreTeam) GameState.setTeam(restoreTeam);
+          _emit('error', { message: `Défi ${evt.tagLabel} : tous tes combattants doivent être de ce tag. Retirez : ${check.missing.join(', ')}` });
+          return null;
+        }
+      }
+      // Générer les ennemis via EventSystem
+      const rawEnemies = EventSystem.generateEventEnemyTeam(evt.tagId, cfg);
+      if (rawEnemies.length === 0) {
+        if (restoreTeam) GameState.setTeam(restoreTeam);
+        _emit('error', { message: `Aucune créature ${evt.tagLabel} disponible pour ce combat !` });
+        return null;
+      }
+      // Appliquer le même pipeline que les autres modes :
+      // buildCombatant → scaling adaptatif anti-snowball
+      const eventPowerProfile = _computePowerProfile(GameState.getTeam());
+      const eventStatRatio    = cfg.combat.enemyStatRatio ?? 0.85;
+      enemyTeam = rawEnemies.map((inst, i) => {
+        const def = GameState.getCharDef(inst.charId);
+        if (!def) return null;
+        const combatant = _buildCombatant(inst, def, true);
+        _applyAdaptiveScaling(combatant, eventPowerProfile, eventStatRatio, cfg.combat.adaptiveScalingFactor);
+        return combatant;
+      }).filter(Boolean);
+      if (enemyTeam.length === 0) {
+        if (restoreTeam) GameState.setTeam(restoreTeam);
+        _emit('error', { message: 'Impossible de générer l\'équipe ennemie !' });
         return null;
       }
     } else if (mode === 'story') {
@@ -1066,18 +1115,64 @@ const CombatEngine = (() => {
         stats: { ...player.stats, totalVictories: player.stats.totalVictories + 1 },
       });
 
-      // ── Quêtes quotidiennes : "Battre X ennemis" + combat réussi par mode ──────
+      // ── Quêtes : "Battre X ennemis" + victoires par mode + victoires par tag ────
       if (typeof QuestSystem !== 'undefined') {
-        QuestSystem.trackDefeat(_battle.enemyTeam.length);
+        // 1. Tracker les victoires génériques (sans tag) — quêtes "defeat" sans tagId
+        QuestSystem.trackDefeat(_battle.enemyTeam.length, null);
+
+        // 2. Tracker par tag : chaque ennemi vaincu incrémente les quêtes qui
+        //    portent le même tagId, quel que soit le mode de combat.
+        //    Les tags sont stockés sur la forme de base de la lignée.
+        const tagCounts = {};
+        _battle.enemyTeam.forEach(combatant => {
+          const def     = GameState.getCharDef(combatant.charId);
+          if (!def) return;
+          const lineId  = def.evolutionLine || def.id;
+          const baseDef = (GameState.get().characters || []).find(c =>
+            (c.evolutionLine || c.id) === lineId && (c.evolutionStage || 0) === 0
+          ) || def;
+          (baseDef.tags || []).forEach(tagId => {
+            tagCounts[tagId] = (tagCounts[tagId] || 0) + 1;
+          });
+        });
+        Object.entries(tagCounts).forEach(([tagId, count]) => {
+          QuestSystem.trackDefeatTagged(count, tagId);
+        });
+
+        // 3. Victoires par mode
         if (_battle.mode === 'line') QuestSystem.trackLineWin();
         else if (_battle.mode === 'fullRandom') QuestSystem.trackFullRandomWin();
         else if (_battle.mode === 'story') QuestSystem.trackStoryWin();
+        else if (_battle.mode === 'eventInvasion') QuestSystem.trackEventInvasionWin();
+        else if (_battle.mode === 'eventDefi')    QuestSystem.trackEventDefiWin();
       }
 
       _battle.rewards = { xpEarned, gold, diamonds, levelUps, energyPotionsDropped };
       _emit('victory', { battle: _battle, rewards: _battle.rewards });
 
     } else {
+      // Défaite : tracker quand même les ennemis individuellement vaincus pendant le combat
+      if (typeof QuestSystem !== 'undefined') {
+        const killed = _battle.enemyTeam.filter(e => !e.alive);
+        if (killed.length > 0) {
+          QuestSystem.trackDefeat(killed.length, null);
+          const tagCounts = {};
+          killed.forEach(combatant => {
+            const def = GameState.getCharDef(combatant.charId);
+            if (!def) return;
+            const lineId  = def.evolutionLine || def.id;
+            const baseDef = (GameState.get().characters || []).find(c =>
+              (c.evolutionLine || c.id) === lineId && (c.evolutionStage || 0) === 0
+            ) || def;
+            (baseDef.tags || []).forEach(tagId => {
+              tagCounts[tagId] = (tagCounts[tagId] || 0) + 1;
+            });
+          });
+          Object.entries(tagCounts).forEach(([tagId, count]) => {
+            QuestSystem.trackDefeatTagged(count, tagId);
+          });
+        }
+      }
       _emit('defeat', { battle: _battle });
     }
   }
@@ -1101,7 +1196,22 @@ const CombatEngine = (() => {
       GameState.updatePlayer({
         stats: { ...player.stats, totalCaptures: player.stats.totalCaptures + 1 },
       });
-      if (typeof QuestSystem !== 'undefined') QuestSystem.trackCapture();
+      if (typeof QuestSystem !== 'undefined') {
+        // Récupérer les tags de la forme de BASE de la lignée capturée
+        // pour incrémenter les quêtes event/daily/weekly qui filtrent par tag
+        const capturedDef  = GameState.getCharDef(capturable.charId);
+        const capturedLine = capturedDef?.evolutionLine || capturable.charId;
+        const capturedBase = (GameState.get().characters || []).find(c =>
+          (c.evolutionLine || c.id) === capturedLine && (c.evolutionStage || 0) === 0
+        ) || capturedDef;
+        const capturedTags = capturedBase?.tags || [];
+
+        // Incrémenter les quêtes génériques (sans tag) et celles qui correspondent
+        QuestSystem.trackCapture(1, null);          // quêtes sans tagId
+        capturedTags.forEach(tagId => {
+          QuestSystem.trackCapture(1, tagId);       // quêtes event/daily/weekly avec ce tagId
+        });
+      }
       _emit('capture', { success: true, charId: capturable.charId, addResult });
       return { success: true, addResult };
     } else {
@@ -1221,5 +1331,5 @@ const CombatEngine = (() => {
 
   // ─── API PUBLIQUE ─────────────────────────────────────────────────────────────
 
-  return { start, playerAttack, attemptCapture, getBattle, reset, _aiChooseTarget, _computePowerProfile };
+  return { start, playerAttack, attemptCapture, getBattle, reset, aiChooseTarget: _aiChooseTarget, computePowerProfile: _computePowerProfile };
 })();

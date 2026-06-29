@@ -211,7 +211,7 @@ const DailyRewardsUI = (() => {
     _overlay.innerHTML = `
       <div class="dlyrwd-bg"></div>
       <div class="dlyrwd-card" id="dlyrwd-card">
-        <div class="dlyrwd-title">🎁 ${_escapeHtml(cycle.name)}</div>
+        <div class="dlyrwd-title">🎁 ${GameUtils.escapeHtml(cycle.name)}</div>
         <div class="dlyrwd-days">
           ${cycle.days.map((day, i) => {
             const claimed = i < currentDayIndex;
@@ -284,12 +284,6 @@ const DailyRewardsUI = (() => {
       ov.remove();
       _showNext(); // popup suivante de la file, ou _finish() s'il n'y en a plus
     }, 320);
-  }
-
-  function _escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str ?? '';
-    return div.innerHTML;
   }
 
   return { presentPending };

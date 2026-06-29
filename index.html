@@ -9,8 +9,8 @@
      PWA — Installation sur écran d'accueil (Android + iOS)
      ============================================================ -->
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0a1a0d">
-<meta name="background-color" content="#060f08">
+<meta name="theme-color" content="#080f0a">
+<meta name="background-color" content="#050d07">
 <meta name="color-scheme" content="dark">
 
 <!-- Android / Chrome -->
@@ -31,46 +31,55 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;900&family=Manrope:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   /* ============================================================
      TOKENS
      ============================================================ */
   :root{
-    --bg:           #060f08;
-    --bg-2:         #0a1a0d;
-    --surface:      #0f2211;
-    --surface-2:    #152b18;
-    --surface-3:    #1e3a22;
-    --border:       #2d4a30;
-    --border-soft:  #1f3522;
+    /* ── Profondeurs naturelles ── */
+    --bg:           #050d07;          /* nuit de forêt */
+    --bg-2:         #080f0a;
+    --surface:      #0d1a10;          /* sous-bois */
+    --surface-2:    #132118;
+    --surface-3:    #1a2d1f;
+    --border:       #253d2a;
+    --border-soft:  #182a1c;
 
-    --text:         #f4f1fb;
-    --text-dim:     #8fb898;
-    --text-faint:   #4a6e50;
+    /* ── Texte ── */
+    --text:         #f0ede6;          /* ivoire naturel */
+    --text-dim:     #8fa88f;          /* sauge */
+    --text-faint:   #445f48;
 
-    --accent:       #f4c267;   /* crystal gold  */
-    --accent-deep:  #c9913c;
-    --accent2:      #4ade80;   /* nature green  */
-    --accent2-deep: #16a34a;
+    /* ── Accents ── */
+    --accent:       #c8a96e;          /* ambre/bois flotté */
+    --accent-deep:  #9a7a44;
+    --accent2:      #5bbf7a;          /* vert chlorophylle */
+    --accent2-deep: #2d8a4e;
 
-    --danger:       #f0617a;
-    --success:      #4ade80;
+    /* ── Feedback ── */
+    --danger:       #e05a6a;
+    --warning:      #d4904a;
+    --success:      #5bbf7a;
+    --info:         #5ba8c8;
 
-    --r-common:     #9CA3AF;
-    --r-uncommon:   #34D399;
-    --r-rare:       #60A5FA;
-    --r-epic:       #A78BFA;
-    --r-legendary:  #F59E0B;
-    --r-mythic:     #F43F5E;
+    /* ── Raretés (taxonomie scientifique) ── */
+    --r-common:     #8a9a8c;          /* Commun       — gris-vert */
+    --r-uncommon:   #4eb87a;          /* Peu commun   — vert fougère */
+    --r-rare:       #4a9fd4;          /* Rare         — bleu ciel */
+    --r-epic:       #9a72d4;          /* Épique       — violet lavande */
+    --r-legendary:  #d4a832;          /* Légendaire   — or solaire */
+    --r-mythic:     #d44a6a;          /* Mythique     — rouge rubis */
 
-    --radius-lg:    18px;
-    --radius:       12px;
-    --radius-sm:    8px;
+    /* ── Géométrie ── */
+    --radius-lg:    16px;
+    --radius:       10px;
+    --radius-sm:    7px;
 
-    --font-display: 'Cinzel', serif;
-    --font-body:    'Manrope', sans-serif;
-    --font-mono:    'Space Mono', monospace;
+    /* ── Typographie ── */
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body:    'Inter', system-ui, sans-serif;
+    --font-mono:    'JetBrains Mono', 'Courier New', monospace;
 
     --shell-max:    640px;
   }
@@ -105,10 +114,10 @@
   .bg-decor{
     position:fixed; inset:0; z-index:0; pointer-events:none;
     background:
-      radial-gradient(ellipse 700px 500px at 15% -10%, rgba(74,222,128,.20), transparent 60%),
-      radial-gradient(ellipse 600px 500px at 110% 15%, rgba(244,194,103,.18), transparent 60%),
-      radial-gradient(ellipse 800px 700px at 50% 120%, rgba(22,163,74,.25), transparent 60%),
-      linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 60%);
+      radial-gradient(ellipse 800px 600px at 10% -5%,  rgba(91,191,122,.14), transparent 65%),
+      radial-gradient(ellipse 600px 500px at 95%  20%, rgba(200,169,110,.10), transparent 65%),
+      radial-gradient(ellipse 900px 700px at 50% 110%, rgba(45,138,78,.20),  transparent 65%),
+      linear-gradient(170deg, var(--bg-2) 0%, var(--bg) 55%);
   }
   .bg-decor::after{
     content:''; position:absolute; inset:0;
@@ -145,34 +154,33 @@
   /* ── HEADER ── */
   .app-header{
     flex:0 0 auto;
-    padding:calc(14px + env(safe-area-inset-top)) 16px 10px;
+    padding:calc(12px + env(safe-area-inset-top)) 16px 8px;
     border-bottom:1px solid var(--border-soft);
-    background:rgba(6,15,8,.35);
-    backdrop-filter:blur(6px);
+    background:rgba(5,13,7,.55);
+    backdrop-filter:blur(10px);
   }
   .logo{
     display:flex; align-items:center; gap:10px;
-    margin-bottom:10px;
+    margin-bottom:8px;
   }
   .logo-icon{
-    font-size:1.4rem;
-    filter:drop-shadow(0 0 6px rgba(244,194,103,.7));
-    animation:tick 4s linear infinite;
+    font-size:1.5rem;
+    filter:drop-shadow(0 0 8px rgba(91,191,122,.6));
+    animation:breathe 5s ease-in-out infinite;
     display:inline-block;
   }
-  @keyframes tick{
-    0%,92%{ transform:rotate(0deg); }
-    96%{ transform:rotate(-12deg); }
-    100%{ transform:rotate(0deg); }
+  @keyframes breathe{
+    0%,100%{ transform:scale(1); filter:drop-shadow(0 0 6px rgba(91,191,122,.5)); }
+    50%{ transform:scale(1.06); filter:drop-shadow(0 0 12px rgba(200,169,110,.7)); }
   }
   .logo h1{
     margin:0; font-family:var(--font-display); font-weight:700;
-    font-size:1.05rem; letter-spacing:.04em; line-height:1.1;
+    font-size:1.1rem; letter-spacing:.06em; line-height:1.1;
     color:var(--text);
   }
   .logo h1 span{
-    display:block; font-size:.68rem; font-weight:500; letter-spacing:.22em;
-    color:var(--accent); text-transform:uppercase; margin-top:2px;
+    display:block; font-size:.6rem; font-weight:500; letter-spacing:.28em;
+    color:var(--accent); text-transform:uppercase; margin-top:3px;
   }
 
   /* ── HUD ── */
@@ -290,6 +298,26 @@
   }
   .stat-filter-group{ display:flex; gap:6px; align-items:center; }
   .stat-filter-input{ width:64px; min-width:64px; padding:7px 10px; }
+  /* ── Filtre par tag dans l'onglet Équipe ── */
+  .team-tag-filter{
+    border-color:var(--accent2) !important;
+    color:var(--accent2) !important;
+  }
+  .team-tag-active-banner{
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;
+    background:rgba(138,122,240,.12); border:1px solid var(--accent2);
+    border-radius:var(--radius-sm); padding:8px 12px; margin-bottom:10px;
+    font-size:.82rem; color:var(--accent2);
+  }
+  .team-tag-active-banner strong{ color:var(--text); }
+  .team-tag-active-banner button{
+    background:none; border:1px solid var(--accent2); color:var(--accent2);
+    border-radius:999px; padding:3px 10px; font-size:.75rem; cursor:pointer;
+    font-family:var(--font-body); transition:background .15s, color .15s;
+  }
+  .team-tag-active-banner button:hover{
+    background:var(--accent2); color:#000;
+  }
 
   .equip-inv-tabs{ display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
   .equip-inv-tab-btn{
@@ -316,36 +344,44 @@
     scrollbar-width:none;
     -ms-overflow-style:none;
     border-top:1px solid var(--border-soft);
-    background:rgba(12,10,22,.55);
-    backdrop-filter:blur(6px);
+    background:rgba(5,13,7,.72);
+    backdrop-filter:blur(10px);
     padding-bottom:env(safe-area-inset-bottom);
   }
   #main-nav::-webkit-scrollbar{ display:none; }
   .nav-btn{
-    flex:1 0 72px; display:flex; flex-direction:column; align-items:center; gap:3px;
+    flex:1 0 68px; display:flex; flex-direction:column; align-items:center; gap:2px;
     background:none; border:none; color:var(--text-faint);
-    padding:10px 2px 9px; cursor:pointer;
+    padding:8px 2px 8px; cursor:pointer;
     font-family:var(--font-body);
-    transition:color .15s ease;
+    transition:color .2s ease;
     position:relative;
     white-space:nowrap;
   }
-  .nav-btn .nav-icon{ font-size:1.25rem; line-height:1; filter:grayscale(.4); transition:filter .15s; }
-  .nav-btn .nav-label{ font-size:.62rem; font-weight:600; letter-spacing:.03em; }
-  .nav-btn.active{ color:var(--accent); }
-  .nav-btn.active .nav-icon{ filter:none; }
+  .nav-btn .nav-icon{
+    font-size:1.2rem; line-height:1;
+    filter:grayscale(.5) opacity(.7);
+    transition:filter .2s, transform .2s;
+  }
+  .nav-btn .nav-label{
+    font-size:.6rem; font-weight:600; letter-spacing:.04em; text-transform:uppercase;
+  }
+  .nav-btn.active{ color:var(--accent2); }
+  .nav-btn.active .nav-icon{ filter:none; transform:translateY(-1px); }
   .nav-btn.active::before{
     content:''; position:absolute; top:0; left:50%; transform:translateX(-50%);
-    width:28px; height:2px; background:var(--accent); border-radius:2px;
+    width:32px; height:2px;
+    background:linear-gradient(90deg, transparent, var(--accent2), transparent);
+    border-radius:2px;
   }
-  .nav-btn:active{ color:var(--accent); }
+  .nav-btn:active{ color:var(--accent2); }
   .nav-badge{
-    position:absolute; top:4px; right:calc(50% - 26px);
-    min-width:16px; height:16px; border-radius:8px;
+    position:absolute; top:3px; right:calc(50% - 26px);
+    min-width:15px; height:15px; border-radius:8px;
     background:var(--danger); color:#fff;
-    font-size:.6rem; font-weight:700; font-family:var(--font-body);
+    font-size:.56rem; font-weight:700; font-family:var(--font-mono);
     display:flex; align-items:center; justify-content:center;
-    padding:0 4px; line-height:1;
+    padding:0 3px; line-height:1;
     box-shadow:0 0 0 2px var(--bg);
   }
 
@@ -358,16 +394,17 @@
     contain:layout style; /* isole les repaints de la grille du reste de la page (perf mobile) */
   }
   .char-card{
-    background:var(--surface);
+    background:linear-gradient(160deg, var(--surface-2), var(--surface));
     border:1px solid var(--border-soft);
     border-top:3px solid var(--rc, var(--border));
     border-radius:var(--radius);
     overflow:hidden;
     cursor:pointer;
-    transition:transform .15s ease, box-shadow .15s ease;
+    transition:transform .18s ease, box-shadow .18s ease;
+    box-shadow:0 2px 8px rgba(0,0,0,.3);
   }
-  .char-card:hover{ transform:translateY(-3px); }
-  .char-card:active{ transform:scale(.97); } /* retour visuel immédiat au tap (mobile) */
+  .char-card:hover{ transform:translateY(-4px); box-shadow:0 6px 20px rgba(0,0,0,.4), 0 0 0 1px var(--rc,var(--border)); }
+  .char-card:active{ transform:scale(.97); }
   .char-card.rarity-common    { --rc:var(--r-common); }
   .char-card.rarity-uncommon  { --rc:var(--r-uncommon); }
   .char-card.rarity-rare      { --rc:var(--r-rare); }
@@ -616,52 +653,177 @@
   .quests-screen-ready-hint{
     display:inline-block; margin-left:8px; color:var(--accent2); font-weight:700;
   }
-  .quests-empty{ color:var(--text-dim); font-size:.9rem; text-align:center; padding:30px 0; }
-  .quests-screen-list{ display:flex; flex-direction:column; gap:12px; }
-  .quest-card{
-    display:flex; align-items:flex-start; gap:14px;
+  /* ── Quêtes — accordéon déroulant ─────────────────────────────────── */
+  .quests-accordion{
     background:var(--surface-2); border:1px solid var(--border-soft);
-    border-radius:var(--radius-lg); padding:16px;
+    border-radius:var(--radius-lg); overflow:hidden; margin-bottom:10px;
   }
-  .quest-card.is-ready{ border-color:var(--accent2); box-shadow:0 0 0 1px var(--accent2), 0 0 22px rgba(74,222,128,.12); }
-  .quest-card.is-claimed{ opacity:.55; }
-  .quest-card-icon{
-    flex-shrink:0; width:42px; height:42px; border-radius:50%;
+  .quests-accordion-event{
+    background:linear-gradient(135deg,#1a1200,#231c00);
+    border:2px solid #d4af37;
+    box-shadow:0 0 14px rgba(212,175,55,.12);
+  }
+  .quests-accordion-summary{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:10px; padding:13px 16px; cursor:pointer; list-style:none;
+    user-select:none;
+    transition:background .15s;
+  }
+  .quests-accordion-summary::-webkit-details-marker{ display:none; }
+  .quests-accordion:not([open]) .quests-accordion-summary:hover{
+    background:rgba(255,255,255,.04);
+  }
+  .quests-accordion[open] .quests-accordion-summary{
+    border-bottom:1px solid var(--border-soft);
+  }
+  .quests-accordion-event[open] .quests-accordion-summary{
+    border-bottom-color:#d4af3744;
+  }
+  .quests-summary-left{
+    display:flex; align-items:center; gap:8px; flex:1; min-width:0;
+  }
+  .quests-summary-title{
+    font-family:var(--font-display); font-weight:700; font-size:.9rem;
+    color:var(--accent);
+  }
+  .quests-accordion-event .quests-summary-title{ color:#d4af37; }
+  .quests-summary-right{
+    display:flex; align-items:center; gap:8px; flex-shrink:0;
+  }
+  .quests-summary-progress{
+    font-size:.72rem; color:var(--text-faint); font-family:var(--font-mono);
+  }
+  .quests-chevron{
+    font-size:.8rem; color:var(--text-faint);
+    transition:transform .2s ease;
+    display:inline-block;
+  }
+  .quests-accordion[open] .quests-chevron{ transform:rotate(180deg); }
+  .quests-accordion-body{
+    padding:12px 16px 14px;
+  }
+
+  /* ── Quêtes — structure des sections ─────────────────────────────── */
+  .quests-ready-banner{
+    background:linear-gradient(90deg,#14532d,#166534); color:#4ade80;
+    border:1px solid #4ade8055; border-radius:var(--radius);
+    padding:10px 16px; font-weight:700; font-size:.88rem;
+    margin-bottom:14px; text-align:center; letter-spacing:.02em;
+  }
+  /* Section event */
+  .quests-event-block{
+    background:linear-gradient(135deg,#1a1200,#2a1e00);
+    border:2px solid #d4af37; border-radius:var(--radius-lg);
+    padding:14px 16px; margin-bottom:16px;
+    box-shadow:0 0 16px rgba(212,175,55,.15);
+  }
+  .quests-event-header{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:6px;
+  }
+  .quests-event-icon{ font-size:1.3rem; }
+  .quests-event-titles{ flex:1; display:flex; flex-direction:column; gap:2px; }
+  .quests-event-titles strong{ font-family:var(--font-display); font-size:1rem; color:#d4af37; }
+  .quests-event-timer{
+    font-size:.7rem; color:#c8a830; background:rgba(212,175,55,.12);
+    border:1px solid #d4af3744; border-radius:999px; padding:1px 8px;
+    display:inline-block; margin-top:2px;
+  }
+  /* Section quotidienne / hebdo */
+  .quests-section-block{ background:var(--surface-2); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:14px 16px; }
+  .quests-section-header{
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    font-family:var(--font-display); font-weight:700; font-size:.9rem;
+    color:var(--accent); margin-bottom:4px;
+  }
+  .quests-section-icon{ font-size:1.1rem; }
+  .quests-section-timer{
+    font-size:.68rem; color:var(--text-faint); background:var(--surface);
+    border:1px solid var(--border-soft); border-radius:999px; padding:1px 7px;
+    font-family:var(--font-mono);
+  }
+  .quests-ready-badge{
+    background:var(--accent2); color:#000; border-radius:999px;
+    padding:0px 7px; font-size:.7rem; font-weight:800;
+    margin-left:auto;
+  }
+  .quests-progress-summary{
+    font-size:.72rem; color:var(--text-faint); margin-bottom:10px;
+  }
+  .quests-empty{ color:var(--text-dim); font-size:.9rem; text-align:center; padding:16px 0; }
+  .quests-screen-list{ display:flex; flex-direction:column; gap:10px; }
+  /* ── Carte quête ──────────────────────────────────────────────────── */
+  .quest-card{
+    display:flex; align-items:center; gap:12px;
     background:var(--surface); border:1px solid var(--border-soft);
-    display:flex; align-items:center; justify-content:center;
-    font-size:1.3rem;
+    border-radius:var(--radius); padding:12px 14px;
+    transition:border-color .15s, box-shadow .15s;
   }
+  .quest-card-ready{
+    border-color:var(--accent2);
+    box-shadow:0 0 0 1px var(--accent2), 0 0 18px rgba(74,222,128,.1);
+  }
+  .quest-card-claimed{ opacity:.5; }
+  .quest-card-active{}
+  /* Carte event */
+  .quest-card-event{ border-color:#d4af3744; background:rgba(212,175,55,.04); }
+  .quest-card-event.quest-card-ready{ border-color:#d4af37; box-shadow:0 0 0 1px #d4af37, 0 0 18px rgba(212,175,55,.15); }
+  /* Icône */
+  .quest-card-left{ flex-shrink:0; }
+  .quest-card-icon-wrap{
+    width:40px; height:40px; border-radius:50%;
+    background:var(--surface-2); border:1px solid var(--border-soft);
+    display:flex; align-items:center; justify-content:center; font-size:1.2rem;
+  }
+  .quest-icon-ready{ border-color:var(--accent2); background:rgba(74,222,128,.1); }
+  .quest-icon-claimed{ opacity:.6; }
+  /* Corps */
   .quest-card-body{ flex:1; min-width:0; }
-  .quest-card-label{ font-weight:700; font-size:.95rem; color:var(--text); margin-bottom:8px; }
+  .quest-card-label{ font-weight:700; font-size:.88rem; color:var(--text); margin-bottom:6px; line-height:1.3; }
+  .quest-pinned-badge{
+    display:inline-block; font-size:.58rem; background:var(--accent2); color:#000;
+    padding:1px 5px; border-radius:999px; font-weight:800; margin-left:5px; vertical-align:middle;
+  }
+  .quest-card-progress-row{ display:flex; align-items:center; gap:7px; margin-bottom:3px; }
   .quest-card-progressbar{
-    height:8px; border-radius:4px; background:var(--surface-3, var(--surface));
-    overflow:hidden; margin-bottom:4px; border:1px solid var(--border-soft);
+    flex:1; height:7px; border-radius:4px; background:var(--surface-2);
+    overflow:hidden; border:1px solid var(--border-soft);
   }
   .quest-card-progressfill{
-    height:100%; background:linear-gradient(90deg, var(--accent2-deep), var(--accent2));
-    transition:width .3s ease;
+    height:100%; border-radius:4px;
+    transition:width .35s ease;
   }
-  .quest-card-progresstext{ font-size:.72rem; color:var(--text-faint); font-family:var(--font-mono); margin-bottom:8px; }
-  .quest-card-reward{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
-  .quest-card-reward-label{ font-size:.7rem; color:var(--text-faint); text-transform:uppercase; letter-spacing:.04em; margin-right:2px; }
+  .quest-fill-active{ background:linear-gradient(90deg,#2563eb,#60a5fa); }
+  .quest-fill-ready{ background:linear-gradient(90deg,var(--accent2-deep,#16a34a),var(--accent2)); }
+  .quest-fill-claimed{ background:var(--border-soft); }
+  .quest-card-pct{ font-size:.65rem; color:var(--text-faint); font-family:var(--font-mono); min-width:28px; text-align:right; }
+  .quest-card-progresstext{ font-size:.68rem; color:var(--text-faint); font-family:var(--font-mono); margin-bottom:6px; }
+  .quest-card-reward{ display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
+  .quest-card-reward-label{ font-size:.68rem; color:var(--text-faint); }
   .quest-reward-chip{
     display:inline-flex; align-items:center; gap:2px;
-    background:var(--surface); border:1px solid var(--border-soft);
-    border-radius:999px; padding:3px 9px; font-size:.75rem; color:var(--accent);
+    background:var(--surface-2); border:1px solid var(--border-soft);
+    border-radius:999px; padding:2px 8px; font-size:.72rem; color:var(--accent);
     font-weight:600;
   }
+  /* Bouton réclamer */
   .quest-claim-btn{
-    flex-shrink:0; align-self:center; padding:10px 16px; border-radius:999px;
-    background:var(--accent2); color:#000; font-weight:700;
-    font-family:var(--font-display); font-size:.82rem;
+    flex-shrink:0; align-self:center; padding:9px 14px; border-radius:999px;
+    font-family:var(--font-display); font-size:.78rem; font-weight:700;
     border:none; cursor:pointer; white-space:nowrap;
     transition:opacity .15s, transform .1s;
+    min-width:78px; text-align:center;
   }
-  .quest-claim-btn:hover:not([disabled]){ opacity:.85; transform:translateY(-1px); }
-  .quest-claim-btn[disabled]{ background:var(--surface-3, var(--border-soft)); color:var(--text-faint); cursor:default; }
+  .quest-claim-active{ background:var(--surface-2); color:var(--text-faint); cursor:default; }
+  .quest-claim-ready{ background:var(--accent2); color:#000; animation:claim-pulse 1.8s ease-in-out infinite; }
+  @keyframes claim-pulse{
+    0%,100%{ box-shadow:0 0 0 0 rgba(74,222,128,.4); }
+    50%{ box-shadow:0 0 0 6px rgba(74,222,128,0); }
+  }
+  .quest-claim-claimed{ background:var(--surface-2); color:var(--text-faint); cursor:default; font-size:1rem; }
+  .quest-claim-btn[disabled]{ cursor:default; }
   @media (max-width:420px){
     .quest-card{ flex-wrap:wrap; }
-    .quest-claim-btn{ width:100%; }
+    .quest-claim-btn{ width:100%; margin-top:6px; }
   }
 
   /* ============================================================
@@ -703,7 +865,11 @@
   }
   .shop-filter-btn.active{ background:var(--accent2); color:#000; border-color:var(--accent2); }
   .shop-grid{
-    display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:12px;
+    display:flex; flex-direction:column; gap:18px;
+    padding:4px 0;
+  }
+  .shop-grid-inner{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:10px;
   }
   .shop-card{
     background:var(--surface-2); border:1px solid var(--border-soft);
@@ -732,6 +898,41 @@
   }
   .shop-buy-btn:hover:not([disabled]){ opacity:.85; transform:translateY(-1px); }
   .shop-buy-btn[disabled]{ background:var(--surface-3, var(--border-soft)); color:var(--text-faint); cursor:default; }
+  /* ── Sections du shop ──────────────────────────────────────────────── */
+  .shop-section{
+    margin-bottom:4px;
+    background:var(--surface-2); border:1px solid var(--border-soft);
+    border-radius:var(--radius-lg); padding:14px 14px 16px;
+  }
+  .shop-section-header{
+    display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:wrap;
+    font-family:var(--font-display); font-weight:700; font-size:.9rem; color:var(--text-dim);
+    padding-bottom:10px; border-bottom:1px solid var(--border-soft);
+  }
+  .shop-section-icon{ font-size:1.1rem; }
+  .shop-section-sub{
+    font-size:.68rem; color:var(--text-faint); font-weight:400;
+    font-family:var(--font-body); margin-left:auto;
+  }
+  /* Section event — fond et bordure dorés */
+  .shop-section-event{
+    background:linear-gradient(135deg,#1a1400,#231c00);
+    border:2px solid #d4af37;
+    box-shadow:0 0 18px rgba(212,175,55,.18);
+  }
+  .shop-section-event .shop-section-header{
+    border-bottom-color:#d4af3755;
+    color:#d4af37;
+  }
+  .shop-evt-discount{
+    background:rgba(212,175,55,.2); color:#d4af37; border:1px solid #d4af3766;
+    border-radius:999px; padding:1px 9px; font-size:.72rem; font-weight:800;
+  }
+  /* Badge PROMO sur carte event */
+  .shop-card-event-badge{
+    font-size:.6rem; color:#d4af37; font-weight:800; letter-spacing:.06em;
+    text-align:center; margin-bottom:2px;
+  }
 
   .detail-layout{ display:flex; gap:16px; flex-wrap:wrap; }
   .detail-portrait{
@@ -896,6 +1097,32 @@
   .combat-mode-btn.active{
     border-color:var(--accent2); background:rgba(138,122,240,.15); color:var(--accent2);
   }
+  /* Boutons Event — pourtour doré brillant */
+  .combat-event-btn{
+    flex:1 1 calc(50% - 4px);
+    background:linear-gradient(135deg,#1a1200,#2a1e00) !important;
+    border:2px solid #d4af37 !important;
+    box-shadow:0 0 12px rgba(212,175,55,.35), inset 0 0 8px rgba(212,175,55,.08);
+    color:#d4af37 !important;
+    animation:evt-btn-glow 2.4s ease-in-out infinite;
+    flex-direction:column; gap:2px;
+    padding:10px 8px !important;
+  }
+  .combat-event-btn.active{
+    background:linear-gradient(135deg,#2a1f00,#3a2c00) !important;
+    box-shadow:0 0 22px rgba(212,175,55,.55), inset 0 0 14px rgba(212,175,55,.15);
+  }
+  .combat-event-btn:hover{
+    border-color:#f0cc50 !important;
+    box-shadow:0 0 20px rgba(212,175,55,.5), inset 0 0 10px rgba(212,175,55,.1);
+  }
+  @keyframes evt-btn-glow{
+    0%,100%{ box-shadow:0 0 10px rgba(212,175,55,.3), inset 0 0 6px rgba(212,175,55,.06); }
+    50%{     box-shadow:0 0 22px rgba(212,175,55,.55), inset 0 0 12px rgba(212,175,55,.14); }
+  }
+  .combat-event-btn-inner{ font-size:.78rem; line-height:1.3; text-align:center; }
+  .combat-event-tag{ font-size:.65rem; opacity:.8; }
+  .evt-badge{ background:rgba(212,175,55,.2); color:#d4af37; }
   .energy-cost-badge{
     background:rgba(96,165,250,.18); color:#60A5FA; border-radius:999px;
     padding:1px 7px; font-size:.68rem; font-weight:800; font-family:var(--font-mono);
@@ -2255,21 +2482,21 @@
   <div class="app-shell">
     <header class="app-header">
       <div class="logo">
-        <span class="logo-icon">🐾</span>
+        <span class="logo-icon">🌿</span>
         <h1>WildBeast<span>Chronicles</span></h1>
       </div>
       <div id="hud"></div>
     </header>
 
     <main class="main-content">
-      <section id="screen-collection" class="screen active"></section>
+      <section id="screen-specimens" class="screen active"></section>
       <section id="screen-team" class="screen"></section>
       <section id="screen-combat" class="screen"></section>
       <section id="screen-gacha" class="screen"></section>
       <section id="screen-equip" class="screen"></section>
       <section id="screen-shop" class="screen"></section>
       <section id="screen-inventory" class="screen"></section>
-      <section id="screen-bestiaire" class="screen"></section>
+      <section id="screen-atlas" class="screen"></section>
       <section id="screen-quests" class="screen"></section>
     </main>
 
@@ -2312,10 +2539,13 @@
   <!-- ============================================================
        GAME SCRIPTS — l'ordre est important (dépendances)
        ============================================================ -->
+  <script src="utils.js"></script>
   <script src="database.js"></script>
   <script src="state.js"></script>
+  <script src="save.js"></script>
   <script src="quests.js"></script>
   <script src="shop.js"></script>
+  <script src="event.js"></script>
   <script src="gacha.js"></script>
   <script src="passives.js"></script>
   <script src="engine.js"></script>
@@ -2325,7 +2555,6 @@
   <script src="ui.js"></script>
   <script src="dailyrewards.js"></script>
   <script src="admin.js"></script>
-  <script src="save.js"></script>
 
   <script>
     'use strict';
@@ -2342,24 +2571,24 @@
       let _overlay = null;
       let _onDone  = null;
 
-      /**
-       * Affiche la popup si une note non encore vue est disponible.
-       * Appelle `onDone` immédiatement si rien à afficher.
-       * @param {Function} onDone
-       */
       function presentIfNeeded(onDone) {
         _onDone = onDone || null;
-
         const state = GameState.get();
         const pn    = state.patchNotes || {};
 
-        // Rien à afficher si la note est vide ou déjà vue par ce joueur
-        if (!pn.id || !pn.text) { _finish(); return; }
+        // Rétrocompatibilité : ancien format { id, text }
+        const blocks = Array.isArray(pn.blocks)
+          ? pn.blocks
+          : (pn.text ? [{ title: 'Note de mise à jour', image: '', text: pn.text }] : []);
+
+        if (!pn.id || !blocks.length || blocks.every(b => !b.title && !b.text)) {
+          _finish(); return;
+        }
         const player = GameState.getPlayer();
         if ((player.lastSeenPatchNotesId || '') === pn.id) { _finish(); return; }
 
         _injectStyles();
-        _buildOverlay(pn.text);
+        _buildOverlay(blocks);
       }
 
       function _finish() {
@@ -2387,30 +2616,59 @@
 }
 .pnui-card{
   position:relative;z-index:2;
-  width:100%;max-width:460px;
+  width:100%;max-width:480px;
   background:linear-gradient(150deg,var(--surface-2),var(--surface));
   border:1px solid var(--border);border-radius:var(--radius-lg);
-  padding:24px 20px 26px;
-  display:flex;flex-direction:column;gap:14px;
+  padding:22px 18px 24px;
+  display:flex;flex-direction:column;gap:10px;
   transform:scale(.88) translateY(18px);opacity:0;
   animation:pnuiCardIn .45s cubic-bezier(.2,1.4,.4,1) forwards .05s;
   box-shadow:0 0 50px rgba(244,194,103,.1);
+  max-height:85vh;overflow-y:auto;
 }
 @keyframes pnuiCardIn{to{transform:scale(1) translateY(0);opacity:1;}}
-.pnui-title{
+.pnui-header-title{
   font-family:var(--font-display);font-weight:700;
-  font-size:1.05rem;color:var(--accent);letter-spacing:.02em;
+  font-size:1rem;color:var(--accent);margin-bottom:4px;
 }
-.pnui-body{
-  font-size:.86rem;line-height:1.65;color:#cde8d4;
+.pnui-block{
+  border:1px solid var(--border-soft);border-radius:var(--radius);
+  overflow:hidden;
+}
+.pnui-block-head{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;cursor:pointer;
+  background:var(--surface-2);
+  transition:background .15s;
+  user-select:none;
+}
+.pnui-block-head:hover{background:var(--surface);}
+.pnui-block-img{
+  width:42px;height:42px;border-radius:6px;
+  object-fit:cover;flex-shrink:0;
+}
+.pnui-block-title{
+  flex:1;font-family:var(--font-display);font-weight:700;
+  font-size:.9rem;color:#e8d5a0;
+}
+.pnui-block-arrow{
+  color:var(--accent2);font-size:.75rem;flex-shrink:0;
+  transition:transform .2s;
+}
+.pnui-block-arrow.open{transform:rotate(90deg);}
+.pnui-block-body{
+  display:none;
+  padding:12px 14px;
+  font-size:.84rem;line-height:1.65;color:#cde8d4;
   white-space:pre-wrap;word-break:break-word;
-  max-height:55vh;overflow-y:auto;
-  padding-right:4px;
+  border-top:1px solid var(--border-soft);
 }
-.pnui-body::-webkit-scrollbar{width:4px;}
-.pnui-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.pnui-block-body-img{
+  width:100%;max-height:180px;object-fit:cover;
+  border-radius:var(--radius-sm);margin-bottom:10px;display:block;
+}
 .pnui-ok-btn{
-  align-self:stretch;padding:13px 0;border-radius:999px;
+  margin-top:4px;padding:12px 0;border-radius:999px;
   background:var(--accent2);color:#000;font-weight:700;
   font-family:var(--font-display);font-size:.95rem;
   border:none;cursor:pointer;letter-spacing:.02em;
@@ -2421,34 +2679,65 @@
         document.head.appendChild(s);
       }
 
-      function _buildOverlay(text) {
+      function _buildOverlay(blocks) {
         document.getElementById('pnui-overlay')?.remove();
         _overlay = document.createElement('div');
         _overlay.id = 'pnui-overlay';
 
-        // Echappement HTML puis mise en forme des retours à la ligne
-        const div = document.createElement('div');
-        div.textContent = text;
-        const escaped = div.innerHTML;
+        const blocksHtml = blocks.map((b, i) => {
+          const esc = str => {
+            const d = document.createElement('div');
+            d.textContent = str || '';
+            return d.innerHTML;
+          };
+          const imgHead = b.image
+            ? `<img class="pnui-block-img" src="${esc(b.image)}" alt="" onerror="this.style.display='none'">`
+            : '';
+          const imgBody = b.image
+            ? `<img class="pnui-block-body-img" src="${esc(b.image)}" alt="" onerror="this.style.display='none'">`
+            : '';
+          return `
+            <div class="pnui-block">
+              <div class="pnui-block-head" data-bi="${i}">
+                ${imgHead}
+                <span class="pnui-block-title">${esc(b.title || 'Note')}</span>
+                <span class="pnui-block-arrow">▶</span>
+              </div>
+              <div class="pnui-block-body">
+                ${imgBody}
+                ${esc(b.text || '').replace(/\n/g, '<br>')}
+              </div>
+            </div>`;
+        }).join('');
 
         _overlay.innerHTML = `
           <div class="pnui-bg"></div>
           <div class="pnui-card">
-            <div class="pnui-title">📋 Note de mise à jour</div>
-            <div class="pnui-body">${escaped}</div>
+            <div class="pnui-header-title">📋 Mise à jour</div>
+            ${blocksHtml}
             <button class="pnui-ok-btn" id="pnui-ok-btn">OK, compris !</button>
           </div>`;
+
         document.body.appendChild(_overlay);
         requestAnimationFrame(() => _overlay.classList.add('pnui-visible'));
+
+        // Accordéon : clic sur le header toggle le body
+        _overlay.querySelectorAll('.pnui-block-head').forEach(head => {
+          head.addEventListener('click', () => {
+            const body  = head.nextElementSibling;
+            const arrow = head.querySelector('.pnui-block-arrow');
+            const open  = body.style.display === 'block';
+            body.style.display = open ? 'none' : 'block';
+            arrow.classList.toggle('open', !open);
+          });
+        });
+
         document.getElementById('pnui-ok-btn').addEventListener('click', _confirm);
       }
 
       function _confirm() {
-        // Mémoriser l'ID de la note sur le joueur pour ne plus la réafficher
         const pn = GameState.get().patchNotes || {};
-        if (pn.id) {
-          GameState.updatePlayer({ lastSeenPatchNotesId: pn.id });
-        }
+        if (pn.id) GameState.updatePlayer({ lastSeenPatchNotesId: pn.id });
         _close();
       }
 
@@ -2463,6 +2752,7 @@
 
       return { presentIfNeeded };
     })();
+
 
     /* ============================================================
        ACCOUNT SCREEN — sélection de compte au démarrage
@@ -2525,7 +2815,7 @@
         container.innerHTML = `
           <div class="account-name-form">
             <h2>${icon} Nouveau dresseur — Compte ${slot}</h2>
-            <p>Choisissez le nom qui apparaîtra sur votre profil et dans le Bestiaire.</p>
+            <p>Choisissez le nom de votre Naturaliste sur votre profil de Naturaliste.</p>
             <input
               class="account-name-input"
               id="new-player-name"
@@ -2601,11 +2891,19 @@
           SaveSystem.save(GameState.get());
         }
 
-        // 3. Brancher l'autosave interne (config + joueur)
+        // 3. Brancher l'autosave interne (config + joueur) — remplace le saveGlobalConfig
+        //    branché sur l'écran d'accueil par un save() complet qui inclut le joueur.
         GameState.setAutoSaveFn((state) => SaveSystem.save(state));
 
         // 4. Tirage des quêtes du jour (idempotent : ne retire rien si déjà tiré aujourd'hui)
         QuestSystem.ensureDailyQuestsRolled();
+
+        // 4b. Tick event : active/désactive un event si nécessaire, ré-injecte
+        //     quêtes et bannière si elles ont disparu après un rechargement.
+        if (typeof EventSystem !== 'undefined') {
+          EventSystem.tick();
+          setInterval(() => EventSystem.tick(), 60 * 1000);
+        }
 
         // 5. Initialiser l'interface de jeu
         GameUI.init();
@@ -2798,12 +3096,16 @@
       AdminPanel.init();
       document.getElementById('admin-toggle')?.addEventListener('click', () => AdminPanel.toggle());
 
-      // Autosave de la config globale pendant qu'on est sur l'écran d'accueil
-      // (uniquement config, pas les données joueur)
+      // Brancher _autoSaveFn dès maintenant pour que les modifications admin
+      // sur l'écran d'accueil (avant sélection de compte) soient sauvegardées.
+      // On sauvegarde uniquement la config globale ici (pas de slot joueur actif).
+      GameState.setAutoSaveFn((state) => SaveSystem.saveGlobalConfig(state));
+
+      // Autosave périodique de la config globale (filet de sécurité supplémentaire)
       const _accueilAutosave = setInterval(() => {
         const state = GameState.get();
         if (state) SaveSystem.saveGlobalConfig(state);
-      }, 30000);
+      }, 15000);
       window._accueilAutosave = _accueilAutosave;
 
       // Sauvegarder la config globale si on ferme sur l'écran d'accueil

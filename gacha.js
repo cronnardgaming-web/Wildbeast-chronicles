@@ -104,9 +104,29 @@ const GachaSystem = (() => {
     else if (rarity === 'epic') { pity.epicGuarantee = 0; pity.rareGuarantee = 0; }
     else if (['rare'].includes(rarity)) { pity.rareGuarantee = 0; }
 
-    // Filtrer le pool par rareté
+    // Filtrer le pool par rareté.
+    // Si la rareté tirée n'a aucun représentant dans le pool (cas fréquent sur
+    // les bannières event dont le tag a peu d'espèces), on ne retombe PAS
+    // silencieusement sur tout le pool : on cherche la rareté la plus proche
+    // disponible (d'abord vers le haut — plus rare — puis vers le bas).
+    // Cela garantit que la rareté effective reste cohérente avec les taux configurés.
+    const RARITY_ORDER_ASC = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic'];
     let rarityPool = pool.filter(c => c.rarity === rarity);
-    if (rarityPool.length === 0) rarityPool = pool; // fallback
+    if (rarityPool.length === 0) {
+      const targetIdx = RARITY_ORDER_ASC.indexOf(rarity);
+      // Chercher d'abord vers le haut (plus rare), puis vers le bas (moins rare)
+      const searchOrder = [];
+      for (let i = 1; i <= 5; i++) {
+        if (targetIdx + i < RARITY_ORDER_ASC.length) searchOrder.push(RARITY_ORDER_ASC[targetIdx + i]);
+        if (targetIdx - i >= 0)                      searchOrder.push(RARITY_ORDER_ASC[targetIdx - i]);
+      }
+      for (const fallbackRarity of searchOrder) {
+        const fallbackPool = pool.filter(c => c.rarity === fallbackRarity);
+        if (fallbackPool.length > 0) { rarityPool = fallbackPool; break; }
+      }
+      // Dernier recours si le pool est vraiment vide pour toutes les raretés
+      if (rarityPool.length === 0) rarityPool = pool;
+    }
 
     // Boost des créatures mis en avant dans la bannière
     let selected;
@@ -155,7 +175,12 @@ const GachaSystem = (() => {
    */
   function _getPool(banner, allChars) {
     // Seuls les créatures de stade 0 (formes de base) sont invocables
-    // sauf si explicitement dans featured
+    if (banner.pool === 'tag' && banner.tagId && typeof EventSystem !== 'undefined') {
+      // Bannière event : uniquement les formes de base du tag
+      const tagged = EventSystem.getEventBannerPool(banner, allChars);
+      if (tagged.length > 0) return tagged;
+      // Fallback au pool complet si le tag n'a pas de créatures
+    }
     const base = allChars.filter(c => c.evolutionStage === 0);
     return base;
   }

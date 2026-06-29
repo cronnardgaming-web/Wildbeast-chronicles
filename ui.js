@@ -1,7 +1,7 @@
 /**
  * ============================================================
  * UI.JS — Interface utilisateur du jeu
- * Gère tous les écrans : Collection, Équipe, Gacha, Combat, Bestiaire
+ * Gère tous les écrans : Collection, Équipe, Expédition, Combat, Bestiaire
  * ============================================================
  */
 
@@ -18,11 +18,16 @@ const GameUI = (() => {
   let _gachaTab      = 'chars';   // 'chars' | 'equip'
   let _equipCharId   = null;       // instanceId du perso sélectionné dans l'écran équip
 
+  // instanceId du spécimen dont la fiche détail est actuellement ouverte en modal,
+  // ou null si aucune fiche n'est ouverte. Permet de rafraîchir la fiche en live
+  // quand l'état change (level up, awakening, évolution…).
+  let _openDetailInstanceId = null;
+
   // Tri des listes de créatures (mémorisé indépendamment par écran)
   let _collectionSort   = 'name';
   let _collectionFilters = { search: '', rarity: '', type: '', statKey: 'level', statMin: '' };
   let _teamSort          = 'name';
-  let _teamFilters       = { search: '', rarity: '', type: '', statKey: 'level', statMin: '' };
+  let _teamFilters       = { search: '', rarity: '', type: '', statKey: 'level', statMin: '', tag: '' };
   let _equipSort         = 'name';   // tri du sélecteur de créature (écran Équiper)
   let _equipShowUnequippedOnly = false; // filtre "afficher seulement les bêtes sans équipement"
 
@@ -68,29 +73,69 @@ const GameUI = (() => {
   }
 
   /**
-   * Génère le HTML d'un <img> recadré pour le badge combat (cercle).
-   * Formule géométrique indépendante de la taille du conteneur.
+   * Génère le HTML d'un portrait combat recadré en cercle.
+   *
+   * Utilise un <img> positionné en px absolus calculés via onload, reproduisant
+   * exactement la formule de la preview de l'éditeur de recadrage admin
+   * (scale = containerSize / (2 * r_px) ; left/top centrés sur cx/cy).
+   *
+   * imgW/imgH stockés dans combatCrop (depuis admin) → calcul parfait.
+   * Sinon fallback sur naturalWidth/naturalHeight au chargement.
+   *
    * @returns {string|null} HTML ou null si pas de src
    */
   function _combatCropImgHtml(src, name, crop) {
     if (!src) return null;
-    // cx, cy = % des dimensions naturelles de l'image.
-    // r = % du plus petit côté (garantit un vrai cercle dans l'éditeur).
-    // Le conteneur en jeu (.fighter-portrait) est un carré.
-    // On zoom l'image pour que 2*r% du plus petit côté = 100% du conteneur.
-    // Formule : scale = 50/r * 100  (en % du conteneur)
+
     const cx = crop.cx ?? 50;
     const cy = crop.cy ?? 50;
     const r  = Math.max(1, crop.r ?? 30);
-    const scale = +(50 / r * 100).toFixed(2);
-    const left  = +(50 - cx * scale / 100).toFixed(2);
-    const top   = +(50 - cy * scale / 100).toFixed(2);
-    return `<img src="${src}" alt="${name || ''}"
-      style="position:absolute;width:${scale}%;height:${scale}%;
-             left:${left}%;top:${top}%;
-             max-width:none;max-height:none;
-             object-fit:cover;object-position:${cx}% ${cy}%;
-             display:block">`;
+    const encoded = encodeURIComponent(JSON.stringify({
+      cx, cy, r,
+      imgW: crop.imgW || 0,
+      imgH: crop.imgH || 0,
+    }));
+
+    const escapedSrc  = src.replace(/"/g, '&quot;');
+    const escapedName = (name || '').replace(/"/g, '&quot;');
+
+    return `<img src="${escapedSrc}" alt="${escapedName}"
+      data-combat-crop="${encoded}"
+      onload="_applyCombatCropOnLoad(this)"
+      style="position:absolute;visibility:hidden;max-width:none;max-height:none;display:block">`;
+  }
+
+  /**
+   * Applique le recadrage combat en px absolus sur un <img> après son chargement.
+   * Exposée globalement (via GameUI) pour être appelable depuis l'attribut onload HTML.
+   * Même formule que _applyCombatPreview dans admin.js :
+   *   scale = containerSize/2 / r_px
+   *   left  = containerSize/2 - cx_px * scale
+   *   top   = containerSize/2 - cy_px * scale
+   */
+  function _applyCombatCropOnLoad(img) {
+    try {
+      const crop = JSON.parse(decodeURIComponent(img.dataset.combatCrop));
+      const W = crop.imgW || img.naturalWidth;
+      const H = crop.imgH || img.naturalHeight;
+      if (!W || !H) return;
+      const cont = img.parentElement;
+      const contSize = (cont && cont.offsetWidth) ? cont.offsetWidth : 74;
+      const rPx   = crop.r / 100 * Math.min(W, H);
+      const scale  = (contSize / 2) / rPx;
+      const cxPx  = crop.cx / 100 * W;
+      const cyPx  = crop.cy / 100 * H;
+      img.style.position   = 'absolute';
+      img.style.width      = (W * scale) + 'px';
+      img.style.height     = (H * scale) + 'px';
+      img.style.left       = (contSize / 2 - cxPx * scale) + 'px';
+      img.style.top        = (contSize / 2 - cyPx * scale) + 'px';
+      img.style.maxWidth   = 'none';
+      img.style.maxHeight  = 'none';
+      img.style.objectFit  = '';
+      img.style.display    = 'block';
+      img.style.visibility = 'visible';
+    } catch (e) { /* crop invalide */ }
   }
 
   /** Portrait pour la vignette collection et les petites cartes équipe/lobby */
@@ -148,6 +193,12 @@ const GameUI = (() => {
         const val = filters.statKey === 'level' ? inst.level : stats[filters.statKey];
         if (val < Number(filters.statMin)) return false;
       }
+      // Filtre par tag : on vérifie les tags de la forme de base de la lignée
+      if (filters.tag) {
+        const lineId  = def.evolutionLine || def.id;
+        const lineTags = GameState.getLineTags(lineId);
+        if (!lineTags.includes(filters.tag)) return false;
+      }
       return true;
     });
   }
@@ -202,7 +253,31 @@ const GameUI = (() => {
    * Génère la barre de filtres réutilisable pour les écrans de créatures
    * (recherche par nom, rareté, type, seuil minimum sur une stat au choix).
    */
-  function _renderCharFilterBar(prefix, filters, state) {
+  function _renderCharFilterBar(prefix, filters, state, showTagFilter = false) {
+    // Construire le sélecteur de tags (uniquement si showTagFilter)
+    let tagSelectHtml = '';
+    if (showTagFilter) {
+      const allCats = state.tagCategories || [];
+      const allTags = allCats.flatMap(cat => cat.tags.map(t => ({ ...t, catName: cat.name })));
+      if (allTags.length > 0) {
+        // Grouper les options par catégorie
+        const grouped = allCats
+          .filter(cat => cat.tags.length > 0)
+          .map(cat =>
+            `<optgroup label="${cat.name}">`
+            + cat.tags.map(t =>
+                `<option value="${t.id}" ${filters.tag === t.id ? 'selected' : ''}>${t.label}</option>`
+              ).join('')
+            + '</optgroup>'
+          ).join('');
+        tagSelectHtml = `
+          <select class="sort-select team-tag-filter" id="${prefix}-filter-tag">
+            <option value="">🏷️ Tous les tags</option>
+            ${grouped}
+          </select>`;
+      }
+    }
+
     return `
       <div class="filter-bar">
         <input type="text" class="search-input" id="${prefix}-search" placeholder="Rechercher un nom..." value="${filters.search || ''}">
@@ -214,6 +289,7 @@ const GameUI = (() => {
           <option value="">Tous types</option>
           ${state.types.map(t => `<option value="${t.id}" ${filters.type === t.id ? 'selected' : ''}>${t.icon} ${t.name}</option>`).join('')}
         </select>
+        ${tagSelectHtml}
         <div class="stat-filter-group">
           <select class="sort-select" id="${prefix}-filter-statkey">
             ${STAT_OPTIONS.map(s => `<option value="${s.key}" ${filters.statKey === s.key ? 'selected' : ''}>${s.label} ≥</option>`).join('')}
@@ -231,6 +307,8 @@ const GameUI = (() => {
     document.getElementById(`${prefix}-filter-type`)?.addEventListener('change', e => { filters.type = e.target.value; onChange(); });
     document.getElementById(`${prefix}-filter-statkey`)?.addEventListener('change', e => { filters.statKey = e.target.value; onChange(); });
     document.getElementById(`${prefix}-filter-statmin`)?.addEventListener('input', e => { filters.statMin = e.target.value; onChange(); });
+    // Filtre tag (optionnel — présent uniquement si showTagFilter=true)
+    document.getElementById(`${prefix}-filter-tag`)?.addEventListener('change', e => { filters.tag = e.target.value; onChange(); });
   }
 
   const RARITY_LABELS_FR = {
@@ -246,7 +324,7 @@ const GameUI = (() => {
     _bindSwipeNavigation();
     AudioSystem.init().then(() => AudioSystem.playGlobal());
     _bindMusicToggle();
-    showScreen('collection');
+    showScreen('specimens');
     _startResourceTicker();
 
     // Abonner aux changements d'état
@@ -262,7 +340,7 @@ const GameUI = (() => {
    * scrollable (sélecteur de créature, barre d'ordre de tour, etc.).
    */
   function _bindSwipeNavigation() {
-    const SCREEN_ORDER = ['collection', 'team', 'combat', 'gacha', 'equip', 'bestiaire'];
+    const SCREEN_ORDER = ['collection', 'team', 'combat', 'gacha', 'equip', 'atlas'];
     const SWIPE_THRESHOLD   = 60;   // px minimum pour valider un swipe
     const SWIPE_MAX_VERTICAL = 70;  // tolérance verticale avant d'annuler (scroll vertical prioritaire)
 
@@ -361,8 +439,8 @@ const GameUI = (() => {
   function _onStateChange(event, data) {
     // ── Animation d'évolution : priorité absolue avant tout re-render ──────
     if (event === 'evolved') {
-      _enqueueEvolution(data);
-      return; // Le re-render sera fait après la fermeture de l'animation
+      _handleEvolution(data);
+      return;
     }
 
     // ── Animation de montée de niveau JOUEUR : priorité absolue ─────────────
@@ -372,12 +450,43 @@ const GameUI = (() => {
     }
 
     _updateHUD();
-    if (_currentScreen === 'collection') renderCollection();
+    if (_currentScreen === 'specimens') renderSpecimens();
     if (_currentScreen === 'team') renderTeam();
-    if (_currentScreen === 'bestiaire') renderBestiaire();
-    if (_currentScreen === 'quests') _renderDailyQuestsList();
+    if (_currentScreen === 'atlas') renderAtlas();
     if (_currentScreen === 'inventory') renderInventory();
     if (_currentScreen === 'shop') _renderShopGrid();
+
+    // Quêtes : re-render complet si event/quêtes changent, sinon juste quotidiennes
+    if (_currentScreen === 'quests') {
+      if (['eventQuestsChanged', 'eventsChanged', 'playerChanged'].includes(event)) {
+        renderDailyQuests();
+      } else {
+        _renderDailyQuestsList();
+      }
+    }
+
+    // Gacha : re-render si les bannières changent (création bannière event)
+    if (_currentScreen === 'gacha' && ['bannersChanged', 'eventsChanged'].includes(event)) {
+      renderExpédition();
+    }
+
+    // Combat : re-render lobby si event change (affiche/masque boutons event)
+    if (_currentScreen === 'combat' && event === 'eventsChanged') {
+      if (!document.getElementById('screen-combat')?.querySelector('.battle-scene')) {
+        renderCombatLobby();
+      }
+    }
+
+    // ── Rafraîchissement de la fiche détail ouverte ─────────────────────────
+    if (_openDetailInstanceId) {
+      const needsRefresh = ['levelUp', 'awakening', 'characterAdded',
+        'equipmentChanged', 'playerChanged', 'resourceChanged'].includes(event);
+      if (needsRefresh) {
+        const inst = GameState.getPlayerChar(_openDetailInstanceId);
+        if (inst) _openCharDetail(_openDetailInstanceId);
+        else _closeModal();
+      }
+    }
   }
 
   /**
@@ -387,62 +496,50 @@ const GameUI = (() => {
   function _handlePlayerLevelUp(data) {
     PlayerLevelUpAnimator.play(data).then(() => {
       _updateHUD();
-      if (_currentScreen === 'collection') renderCollection();
+      if (_currentScreen === 'specimens') renderSpecimens();
       if (_currentScreen === 'team') renderTeam();
-      if (_currentScreen === 'bestiaire') renderBestiaire();
+      if (_currentScreen === 'atlas') renderAtlas();
+      // Rafraîchir la fiche ouverte si l'énergie/stats du joueur ont changé
+      if (_openDetailInstanceId) {
+        const inst = GameState.getPlayerChar(_openDetailInstanceId);
+        if (inst) _openCharDetail(_openDetailInstanceId);
+      }
     });
   }
 
-  // ─── FILE D'ATTENTE DES ÉVOLUTIONS ────────────────────────────────────────────
-  // Plusieurs créatures peuvent évoluer dans la même action de jeu (ex: l'XP de
-  // fin de combat est distribuée à toute l'équipe en boucle synchrone). Sans file
-  // d'attente, chaque évolution appellerait EvolutionAnimator.play() pendant que
-  // l'overlay précédent est encore affiché, ce qui le coupe/écrase en plein milieu.
-  // On empile donc les événements 'evolved' reçus et on ne lance l'animation
-  // suivante qu'une fois la précédente entièrement terminée (Promise résolue).
-
-  const _evolutionQueue = [];
-  let _evolutionPlaying = false;
-
   /**
-   * Met en file un événement d'évolution et démarre le traitement s'il n'est
-   * pas déjà en cours.
+   * Déclenche l'animation plein écran d'évolution puis rafraîchit l'UI.
    * @param {object} data - { instanceId, newCharId } émis par GameState
    */
-  function _enqueueEvolution(data) {
-    _evolutionQueue.push(data);
-    if (!_evolutionPlaying) _playNextEvolution();
-  }
-
-  /** Joue l'animation d'évolution suivante de la file, puis s'enchaîne sur la suivante. */
-  function _playNextEvolution() {
-    const data = _evolutionQueue.shift();
-    if (!data) { _evolutionPlaying = false; return; }
-    _evolutionPlaying = true;
-
+  function _handleEvolution(data) {
     const { instanceId, newCharId } = data;
 
     // Récupérer la définition de la NOUVELLE forme (déjà appliquée dans l'instance)
     const nextDef = GameState.getCharDef(newCharId);
-    if (!nextDef) { _playNextEvolution(); return; }
+    if (!nextDef) return;
 
     // Retrouver l'ancienne définition via l'historique des évolutions :
     // on cherche le créature dont evolvesTo === newCharId
     const state   = GameState.get();
     const prevDef = state.characters.find(c => c.evolvesTo === newCharId) || nextDef;
 
-    // Lancer l'animation, rafraîchir l'UI après fermeture, PUIS seulement passer
-    // à la prochaine évolution en attente (jamais en parallèle).
+    // Lancer l'animation et re-render l'UI après fermeture
     EvolutionAnimator.play(prevDef, nextDef).then(() => {
       _updateHUD();
-      if (_currentScreen === 'collection') renderCollection();
+      if (_currentScreen === 'specimens') renderSpecimens();
       if (_currentScreen === 'team') renderTeam();
-      if (_currentScreen === 'bestiaire') renderBestiaire();
+      if (_currentScreen === 'atlas') renderAtlas();
       if (_currentScreen === 'combat') {
         // Mettre à jour la carte du combattant dans la scène de combat
         _refreshCombatantCard(instanceId, nextDef);
       }
-      _playNextEvolution();
+      // Rafraîchir la fiche si c'est précisément ce créature qui est ouvert
+      // (son charId a changé → la fiche doit montrer la nouvelle forme)
+      if (_openDetailInstanceId === instanceId) {
+        const inst = GameState.getPlayerChar(instanceId);
+        if (inst) _openCharDetail(instanceId);
+        else _closeModal();
+      }
     });
   }
 
@@ -471,15 +568,15 @@ const GameUI = (() => {
     const nav = document.getElementById('main-nav');
     if (!nav) return;
     const screens = [
-      { id: 'collection', icon: '✦',  label: 'Collection' },
-      { id: 'team',       icon: '⚔',  label: 'Équipe'     },
-      { id: 'combat',     icon: '🔥', label: 'Combat'     },
-      { id: 'gacha',      icon: '💎', label: 'Invoquer'   },
-      { id: 'equip',      icon: '⚙️', label: 'Équiper'    },
-      { id: 'shop',       icon: '🛒', label: 'Boutique'   },
-      { id: 'inventory',  icon: '🎒', label: 'Inventaire' },
-      { id: 'bestiaire',  icon: '📖', label: 'Bestiaire'  },
-      { id: 'quests',     icon: '📜', label: 'Quêtes'     },
+      { id: 'specimens', icon: '🔬', label: 'Spécimens' },
+      { id: 'team',       icon: '🌿', label: 'Terrain'     },
+      { id: 'combat',     icon: '⚔️', label: 'Arène'     },
+      { id: 'gacha',      icon: '🧭', label: 'Expédition'   },
+      { id: 'equip',      icon: '🎽', label: 'Équipement'    },
+      { id: 'shop',       icon: '🏪', label: 'Marché'   },
+      { id: 'inventory',  icon: '🎒', label: 'Sacoche' },
+      { id: 'atlas',  icon: '🗺️', label: 'Atlas'  },
+      { id: 'quests',     icon: '📋', label: 'Missions'     },
     ];
     nav.innerHTML = screens.map(s =>
       `<button class="nav-btn" data-screen="${s.id}">
@@ -507,12 +604,12 @@ const GameUI = (() => {
     AudioSystem.playGlobal();
 
     const renderers = {
-      collection: renderCollection,
+      specimens:  renderSpecimens,
       team:       renderTeam,
       combat:     renderCombatLobby,
-      gacha:      renderGacha,
+      gacha:      renderExpédition,
       equip:      renderEquip,
-      bestiaire:    renderBestiaire,
+      atlas:      renderAtlas,
       quests:     renderDailyQuests,
       inventory:  renderInventory,
       shop:       renderShop,
@@ -545,7 +642,7 @@ const GameUI = (() => {
     const xpPct     = xpNeeded > 0 ? Math.min(100, Math.round((playerXp / xpNeeded) * 100)) : 0;
     nameRow.innerHTML = `
       <div class="hud-player-top">
-        <span class="hud-player-name">${_escapeHtml(player.name || 'Dresseur')}</span>
+        <span class="hud-player-name">${GameUtils.escapeHtml(player.name || 'Naturaliste')}</span>
         <span class="hud-player-level">Niv. ${player.level || 1}</span>
       </div>
       <div class="hud-player-xp-bar" title="${playerXp} / ${xpNeeded} XP">
@@ -587,7 +684,7 @@ const GameUI = (() => {
     _updateQuestsBadge();
   }
 
-  /** Met à jour le badge de notification de l'onglet Quêtes (nb de quêtes complétées non réclamées) */
+  /** Met à jour le badge de notification de l'onglet Quêtes (nb de missions complétées non réclamées) */
   function _updateQuestsBadge() {
     const badge = document.getElementById('quests-nav-badge');
     if (!badge) return;
@@ -601,12 +698,6 @@ const GameUI = (() => {
     }
   }
 
-  /** Échappe le HTML d'une chaîne (protège contre l'injection via un nom de joueur) */
-  function _escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
 
   function _startResourceTicker() {
     setInterval(_updateHUD, 15000);
@@ -614,15 +705,15 @@ const GameUI = (() => {
 
   // ─── COLLECTION ───────────────────────────────────────────────────────────────
 
-  function renderCollection() {
-    const el = document.getElementById('screen-collection');
+  function renderSpecimens() {
+    const el = document.getElementById('screen-specimens');
     if (!el) return;
     const player = GameState.getPlayer();
     const state  = GameState.get();
 
     el.innerHTML = `
       <div class="screen-header">
-        <h2>Collection <span class="badge">${player.collection.length}</span></h2>
+        <h2>Spécimens <span class="badge">${player.collection.length}</span></h2>
       </div>
       <div class="screen-controls">
         ${_renderSortSelect('col-sort', _collectionSort)}
@@ -643,10 +734,10 @@ const GameUI = (() => {
   function _refreshCollectionGrid() {
     const state  = GameState.get();
     const player = GameState.getPlayer();
-    _renderCollectionGrid(_decorateFilterSortChars(player.collection, _collectionSort, _collectionFilters, state));
+    _renderSpecimensGrid(_decorateFilterSortChars(player.collection, _collectionSort, _collectionFilters, state));
   }
 
-  function _renderCollectionGrid(decorated) {
+  function _renderSpecimensGrid(decorated) {
     const grid = document.getElementById('collection-grid');
     if (!grid) return;
 
@@ -755,6 +846,7 @@ const GameUI = (() => {
   function _openCharDetail(instanceId) {
     const inst  = GameState.getPlayerChar(instanceId);
     if (!inst) return;
+    _openDetailInstanceId = instanceId;   // mémoriser pour rafraîchissement live
     const def   = GameState.getCharDef(inst.charId);
     const state = GameState.get();
     const stats = GameDatabase.computeStats(def, inst.level, inst.awakening || 0,
@@ -786,10 +878,11 @@ const GameUI = (() => {
                 ${t1 ? `<span class="type-badge" style="background:${t1.color}">${t1.icon} ${t1.name}</span>` : ''}
                 ${t2 ? `<span class="type-badge" style="background:${t2.color}">${t2.icon} ${t2.name}</span>` : ''}
               </div>
+              ${_buildTagsHtml(def, state)}
               ${_buildPassivesHtml(def, state)}
               ${_buildTypeAffinitiesHtml(def, state)}
               <div class="detail-level">Niveau <strong>${inst.level}</strong> — XP : ${inst.xp} / ${xpNeeded}</div>
-              <div class="detail-awakening">Awakening : ${'★'.repeat(inst.awakening || 0)}</div>
+              <div class="detail-awakening">Évolution Avancée : ${'★'.repeat(inst.awakening || 0)}</div>
               <div class="stat-grid">
                 <div class="stat-row"><span>♥ PV</span><strong>${_formatStatWithBonus(stats.hp + eqBonus.hp, eqBonus.hp)}</strong></div>
                 <div class="stat-row"><span>⚔ ATK</span><strong>${_formatStatWithBonus(stats.atk + eqBonus.atk, eqBonus.atk)}</strong></div>
@@ -830,6 +923,19 @@ const GameUI = (() => {
    * @param {object} state
    * @returns {string} HTML
    */
+  /** Génère les pills de tags pour la fiche personnage */
+  function _buildTagsHtml(def, state) {
+    const lineTags = GameState.getLineTags(def.evolutionLine || def.id) || [];
+    if (!lineTags.length) return '';
+    const cats = state.tagCategories || [];
+    const pills = lineTags.map(tagId => {
+      let label = tagId;
+      cats.forEach(cat => { const t = cat.tags.find(t => t.id === tagId); if (t) label = t.label; });
+      return `<span style="display:inline-block;background:rgba(74,222,128,.12);border:1px solid #4ade80;color:#4ade80;border-radius:999px;padding:2px 8px;font-size:.68rem;">${label}</span>`;
+    }).join('');
+    return `<div style="display:flex;flex-wrap:wrap;gap:4px;margin:6px 0;">🏷️ ${pills}</div>`;
+  }
+
   function _buildPassivesHtml(def, state) {
     const passivesCfg = state.config.passives || GameDatabase.DEFAULT_PASSIVES;
     const typeIds = [def.type1, def.type2].filter(Boolean);
@@ -974,82 +1080,212 @@ const GameUI = (() => {
   function _closeModal() {
     const modal = document.getElementById('modal');
     if (modal) modal.style.display = 'none';
+    _openDetailInstanceId = null;   // plus de fiche ouverte
   }
 
   // ─── QUÊTES QUOTIDIENNES ────────────────────────────────────────────────────────
 
   /** Icône représentative par type de quête (cohérent avec le thème du jeu). */
   const QUEST_TYPE_ICONS = {
-    capture:    '🪤',
-    defeat:     '⚔️',
-    pullEquip:  '🛡️',
-    pullChar:   '💎',
-    line:       '🧬',
-    fullRandom: '🎰',
-    story:      '🗺️',
+    capture:            '🪤',
+    defeat:             '⚔️',
+    pullEquip:          '🛡️',
+    pullChar:           '💎',
+    line:               '🧬',
+    fullRandom:         '🎰',
+    story:              '🗺️',
+    eventInvasion:      '🎪',
+    eventDefi:          '⚔️',
+    completeQuest:      '📋',
+    completeQuestDaily: '📅',
+    completeQuestWeekly:'📆',
+    completeQuestEvent: '🎉',
   };
 
   /** Rendu de l'écran "Quêtes" (onglet de navigation principal). */
+  // Helper : compte à rebours jusqu'à une date cible
+  function _questCountdown(targetDate) {
+    const ms = targetDate - Date.now();
+    if (ms <= 0) return 'Expiré';
+    const s = Math.floor(ms / 1000);
+    const m = Math.floor(s / 60);
+    const h = Math.floor(m / 60);
+    const d = Math.floor(h / 24);
+    if (d > 0) return `${d}j ${h % 24}h`;
+    if (h > 0) return `${h}h ${m % 60}m`;
+    return `${m}m ${s % 60}s`;
+  }
+
+  function _startQuestCountdownTimers() {
+    // Met à jour tous les compteurs de l'écran quêtes toutes les secondes
+    if (window._questCdTimer) clearInterval(window._questCdTimer);
+    window._questCdTimer = setInterval(() => {
+      document.querySelectorAll('[data-quest-timer]').forEach(el => {
+        const ts = parseInt(el.dataset.questTimer, 10);
+        el.textContent = _questCountdown(ts);
+      });
+    }, 1000);
+  }
+
   function renderDailyQuests() {
     const el = document.getElementById('screen-quests');
     if (!el) return;
 
-    const quests = QuestSystem.getTodaysQuests();
-    const readyCount = quests.filter(q => q.completed && !q.claimed).length;
+    const daily   = QuestSystem.getTodaysQuests();
+    const weekly  = QuestSystem.getWeeklyQuests();
+    const events  = QuestSystem.getEventQuests();
+    const evt     = (typeof EventSystem !== 'undefined') ? EventSystem.getActiveOrPending() : null;
+
+    const readyD = daily.filter(q => q.completed && !q.claimed).length;
+    const readyW = weekly.filter(q => q.completed && !q.claimed).length;
+    const readyE = events.filter(q => q.completed && !q.claimed).length;
+    const totalReady = readyD + readyW + readyE;
+
+    const todayEnd = (() => { const d = new Date(); d.setHours(23,59,59,999); return d.getTime(); })();
+    const weekEnd  = (() => {
+      const d = new Date(); const dow = d.getDay(); const diff = (7 - dow) % 7 || 7;
+      d.setDate(d.getDate() + diff); d.setHours(0,0,0,0); return d.getTime();
+    })();
+    const evtEnd = evt?.endDate || 0;
+    const showEventBlock = !!(evt || events.length > 0);
+
+    // Résumé de progression par section
+    const doneD = daily.filter(q => q.claimed).length;
+    const doneW = weekly.filter(q => q.claimed).length;
+    const doneE = events.filter(q => q.claimed).length;
+
+    // Mémoriser quels blocs étaient ouverts avant le re-render
+    const wasOpenD = document.getElementById('quests-details-daily')?.hasAttribute('open') ?? true;
+    const wasOpenW = document.getElementById('quests-details-weekly')?.hasAttribute('open') ?? false;
+    const wasOpenE = document.getElementById('quests-details-event')?.hasAttribute('open') ?? true;
 
     el.innerHTML = `
-      <div class="screen-header"><h2>📜 Quêtes du jour</h2></div>
-      <p class="quests-screen-sub">
-        3 quêtes tirées au hasard chaque jour. Reviens demain pour de nouvelles quêtes !
-        ${readyCount > 0 ? `<span class="quests-screen-ready-hint">🎁 ${readyCount} récompense${readyCount > 1 ? 's' : ''} à réclamer</span>` : ''}
-      </p>
-      <div class="quests-screen-list" id="quests-screen-list"></div>
+      <div class="screen-header"><h2>📋 Missions</h2></div>
+
+      ${totalReady > 0 ? `
+        <div class="quests-ready-banner">
+          🎁 ${totalReady} récompense${totalReady > 1 ? 's' : ''} prête${totalReady > 1 ? 's' : ''} à réclamer !
+        </div>` : ''}
+
+      ${showEventBlock ? `
+        <details class="quests-accordion quests-accordion-event" id="quests-details-event" ${wasOpenE ? 'open' : ''}>
+          <summary class="quests-accordion-summary">
+            <span class="quests-summary-left">
+              <span class="quests-section-icon">🎪</span>
+              <span class="quests-summary-title">${evt ? (evt.customTitle || ('Événement : ' + evt.tagLabel)) : 'Quêtes d’Événement'}</span>
+              ${readyE > 0 ? '<span class="quests-ready-badge">' + readyE + '</span>' : ''}
+            </span>
+            <span class="quests-summary-right">
+              <span class="quests-summary-progress">${doneE}/${events.length}</span>
+              ${evt ? '<span class="quests-section-timer" data-quest-timer="' + evtEnd + '">' + _questCountdown(evtEnd) + '</span>' : ''}
+              <span class="quests-chevron">▾</span>
+            </span>
+          </summary>
+          <div class="quests-accordion-body">
+            ${events.length
+              ? '<div class="quests-screen-list" id="quests-event-list"></div>'
+              : '<p class="quests-empty">Aucune quête d’événement active.</p>'}
+          </div>
+        </details>` : ''}
+
+      <details class="quests-accordion" id="quests-details-daily" ${wasOpenD ? 'open' : ''}>
+        <summary class="quests-accordion-summary">
+          <span class="quests-summary-left">
+            <span class="quests-section-icon">📅</span>
+            <span class="quests-summary-title">Quotidiennes</span>
+            ${readyD > 0 ? '<span class="quests-ready-badge">' + readyD + '</span>' : ''}
+          </span>
+          <span class="quests-summary-right">
+            <span class="quests-summary-progress">${doneD}/${daily.length}</span>
+            <span class="quests-section-timer" data-quest-timer="${todayEnd}">${_questCountdown(todayEnd)}</span>
+            <span class="quests-chevron">▾</span>
+          </span>
+        </summary>
+        <div class="quests-accordion-body">
+          <div class="quests-screen-list" id="quests-daily-list"></div>
+        </div>
+      </details>
+
+      <details class="quests-accordion" id="quests-details-weekly" ${wasOpenW ? 'open' : ''}>
+        <summary class="quests-accordion-summary">
+          <span class="quests-summary-left">
+            <span class="quests-section-icon">📆</span>
+            <span class="quests-summary-title">Hebdomadaires</span>
+            ${readyW > 0 ? '<span class="quests-ready-badge">' + readyW + '</span>' : ''}
+          </span>
+          <span class="quests-summary-right">
+            <span class="quests-summary-progress">${doneW}/${weekly.length}</span>
+            <span class="quests-section-timer" data-quest-timer="${weekEnd}">${_questCountdown(weekEnd)}</span>
+            <span class="quests-chevron">▾</span>
+          </span>
+        </summary>
+        <div class="quests-accordion-body">
+          <div class="quests-screen-list" id="quests-weekly-list"></div>
+        </div>
+      </details>
     `;
 
-    _renderDailyQuestsList();
+    _renderQuestList('daily-list',  daily,  _claimDailyQuest);
+    _renderQuestList('weekly-list', weekly, _claimWeeklyQuest);
+    if (events.length) _renderQuestList('event-list', events, _claimEventQuest);
+
+    _startQuestCountdownTimers();
   }
 
-  /** (Re)génère uniquement la liste de quêtes à l'intérieur de l'écran déjà affiché. */
+    /** (Re)génère uniquement la liste de missions à l'intérieur de l'écran déjà affiché. */
   function _renderDailyQuestsList() {
-    const listEl = document.getElementById('quests-screen-list');
-    if (!listEl) return;
-
     const quests = QuestSystem.getTodaysQuests();
-    if (quests.length === 0) {
-      listEl.innerHTML = `<p class="quests-empty">Aucune quête active pour le moment. Reviens plus tard !</p>`;
+    _renderQuestList('daily-list', quests, _claimDailyQuest);
+  }
+
+  function _renderQuestList(listId, quests, claimFn) {
+    const listEl = document.getElementById('quests-' + listId);
+    if (!listEl) return;
+    if (!quests.length) {
+      listEl.innerHTML = '<p class="quests-empty">Aucune quête active.</p>';
       return;
     }
-
+    const isEventList = listId === 'event-list';
     listEl.innerHTML = quests.map(q => {
-      const pct = Math.min(100, Math.round((q.current / q.target) * 100));
-      const icon = QUEST_TYPE_ICONS[q.def.type] || '📋';
+      const pct   = Math.min(100, Math.round((q.current / q.target) * 100));
+      const icon  = QUEST_TYPE_ICONS[q.def.type] || '📋';
+      const state = q.claimed ? 'claimed' : q.completed ? 'ready' : 'active';
+      const pinnedBadge = q.isPinned
+        ? '<span class="quest-pinned-badge">BONUS</span>'
+        : '';
+      const evtClass = isEventList ? ' quest-card-event' : '';
+
       return `
-        <div class="quest-card ${q.claimed ? 'is-claimed' : q.completed ? 'is-ready' : ''}">
-          <div class="quest-card-icon">${icon}</div>
+        <div class="quest-card quest-card-${state}${evtClass}">
+          <div class="quest-card-left">
+            <div class="quest-card-icon-wrap quest-icon-${state}">${icon}</div>
+          </div>
           <div class="quest-card-body">
-            <div class="quest-card-label">${_escapeHtml(q.def.label)}</div>
-            <div class="quest-card-progressbar">
-              <div class="quest-card-progressfill" style="width:${pct}%"></div>
+            <div class="quest-card-label">${GameUtils.escapeHtml(q.def.label)}${pinnedBadge}</div>
+            <div class="quest-card-progress-row">
+              <div class="quest-card-progressbar">
+                <div class="quest-card-progressfill quest-fill-${state}" style="width:${pct}%"></div>
+              </div>
+              <span class="quest-card-pct">${pct}%</span>
             </div>
-            <div class="quest-card-progresstext">${q.current} / ${q.target}</div>
+            <div class="quest-card-progresstext">${q.current} / ${q.target}</div>
             <div class="quest-card-reward">
-              <span class="quest-card-reward-label">Récompense</span>
+              <span class="quest-card-reward-label">🎁</span>
               ${_formatQuestRewardLine(q.def.reward)}
             </div>
           </div>
-          <button class="quest-claim-btn" data-quest-id="${q.def.id}"
+          <button class="quest-claim-btn quest-claim-${state}" data-quest-id="${q.def.id}"
             ${!q.completed || q.claimed ? 'disabled' : ''}>
-            ${q.claimed ? '✓ Reçue' : q.completed ? '🎁 Réclamer' : '🔒'}
+            ${q.claimed ? '✓' : q.completed ? 'Réclamer' : '🔒'}
           </button>
         </div>`;
     }).join('');
-
     listEl.querySelectorAll('.quest-claim-btn:not([disabled])').forEach(btn => {
-      btn.addEventListener('click', () => _claimDailyQuest(btn.dataset.questId));
+      btn.addEventListener('click', () => claimFn(btn.dataset.questId));
     });
   }
 
-  function _formatQuestRewardLine(reward) {
+    function _formatQuestRewardLine(reward) {
     const parts = [];
     if (reward.crystals) parts.push(`<span class="quest-reward-chip">+${reward.crystals} 💎</span>`);
     if (reward.gold) parts.push(`<span class="quest-reward-chip">+${reward.gold} 🪙</span>`);
@@ -1061,6 +1297,20 @@ const GameUI = (() => {
         parts.push(`<span class="quest-reward-chip">+${qty} ${def?.icon || ''} ${def?.name || itemId}</span>`.trim());
       });
     }
+    if (reward.equipment) {
+      const equipId = Array.isArray(reward.equipment) ? reward.equipment[0] : reward.equipment;
+      if (equipId) {
+        const def = GameState.get().equipment?.find(e => e.id === equipId);
+        parts.push(`<span class="quest-reward-chip">⚙️ ${def?.name || equipId}</span>`);
+      }
+    }
+    if (reward.characters) {
+      const charId = Array.isArray(reward.characters) ? reward.characters[0] : reward.characters;
+      if (charId) {
+        const def = GameState.getCharDef(charId);
+        parts.push(`<span class="quest-reward-chip">🐾 ${def?.name || charId}</span>`);
+      }
+    }
     return parts.join('') || '<span class="quest-reward-chip">—</span>';
   }
 
@@ -1068,8 +1318,24 @@ const GameUI = (() => {
     const res = QuestSystem.claimQuestReward(questId);
     if (!res.success) return;
     _updateHUD();
-    _renderDailyQuestsList();
+    _renderQuestList('daily-list', QuestSystem.getTodaysQuests(), _claimDailyQuest);
     _showToast('🎁 Récompense de quête reçue !', 'success');
+  }
+
+  function _claimWeeklyQuest(questId) {
+    const res = QuestSystem.claimWeeklyQuestReward(questId);
+    if (!res.success) return;
+    _updateHUD();
+    _renderQuestList('weekly-list', QuestSystem.getWeeklyQuests(), _claimWeeklyQuest);
+    _showToast('🎁 Récompense hebdomadaire reçue !', 'success');
+  }
+
+  function _claimEventQuest(questId) {
+    const res = QuestSystem.claimEventQuestReward(questId);
+    if (!res.success) return;
+    _updateHUD();
+    _renderQuestList('event-list', QuestSystem.getEventQuests(), _claimEventQuest);
+    _showToast('🎁 Récompense d\'événement reçue !', 'success');
   }
 
   // ─── ÉQUIPE ───────────────────────────────────────────────────────────────────
@@ -1122,12 +1388,25 @@ const GameUI = (() => {
         }).join('')}
       </div>
       <div class="screen-header" style="margin-top:2rem">
-        <h2>Collection</h2>
+        <h2>Spécimens</h2>
       </div>
       <div class="screen-controls">
         ${_renderSortSelect('team-sort', _teamSort)}
       </div>
-      ${_renderCharFilterBar('team', _teamFilters, state)}
+      ${_renderCharFilterBar('team', _teamFilters, state, true)}
+      ${_teamFilters.tag ? (() => {
+        // Retrouver le label du tag actif pour l'afficher dans le bandeau
+        const allCats = state.tagCategories || [];
+        let tagLabel = _teamFilters.tag;
+        allCats.forEach(cat => {
+          const found = cat.tags.find(t => t.id === _teamFilters.tag);
+          if (found) tagLabel = found.label;
+        });
+        return '<div class="team-tag-active-banner">'
+          + '<span>🏷️ Filtre actif : <strong>' + tagLabel + '</strong></span>'
+          + '<button id="btn-clear-tag-filter">✕ Effacer</button>'
+          + '</div>';
+      })() : ''}
       <div class="card-grid" id="team-collection-grid"></div>
     `;
 
@@ -1138,6 +1417,11 @@ const GameUI = (() => {
       _refreshTeamCollectionGrid();
     });
     _bindCharFilterBar('team', _teamFilters, _refreshTeamCollectionGrid);
+    // Bouton effacement rapide du filtre tag
+    document.getElementById('btn-clear-tag-filter')?.addEventListener('click', () => {
+      _teamFilters.tag = '';
+      renderTeam(); // re-render complet pour mettre à jour le select et le bandeau
+    });
 
     // Boutons retrait de l'équipe
     el.querySelectorAll('.btn-remove-team').forEach(btn => {
@@ -1196,14 +1480,39 @@ const GameUI = (() => {
     if (!el) return;
     const team  = GameState.getTeam();
     const costs = GameState.getConfig().energy.costs || {};
+    const evt   = (typeof EventSystem !== 'undefined') ? EventSystem.getActiveOrPending() : null;
+
+    const evtInvActive  = _combatMode === 'eventInvasion' ? 'active' : '';
+    const evtDefiActive = _combatMode === 'eventDefi'     ? 'active' : '';
+    const evtInvCost    = evt?.invasionConfig?.energyCost ?? 15;
+    const evtDefiCost   = evt?.defiConfig?.energyCost     ?? 20;
+    const eventButtons  = evt ? `
+      <button class="combat-mode-btn combat-event-btn ${evtInvActive}" data-mode="eventInvasion">
+        <span class="combat-event-btn-inner">
+          🎪 Invasion<br><span class="combat-event-tag">${evt.tagLabel}</span>
+        </span>
+        <span class="energy-cost-badge evt-badge">⚡${evtInvCost}</span>
+      </button>
+      <button class="combat-mode-btn combat-event-btn ${evtDefiActive}" data-mode="eventDefi">
+        <span class="combat-event-btn-inner">
+          ⚔️ Défi<br><span class="combat-event-tag">${evt.tagLabel}</span>
+        </span>
+        <span class="energy-cost-badge evt-badge">⚡${evtDefiCost}</span>
+      </button>` : '';
+
     el.innerHTML = `
       <div class="screen-header"><h2>⚔ Combat</h2></div>
+      ${evt ? `<div style="background:linear-gradient(90deg,#14532d,#1a3a2a);border:1px solid #4ade80;border-radius:var(--radius);padding:8px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span style="font-size:1.1rem;">🎪</span>
+        <strong style="color:#4ade80;">${evt.customTitle || `Événement : ${evt.tagLabel}`}</strong>
+        <span style="font-size:.75rem;color:#86efac;margin-left:auto;" id="combat-evt-countdown">Fin dans : ${GameUtils.formatCountdown(evt.endDate - Date.now())}</span>
+      </div>` : ''}
       <div class="combat-mode-tabs">
         <button class="combat-mode-btn ${_combatMode === 'story' ? 'active' : ''}" data-mode="story">
-          ⚔️ Odyssée <span class="energy-cost-badge">⚡${costs.story ?? 10}</span>
+          ⚔️ Exploration <span class="energy-cost-badge">⚡${costs.story ?? 10}</span>
         </button>
         <button class="combat-mode-btn ${_combatMode === 'line' ? 'active' : ''}" data-mode="line">
-          🧬 Par lignée <span class="energy-cost-badge">⚡${costs.line ?? 20}</span>
+          🔭 Par espèce <span class="energy-cost-badge">⚡${costs.line ?? 20}</span>
         </button>
         <button class="combat-mode-btn ${_combatMode === 'fullRandom' ? 'active' : ''}" data-mode="fullRandom">
           🎰 Full Aléatoire <span class="energy-cost-badge">⚡${costs.fullRandom ?? 10}</span>
@@ -1211,12 +1520,14 @@ const GameUI = (() => {
         <button class="combat-mode-btn ${_combatMode === 'arena' ? 'active' : ''}" data-mode="arena">
           🏛️ Arène <span class="energy-cost-badge">⚡${costs.arena ?? 15}</span>
         </button>
+        ${eventButtons}
       </div>
       <div class="combat-lobby">
         <div id="combat-mode-content-top"></div>
         <div class="team-preview">
           <h3>Votre équipe</h3>
           ${_combatMode === 'fullRandom' ? `<p class="combat-mode-note">🎰 Une équipe sera tirée au sort dans votre collection pour ce combat. Votre équipe actuelle sera restaurée juste après.</p>` : ''}
+          ${_combatMode === 'eventDefi' && evt ? `<p class="combat-mode-note" style="color:#facc15;">⚔️ Défi ${evt.tagLabel} : tous vos combattants doivent posséder le tag <strong>${evt.tagLabel}</strong> !</p>` : ''}
           <div class="lobby-team">
             ${team.length === 0
               ? '<p class="empty-msg">Composez votre équipe dans l\'onglet Équipe.</p>'
@@ -1248,6 +1559,15 @@ const GameUI = (() => {
       });
     });
 
+    if (evt) {
+      const cdEl = document.getElementById('combat-evt-countdown');
+      if (cdEl) {
+        setInterval(() => {
+          cdEl.textContent = `Fin dans : ${GameUtils.formatCountdown(evt.endDate - Date.now())}`;
+        }, 1000);
+      }
+    }
+
     _renderCombatModeContent();
   }
 
@@ -1256,6 +1576,10 @@ const GameUI = (() => {
     if (_combatMode === 'line') { renderCombatByLine(); return; }
     if (_combatMode === 'arena') { renderCombatArena(); return; }
     if (_combatMode === 'story') { renderCombatStory(); return; }
+    if (_combatMode === 'eventInvasion' || _combatMode === 'eventDefi') {
+      _renderEventCombatContent(_combatMode);
+      return;
+    }
 
     const top     = document.getElementById('combat-mode-content-top');
     const content = document.getElementById('combat-mode-content');
@@ -1268,6 +1592,83 @@ const GameUI = (() => {
       : '<p class="empty-msg">Aucune créature débloquée pour composer une équipe.</p>';
     if (content) content.innerHTML = '';
     document.getElementById('btn-launch')?.addEventListener('click', () => _launchCombat({ mode: 'fullRandom' }));
+  }
+
+  function _renderEventCombatContent(mode) {
+    const top     = document.getElementById('combat-mode-content-top');
+    const content = document.getElementById('combat-mode-content');
+    if (!top) return;
+
+    const evt = (typeof EventSystem !== 'undefined') ? EventSystem.getActiveOrPending() : null;
+    if (!evt) {
+      top.innerHTML = '<p class="empty-msg">Aucun événement actif en ce moment.</p>';
+      if (content) content.innerHTML = '';
+      return;
+    }
+
+    const isDefi     = mode === 'eventDefi';
+    const tagChars   = EventSystem.getBaseCharsForTag(evt.tagId);
+    const energyCost = isDefi ? (evt.defiConfig?.energyCost ?? 20) : (evt.invasionConfig?.energyCost ?? 15);
+
+    // Compteur rareté depuis la DATABASE (formes de base du tag), pas la collection joueur
+    const RARITIES = ['common','uncommon','rare','epic','legendary','mythic'];
+    const RLABELS  = { common:'Commune',uncommon:'Peu Commune',rare:'Rare',epic:'Épique',legendary:'Légendaire',mythic:'Mythique' };
+    const RCOLORS  = { common:'#9ca3af',uncommon:'#6fcc6f',rare:'#60a5fa',epic:'#c084fc',legendary:'#fbbf24',mythic:'#f87171' };
+    const RGRAD    = { common:'#374151,#4b5563',uncommon:'#14532d,#166534',rare:'#1e3a5f,#1d4ed8',epic:'#3b0764,#6b21a8',legendary:'#451a03,#92400e',mythic:'#4c0519,#9f1239' };
+    const dbCounts = {};
+    RARITIES.forEach(r => { dbCounts[r] = 0; });
+    tagChars.forEach(c => { if (c.rarity && dbCounts[c.rarity] !== undefined) dbCounts[c.rarity]++; });
+
+    // Bouton mis en valeur avec gradient event
+    const evtTitle    = isDefi ? ('Défi ' + evt.tagLabel) : ('Invasion ' + evt.tagLabel);
+    const evtSubtitle = isDefi
+      ? ('Votre équipe entière doit être <strong>' + evt.tagLabel + '</strong> — ennemis aussi')
+      : ('Affrontez des créatures <strong>' + evt.tagLabel + '</strong> — équipe libre');
+    const evtIcon     = isDefi ? '⚔️' : '🎪';
+    const evtBtnLabel = isDefi ? '⚔️ Lancer le Défi' : "🎪 Lancer l'Invasion";
+
+    top.innerHTML = `
+      <div style="background:linear-gradient(135deg,#0f3320,#1a2a14);border:2px solid #4ade80;border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+          <span style="font-size:1.3rem;">${evtIcon}</span>
+          <div>
+            <div style="font-family:var(--font-display);font-weight:800;font-size:1rem;color:#4ade80;">${evtTitle}</div>
+            <div style="font-size:.72rem;color:#86efac;margin-top:2px;">${evtSubtitle}</div>
+          </div>
+          <span style="margin-left:auto;background:#14532d;color:#4ade80;padding:4px 10px;border-radius:999px;font-weight:700;font-size:.8rem;">⚡${energyCost}</span>
+        </div>
+        <button class="btn-primary btn-launch-combat" id="btn-launch-event" style="width:100%;background:linear-gradient(135deg,#166534,#15803d);border:1px solid #4ade80;font-size:1rem;">
+          ${evtBtnLabel}
+        </button>
+      </div>
+    `;
+
+    if (content) content.innerHTML = `
+      <div style="margin-top:4px;">
+        <div style="font-size:.75rem;color:var(--text-dim);font-weight:700;margin-bottom:6px;">
+          📊 Créatures ${evt.tagLabel} dans la database (formes de base)
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;">
+          ${RARITIES.filter(r => dbCounts[r] > 0).map(r => `
+            <span style="font-size:.72rem;padding:3px 10px;border-radius:999px;background:linear-gradient(135deg,${RGRAD[r]});color:${RCOLORS[r]};font-weight:700;border:1px solid ${RCOLORS[r]}44;">
+              ${RLABELS[r]} : ${dbCounts[r]}
+            </span>`).join('')}
+          ${RARITIES.every(r => !dbCounts[r]) ? '<span style="color:var(--text-faint);font-size:.75rem;">Aucune créature avec ce tag</span>' : ''}
+        </div>
+        <details>
+          <summary style="font-size:.72rem;color:var(--text-dim);cursor:pointer;">
+            🐾 ${tagChars.length} espèce${tagChars.length > 1 ? 's' : ''} — voir la liste
+          </summary>
+          <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;">
+            ${tagChars.map(c => `<span style="font-size:.68rem;padding:2px 7px;border-radius:999px;background:linear-gradient(135deg,${RGRAD[c.rarity]||RGRAD.common});color:${RCOLORS[c.rarity]||RCOLORS.common};border:1px solid ${(RCOLORS[c.rarity]||RCOLORS.common)}44;">${c.name}</span>`).join('') || '<em style="color:#888">—</em>'}
+          </div>
+        </details>
+      </div>
+    `;
+
+    document.getElementById('btn-launch-event')?.addEventListener('click', () => {
+      _launchCombat({ mode, eventTagId: evt.tagId });
+    });
   }
 
   /**
@@ -1472,7 +1873,7 @@ const GameUI = (() => {
     if (!content) return;
     const state   = GameState.get();
     const team    = GameState.getTeam();
-    const pokedex = state.player.bestiaire || {};
+    const bestiaire = state.player.bestiaire || {};
 
     // Bouton en haut
     if (top) {
@@ -1489,7 +1890,7 @@ const GameUI = (() => {
       lines[c.evolutionLine].push(c);
     });
 
-    // Construire les entrées : disponibles (admin ON + pokédex débloqué) et verrouillées (admin ON + pas encore vu)
+    // Construire les entrées : disponibles (admin ON + bestiaire débloqué) et verrouillées (admin ON + pas encore vu)
     // Les lignées désactivées en admin (availableInLineCombat === false) sont complètement masquées.
     const lineEntries = Object.entries(lines)
       .map(([lineId, chars]) => {
@@ -1501,7 +1902,7 @@ const GameUI = (() => {
       .map(({ lineId, baseForm }) => ({
         lineId,
         baseForm,
-        unlocked: !!pokedex[baseForm.id],   // débloqué = forme de base présente dans le bestiaire
+        unlocked: !!bestiaire[baseForm.id],   // débloqué = forme de base présente dans le bestiaire
       }))
       .sort((a, b) => {
         // Débloquées en premier, puis par nom
@@ -1537,7 +1938,7 @@ const GameUI = (() => {
           } else {
             // Verrouillée : portrait flouté, cadenas, pas cliquable
             return `
-            <div class="evo-line-card locked" title="Débloquée en obtenant ${baseForm.name} via le Gacha ou un combat">
+            <div class="evo-line-card locked" title="Débloquée en obtenant ${baseForm.name} via le Expédition ou un combat">
               <div class="evo-line-portrait locked-portrait">
                 ${baseForm.portrait
                   ? `<img src="${baseForm.portrait}" alt="???" style="filter:blur(6px) brightness(0.4)">`
@@ -2406,8 +2807,8 @@ const GameUI = (() => {
 
   /**
    * Joue l'animation de révélation (retournement de carte) d'un créature capturé,
-   * en réutilisant exactement le même système que pour une obtention par Gacha :
-   * "NOUVEAU !" s'il vient de rejoindre la collection, "Awakening +1" s'il était déjà
+   * en réutilisant exactement le même système que pour une obtention par Expédition :
+   * "NOUVEAU !" s'il vient de rejoindre la collection, "Évolution Avancée +1" s'il était déjà
    * possédé, ou "AWAKENING MAX" avec Pillule de Puissance s'il atteint le palier max.
    * @param {HTMLElement} container - où injecter la carte
    * @param {string} charId - ID de la définition du créature capturé
@@ -2445,7 +2846,7 @@ const GameUI = (() => {
 
   // ─── GACHA ────────────────────────────────────────────────────────────────────
 
-  function renderGacha() {
+  function renderExpédition() {
     const el = document.getElementById('screen-gacha');
     if (!el) return;
     const state = GameState.get();
@@ -2464,46 +2865,106 @@ const GameUI = (() => {
       btn.addEventListener('click', () => {
         _gachaTab = btn.dataset.tab;
         document.querySelectorAll('.gacha-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === _gachaTab));
-        _renderGachaTabContent();
+        _renderExpéditionTabContent();
         document.getElementById('gacha-results').innerHTML = '';
       });
     });
 
-    _renderGachaTabContent();
+    _renderExpéditionTabContent();
   }
 
-  function _renderGachaTabContent() {
+  function _renderExpéditionTabContent() {
     const el = document.getElementById('gacha-tab-content');
     if (!el) return;
     const state = GameState.get();
 
     if (_gachaTab === 'chars') {
       const cfg     = state.config.gacha;
-      const banners = state.banners.filter(b => b.active);
+      const evt     = (typeof EventSystem !== 'undefined') ? EventSystem.getActiveOrPending() : null;
+
+      // Séparer bannière(s) event et bannières normales
+      const eventBanners  = state.banners.filter(b => b.active && b.isEventBanner);
+      const normalBanners = state.banners.filter(b => b.active && !b.isEventBanner);
+
+      const RCOLORS = { common:'#9ca3af',uncommon:'#6fcc6f',rare:'#60a5fa',epic:'#c084fc',legendary:'#fbbf24',mythic:'#f87171' };
+
+      const renderBannerCard = (b, isEvent = false) => {
+        const wrapStyle    = isEvent
+          ? 'background:linear-gradient(135deg,#0a2a15,#112a10);border:2px solid #d4af37;box-shadow:0 0 18px rgba(212,175,55,.25);'
+          : '';
+        const h3Style = isEvent ? 'color:#d4af37;' : '';
+        const btnExtraClass = isEvent ? ' btn-event-gacha' : '';
+
+        // Bloc déroulant des animaux de la bannière (avec couleurs par rareté)
+        let featuredBlock = '';
+        if (isEvent && b.featured?.length) {
+          const pills = b.featured.map(cid => {
+            const def = state.characters.find(c => c.id === cid);
+            if (!def) return '';
+            const col = RCOLORS[def.rarity] || '#888';
+            return '<span style="font-size:.65rem;padding:2px 8px;border-radius:999px;background:var(--surface-2);color:'
+              + col + ';border:1px solid ' + col + '44;white-space:nowrap;">' + def.name + '</span>';
+          }).filter(Boolean).join('');
+          featuredBlock = '<details style="margin:8px 0 4px;">'
+            + '<summary style="font-size:.72rem;color:#d4af37;cursor:pointer;font-weight:700;list-style:none;display:flex;align-items:center;gap:6px;">'
+            + '<span style="font-size:.8rem;">▶</span> '
+            + b.featured.length + ' espèce' + (b.featured.length > 1 ? 's' : '') + ' invocables'
+            + '</summary>'
+            + '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;">' + pills + '</div>'
+            + '</details>';
+        } else if (!isEvent && b.featured?.length) {
+          const pills = b.featured.slice(0, 6).map(cid => {
+            const def = state.characters.find(c => c.id === cid);
+            if (!def) return '';
+            const col = RCOLORS[def.rarity] || '#888';
+            return '<span style="font-size:.65rem;padding:1px 7px;border-radius:999px;background:var(--surface-2);color:'
+              + col + ';border:1px solid ' + col + '44;">' + def.name + '</span>';
+          }).filter(Boolean).join('');
+          featuredBlock = '<div style="display:flex;flex-wrap:wrap;gap:4px;margin:8px 0 4px;">'
+            + pills
+            + (b.featured.length > 6 ? '<span style="font-size:.65rem;color:var(--text-faint);">+' + (b.featured.length - 6) + '</span>' : '')
+            + '</div>';
+        }
+
+        const evtBadge = isEvent
+          ? '<div style="font-size:.68rem;color:#d4af37;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:5px;">'
+            + '<span style="display:inline-block;width:18px;height:2px;background:#d4af37;border-radius:1px;"></span>'
+            + '🎪 Bannière Événement'
+            + '<span style="display:inline-block;width:18px;height:2px;background:#d4af37;border-radius:1px;"></span>'
+            + '</div>'
+          : '';
+
+        return `
+          <div class="banner-card" style="${wrapStyle}">
+            ${evtBadge}
+            <div class="banner-header"><h3 style="${h3Style}">${b.name}</h3><p>${b.description}</p></div>
+            ${featuredBlock}
+            <div class="banner-actions">
+              <button class="btn-gacha btn-single${btnExtraClass}" data-banner="${b.id}">
+                ✦ Invoquer ×1<br><small>${cfg.singlePullCost} 💎</small>
+              </button>
+              <button class="btn-gacha btn-ten${btnExtraClass}" data-banner="${b.id}">
+                ✦✦ Invoquer ×10<br><small>${cfg.tenPullCost} 💎</small>
+              </button>
+            </div>
+          </div>`;
+      };
+
       el.innerHTML = `
         <div class="gacha-currency">
           <span class="hud-icon">💎</span>
-          <span>${state.player.currency.crystals.toLocaleString()} Gemmes</span>
+          <span>${state.player.currency.crystals.toLocaleString()} Cristaux</span>
         </div>
         <div class="banner-list">
-          ${banners.map(b => `
-            <div class="banner-card">
-              <div class="banner-header"><h3>${b.name}</h3><p>${b.description}</p></div>
-              <div class="banner-actions">
-                <button class="btn-gacha btn-single" data-banner="${b.id}">
-                  ✦ Invoquer ×1<br><small>${cfg.singlePullCost} 💎</small>
-                </button>
-                <button class="btn-gacha btn-ten" data-banner="${b.id}">
-                  ✦✦ Invoquer ×10<br><small>${cfg.tenPullCost} 💎</small>
-                </button>
-              </div>
-            </div>`).join('')}
+          ${eventBanners.map(b => renderBannerCard(b, true)).join('')}
+          ${normalBanners.map(b => renderBannerCard(b, false)).join('')}
         </div>`;
-      el.querySelectorAll('.btn-single').forEach(btn => btn.addEventListener('click', () => _doGachaPull(btn.dataset.banner, 1)));
-      el.querySelectorAll('.btn-ten').forEach(btn => btn.addEventListener('click', () => _doGachaPull(btn.dataset.banner, 10)));
+
+      el.querySelectorAll('.btn-single').forEach(btn => btn.addEventListener('click', () => _doExpéditionPull(btn.dataset.banner, 1)));
+      el.querySelectorAll('.btn-ten').forEach(btn => btn.addEventListener('click', () => _doExpéditionPull(btn.dataset.banner, 10)));
 
     } else {
-      // Gacha équipements
+      // Expédition équipements
       const equipBanners = (state.equipBanners || []).filter(b => b.active);
       el.innerHTML = `
         <div class="gacha-currency">
@@ -2526,12 +2987,12 @@ const GameUI = (() => {
           ${equipBanners.length === 0 ? '<p class="empty-msg">Aucune bannière d\'équipement active.</p>' : ''}
         </div>`;
       el.querySelectorAll('.btn-equip-pull').forEach(btn => {
-        btn.addEventListener('click', () => _doEquipGachaPull(btn.dataset.banner, Number(btn.dataset.count)));
+        btn.addEventListener('click', () => _doEquipExpéditionPull(btn.dataset.banner, Number(btn.dataset.count)));
       });
     }
   }
 
-  function _doGachaPull(bannerId, count) {
+  function _doExpéditionPull(bannerId, count) {
     // Désactiver les boutons pendant l'animation
     document.querySelectorAll('.btn-gacha').forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
 
@@ -2545,19 +3006,19 @@ const GameUI = (() => {
       return;
     }
 
-    // ── Détection Awakening Max + attribution Pillule ──────────────────────────
+    // ── Détection Évolution Avancée Max + attribution Pillule ──────────────────────────
     results.forEach(r => { r.awakeningMax = _checkAwakeningMaxAndGrantPill(r); });
 
     _updateHUD();
-    _showGachaAnimation(results, () => {
+    _showExpéditionAnimation(results, () => {
       document.querySelectorAll('.btn-gacha').forEach(b => { b.disabled = false; b.style.opacity = ''; });
     });
   }
 
   /**
-   * Détecte si un résultat d'obtention (gacha ou capture) fait atteindre l'awakening
+   * Détecte si un résultat d'obtention (gacha ou capture) atteint l'Évolution Avancée
    * maximum à un créature déjà possédé, et lui octroie une Pillule de Puissance
-   * le cas échéant. Renvoie true si l'awakening max vient d'être atteint.
+   * le cas échéant. Renvoie true si l'Évolution Avancée max vient d'être atteint.
    * @param {{awakening?:boolean, instance?:object}} addResult
    * @returns {boolean}
    */
@@ -2579,7 +3040,7 @@ const GameUI = (() => {
    * @param {Array} results - Résultats du tirage
    * @param {Function} onDone - Callback une fois l'animation terminée
    */
-  function _showGachaAnimation(results, onDone) {
+  function _showExpéditionAnimation(results, onDone) {
     const el = document.getElementById('gacha-results');
     if (!el) { onDone?.(); return; }
 
@@ -2638,12 +3099,12 @@ const GameUI = (() => {
     const rarityDef = GameDatabase.RARITIES[result.char.rarity] || {};
     const t1 = state.types.find(t => t.id === result.char.type1);
 
-    // ── Construire le statut (nouveau / awakening / max) ────────────────────
+    // ── Construire le statut (nouveau / Évolution Avancée / max) ────────────────────
     let statusHtml;
     if (result.awakeningMax) {
       statusHtml = `<div class="gacha-status status-awk-max">★ AWAKENING MAX ★<br><small>💊 Pillule de Puissance !</small></div>`;
     } else if (result.awakening) {
-      statusHtml = `<div class="gacha-status">✨ Awakening +1</div>`;
+      statusHtml = `<div class="gacha-status">✨ Évolution Avancée +1</div>`;
     } else if (result.isNew) {
       statusHtml = `<div class="gacha-status status-new">✦ NOUVEAU !</div>`;
     } else {
@@ -3085,7 +3546,7 @@ const GameUI = (() => {
     const sorted   = _sortEquipInv(filtered, _equipInvSort[_equipInvTab]);
 
     if (sorted.length === 0) {
-      grid.innerHTML = `<p class="empty-msg" style="margin:0;padding:.8rem">${decoratedAll.length === 0 ? `Aucun ${EQUIP_SLOT_LABELS[_equipInvTab].replace(/^\S+\s/, '').toLowerCase()} en stock.<br>Utilisez le Gacha Équipements !` : 'Aucun équipement ne correspond aux filtres.'}</p>`;
+      grid.innerHTML = `<p class="empty-msg" style="margin:0;padding:.8rem">${decoratedAll.length === 0 ? `Aucun ${EQUIP_SLOT_LABELS[_equipInvTab].replace(/^\S+\s/, '').toLowerCase()} en stock.<br>Utilisez le Expédition Équipements !` : 'Aucun équipement ne correspond aux filtres.'}</p>`;
       return;
     }
 
@@ -3189,7 +3650,7 @@ const GameUI = (() => {
 
           <div class="equip-section-title" style="margin-bottom:8px">Choisir dans l'inventaire</div>
           ${inv.length === 0
-            ? `<p class="empty-msg" style="margin:0;padding:.8rem">Aucun équipement de type ${EQUIP_SLOT_LABELS[slotKey]} en stock.<br>Faites du Gacha Équipements !</p>`
+            ? `<p class="empty-msg" style="margin:0;padding:.8rem">Aucun équipement de type ${EQUIP_SLOT_LABELS[slotKey]} en stock.<br>Faites du Expédition Équipements !</p>`
             : `<div class="equip-inv-grid" id="equip-pick-grid">
                 ${_groupEquipStacks(inv.map(ei => {
                   const ed = state.equipment.find(e => e.id === ei.equipId);
@@ -3247,7 +3708,7 @@ const GameUI = (() => {
   // ─── GACHA ÉQUIPEMENTS ────────────────────────────────────────────────────────
 
   /** Effectue un tirage de gacha d'équipement */
-  function _doEquipGachaPull(bannerId, count) {
+  function _doEquipExpéditionPull(bannerId, count) {
     const state  = GameState.get();
     const banner = (state.equipBanners || []).find(b => b.id === bannerId);
     if (!banner) return;
@@ -3378,8 +3839,8 @@ const GameUI = (() => {
         <div class="inventory-card ${isPendingTarget ? 'is-picking-target' : ''}">
           <div class="inventory-card-icon">${def.icon || '🎁'}</div>
           <div class="inventory-card-body">
-            <div class="inventory-card-name">${_escapeHtml(def.name)}</div>
-            ${def.description ? `<div class="inventory-card-desc">${_escapeHtml(def.description)}</div>` : ''}
+            <div class="inventory-card-name">${GameUtils.escapeHtml(def.name)}</div>
+            ${def.description ? `<div class="inventory-card-desc">${GameUtils.escapeHtml(def.description)}</div>` : ''}
             <div class="inventory-card-effects">${effectLines.map(l => `<span class="quest-reward-chip">${l}</span>`).join('')}</div>
           </div>
           <div class="inventory-card-side">
@@ -3477,6 +3938,7 @@ const GameUI = (() => {
     if (evolved) setTimeout(() => _showEvolutionShowcase([evolved]), 350);
 
     renderInventory();
+    if (_currentScreen === 'specimens') renderSpecimens();
     _updateHUD();
   }
 
@@ -3484,51 +3946,73 @@ const GameUI = (() => {
 
   let _shopFilter = 'all'; // 'all' | 'equipment' | 'item' | 'character'
 
-  const SHOP_CATEGORY_LABELS = {
-    all:       'Tout',
-    equipment: '⚙️ Équipements',
-    item:      '🎁 Objets',
-    character: '✦ Créatures',
-  };
-
   /** Rendu de l'écran "Boutique" (onglet de navigation principal). */
   function renderShop() {
     const el = document.getElementById('screen-shop');
     if (!el) return;
-
     el.innerHTML = `
       <div class="screen-header"><h2>🛒 Boutique</h2></div>
-      <div class="shop-filter-bar" id="shop-filter-bar">
-        ${Object.keys(SHOP_CATEGORY_LABELS).map(key =>
-          `<button class="shop-filter-btn ${_shopFilter === key ? 'active' : ''}" data-filter="${key}">${SHOP_CATEGORY_LABELS[key]}</button>`
-        ).join('')}
-      </div>
-      <div class="shop-grid" id="shop-grid"></div>
+      <div id="shop-grid"></div>
     `;
-
-    document.querySelectorAll('.shop-filter-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        _shopFilter = btn.dataset.filter;
-        renderShop();
-      });
-    });
-
     _renderShopGrid();
+  }
+
+
+  // ── Rotation quotidienne du marché ─────────────────────────────────────────
+  function _getShopDailyRotation() {
+    const today  = GameUtils.todayKey();
+    const player = GameState.getPlayer();
+    const cached = player.shopDailyRotation;
+    const ROTATION_VERSION = 2; // Incrémenter si la structure de rotation change
+    if (cached?.dayKey === today && cached?.v === ROTATION_VERSION) return cached;
+
+    const state = GameState.get();
+    const evt   = (typeof EventSystem !== 'undefined') ? EventSystem.getActiveOrPending() : null;
+
+    // 3 créatures du tag event en boutique
+    let eventCharIds = [];
+    if (evt) {
+      const pool = EventSystem.getBaseCharsForTag(evt.tagId)
+        .filter(c => (state.shopItems || []).some(s => s.active && s.category === 'character' && s.refId === c.id));
+      eventCharIds = _shuffle([...pool]).slice(0, 3).map(c => c.id);
+    }
+
+    // 9 articles aléatoires hors items fixes (pill/potion) et hors event chars
+    const fixedIds     = new Set(['item_power_pill', 'item_energy_potion']);
+    const eventCharSet = new Set(eventCharIds);
+    const regularPool  = (state.shopItems || []).filter(s => {
+      if (!s.active) return false;
+      if (s.category === 'item' && fixedIds.has(s.refId)) return false;
+      if (s.category === 'character' && eventCharSet.has(s.refId)) return false;
+      return true;
+    });
+    const regularIds = _shuffle([...regularPool]).slice(0, 12).map(s => s.id);
+
+    const rotation = { dayKey: today, v: ROTATION_VERSION, eventCharIds, regularIds };
+    GameState.updatePlayer({ shopDailyRotation: rotation });
+    return rotation;
+  }
+
+  function _shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
   }
 
   function _renderShopGrid() {
     const gridEl = document.getElementById('shop-grid');
     if (!gridEl) return;
+    const state    = GameState.get();
+    const evt      = (typeof EventSystem !== 'undefined') ? EventSystem.getActiveOrPending() : null;
+    const rotation = _getShopDailyRotation();
 
-    const category = _shopFilter === 'all' ? null : _shopFilter;
-    const listing = ShopSystem.getShopListing(category);
+    const RCOLORS = { common:'#9ca3af',uncommon:'#6fcc6f',rare:'#60a5fa',epic:'#c084fc',legendary:'#fbbf24',mythic:'#f87171' };
 
-    if (listing.length === 0) {
-      gridEl.innerHTML = '<p class="empty-msg">Aucun article disponible dans cette catégorie pour le moment.</p>';
-      return;
-    }
-
-    gridEl.innerHTML = listing.map(({ shopItem, refDef, remaining, blocked }) => {
+    const renderCard = (shopItem, refDef, opts = {}) => {
+      const { originalPrice = null, reducedPrice = null, isEvent = false } = opts;
+      const { remaining, blocked } = ShopSystem.getPurchaseAvailability(shopItem);
       const currencyIcon = shopItem.currency === 'gold' ? '🪙' : '💎';
       const visual = shopItem.category === 'character'
         ? (refDef.portrait
@@ -3536,47 +4020,156 @@ const GameUI = (() => {
             : `<div class="shop-card-icon">${refDef.name.charAt(0)}</div>`)
         : `<div class="shop-card-icon">${refDef.icon || (shopItem.category === 'equipment' ? '⚙️' : '🎁')}</div>`;
 
+      const rarityCol  = RCOLORS[refDef.rarity] || '#888';
+      const rarityBorder = shopItem.category !== 'item' ? `border-color:${rarityCol};box-shadow:0 0 0 1px ${rarityCol}22;` : '';
+      const eventBorder  = isEvent ? 'border-color:#d4af37;box-shadow:0 0 0 2px rgba(212,175,55,.2);' : '';
       const limitText = shopItem.limit?.type === 'daily'
         ? `Limite : ${remaining}/${shopItem.limit.amount} aujourd'hui`
         : shopItem.limit?.type === 'lifetime'
           ? `Limite : ${remaining}/${shopItem.limit.amount} au total`
           : '';
+      const priceHtml = (isEvent && originalPrice !== null && reducedPrice !== null)
+        ? `<div style="display:flex;align-items:center;gap:5px;justify-content:center;margin:4px 0;">
+             <span style="text-decoration:line-through;color:var(--text-faint);font-size:.75rem;">${originalPrice} ${currencyIcon}</span>
+             <span style="color:#d4af37;font-weight:800;font-size:.95rem;">${reducedPrice} ${currencyIcon}</span>
+           </div>`
+        : `<div class="shop-card-price">${shopItem.price} ${currencyIcon}</div>`;
+      const evtAttr = (isEvent && reducedPrice !== null) ? ` data-evt-price="${reducedPrice}"` : '';
 
       return `
-        <div class="shop-card ${blocked ? 'is-blocked' : ''}">
+        <div class="shop-card ${blocked ? 'is-blocked' : ''}" style="${rarityBorder}${eventBorder}">
+          ${isEvent ? '<div class="shop-card-event-badge">✦ PROMO EVENT ✦</div>' : ''}
           ${visual}
-          <div class="shop-card-name">${_escapeHtml(refDef.name)}</div>
+          <div class="shop-card-name">${GameUtils.escapeHtml(refDef.name)}</div>
           ${limitText ? `<div class="shop-card-limit">${limitText}</div>` : ''}
-          <div class="shop-card-price">${shopItem.price} ${currencyIcon}</div>
-          <button class="shop-buy-btn" data-shop-id="${shopItem.id}" ${blocked ? 'disabled' : ''}>
+          ${priceHtml}
+          <button class="shop-buy-btn" data-shop-id="${shopItem.id}"${evtAttr} ${blocked ? 'disabled' : ''}>
             ${blocked ? 'Épuisé' : 'Acheter'}
           </button>
         </div>`;
+    };
+
+    // ── LIGNE 1 : Pillule de Puissance + Potion d'Énergie (fixes, toujours visibles)
+    const pinned = ['item_power_pill', 'item_energy_potion'].map(itemId => {
+      const s = (state.shopItems || []).find(sh => sh.active && sh.category === 'item' && sh.refId === itemId);
+      const d = state.items.find(i => i.id === itemId);
+      return (s && d) ? renderCard(s, d) : '';
     }).join('');
 
-    gridEl.querySelectorAll('.shop-buy-btn:not([disabled])').forEach(btn => {
+    // ── LIGNE 2 : 3 créatures du tag event avec réduction
+    let evtSectionHtml = '';
+    if (evt && rotation.eventCharIds?.length) {
+      const disc = evt.shopDiscountPct || 0;
+      const evtCards = rotation.eventCharIds.map(charId => {
+        const s = (state.shopItems || []).find(sh => sh.active && sh.category === 'character' && sh.refId === charId);
+        const d = state.characters.find(c => c.id === charId);
+        if (!s || !d) return '';
+        const orig = s.price;
+        const red  = Math.max(1, Math.round(orig * (1 - disc / 100)));
+        return renderCard(s, d, { originalPrice: orig, reducedPrice: red, isEvent: true });
+      }).join('');
+      if (evtCards.replace(/\s/g, '')) {
+        evtSectionHtml = `
+          <div class="shop-section shop-section-event">
+            <div class="shop-section-header shop-section-header-event">
+              <span class="shop-section-icon">🎪</span>
+              <span>${evt.customTitle || ('Offres ' + evt.tagLabel)}</span>
+              ${disc ? '<span class="shop-evt-discount">-' + disc + '%</span>' : ''}
+              <span class="shop-section-sub" style="margin-left:auto;">Fin le ${GameUtils.formatDate(evt.endDate)}</span>
+            </div>
+            <div class="shop-grid-inner">${evtCards}</div>
+          </div>`;
+      }
+    }
+
+    // ── LIGNES 3-5 : 9 articles aléatoires du jour
+    const regularCards = rotation.regularIds.map(shopId => {
+      const s = (state.shopItems || []).find(sh => sh.id === shopId && sh.active);
+      if (!s) return '';
+      let d;
+      if (s.category === 'equipment') d = state.equipment.find(e => e.id === s.refId);
+      else if (s.category === 'item') d = state.items.find(i => i.id === s.refId);
+      else d = state.characters.find(c => c.id === s.refId);
+      return (d) ? renderCard(s, d) : '';
+    }).join('');
+
+    const tomorrow = (() => { const d = new Date(); d.setDate(d.getDate()+1); d.setHours(0,0,0,0); return d.getTime(); })();
+    if (!pinned && !evtSectionHtml && !regularCards) {
+      gridEl.innerHTML = '<p class="empty-msg">Aucun article disponible pour le moment.</p>';
+      return;
+    }
+
+    gridEl.innerHTML = `
+      <div style="font-size:.72rem;color:var(--text-faint);text-align:right;margin-bottom:12px;">
+        🔄 Renouvellement dans <strong id="shop-refresh-cd">${typeof _questCountdown === 'function' ? _questCountdown(tomorrow) : '—'}</strong>
+      </div>
+      ${pinned ? `
+        <div class="shop-section">
+          <div class="shop-section-header">
+            <span class="shop-section-icon">📦</span>
+            <span>Consommables</span>
+          </div>
+          <div class="shop-grid-inner">${pinned}</div>
+        </div>` : ''}
+      ${evtSectionHtml}
+      ${regularCards ? `
+        <div class="shop-section">
+          <div class="shop-section-header">
+            <span class="shop-section-icon">🛒</span>
+            <span>Sélection du jour</span>
+            <span class="shop-section-sub">12 articles renouvelés chaque jour</span>
+          </div>
+          <div class="shop-grid-inner">${regularCards}</div>
+        </div>` : ''}
+    `;
+
+    // Timer renouvellement (utilise _questCountdown défini dans la section Missions)
+    if (window._shopCdTimer) clearInterval(window._shopCdTimer);
+    window._shopCdTimer = setInterval(() => {
+      const el = document.getElementById('shop-refresh-cd');
+      if (el && typeof _questCountdown === 'function') el.textContent = _questCountdown(tomorrow);
+    }, 1000);
+
+    gridEl.querySelectorAll('.shop-buy-btn[data-evt-price]:not([disabled])').forEach(btn => {
+      btn.addEventListener('click', () => _runShopPurchaseEvent(btn.dataset.shopId, parseInt(btn.dataset.evtPrice, 10)));
+    });
+    gridEl.querySelectorAll('.shop-buy-btn:not([data-evt-price]):not([disabled])').forEach(btn => {
       btn.addEventListener('click', () => _runShopPurchase(btn.dataset.shopId));
     });
   }
 
+  /** Achat normal (consommables + sélection du jour) */
   function _runShopPurchase(shopItemId) {
     const res = ShopSystem.purchase(shopItemId);
-    if (!res.success) {
-      _showToast(res.error || 'Achat impossible.', 'error');
-      return;
-    }
-
+    if (!res.success) { _showToast(res.error || 'Achat impossible.', 'error'); return; }
     AudioSystem.playSfx(AudioSystem.SFX_KEYS.gachaPull);
-
-    let msg = `${refDefIcon(res)} ${res.refDef.name} acheté !`;
-    if (res.category === 'character' && res.addResult?.awakening) {
-      msg = `${res.refDef.name} déjà possédé : éveil amélioré ! ✦`;
-    }
+    const icon = res.category === 'item' ? (res.refDef.icon || '🎁')
+               : res.category === 'equipment' ? '⚙️' : '✦';
+    let msg = `${icon} ${res.refDef.name} acheté !`;
+    if (res.category === 'character' && res.addResult?.awakening) msg = `${res.refDef.name} déjà possédé : éveil ! ✦`;
     _showToast(msg, 'success');
-
     _renderShopGrid();
     _updateHUD();
   }
+
+  /** Achat event (prix réduit appliqué temporairement) */
+  function _runShopPurchaseEvent(shopItemId, reducedPrice) {
+    const state    = GameState.get();
+    const shopItem = (state.shopItems || []).find(s => s.id === shopItemId);
+    if (!shopItem) { _showToast('Article introuvable.', 'error'); return; }
+    const orig = shopItem.price;
+    shopItem.price = reducedPrice;
+    const res = ShopSystem.purchase(shopItemId);
+    shopItem.price = orig;
+    if (!res.success) { _showToast(res.error || 'Achat impossible.', 'error'); return; }
+    AudioSystem.playSfx(AudioSystem.SFX_KEYS.gachaPull);
+    let msg = `${res.refDef.name} acheté au prix event 🎪 !`;
+    if (res.category === 'character' && res.addResult?.awakening) msg = `${res.refDef.name} déjà possédé : éveil ! ✦`;
+    _showToast(msg, 'success');
+    _renderShopGrid();
+    _updateHUD();
+  }
+
 
   function refDefIcon(res) {
     if (res.category === 'item') return res.refDef.icon || '🎁';
@@ -3586,8 +4179,8 @@ const GameUI = (() => {
 
   // ─── POKÉDEX ─────────────────────────────────────────────────────────────────
 
-  function renderBestiaire() {
-    const el = document.getElementById('screen-bestiaire');
+  function renderAtlas() {
+    const el = document.getElementById('screen-atlas');
     if (!el) return;
     const state   = GameState.get();
     const bestiaire = state.player.bestiaire;
@@ -3729,9 +4322,13 @@ const GameUI = (() => {
 
   return {
     init, showScreen,
-    renderCollection, renderTeam, renderGacha, renderEquip, renderBestiaire, renderCombatLobby, renderCombatByLine,
+    renderSpecimens, renderTeam, renderExpédition, renderEquip, renderAtlas, renderCombatLobby, renderCombatByLine,
     renderDailyQuests, renderInventory, renderShop,
     _showEvolutionShowcase,
     _updateQuestsBadge,
+    _applyCombatCropOnLoad,
   };
 })();
+
+// Exposée globalement pour les attributs onload="..." des portraits combat.
+function _applyCombatCropOnLoad(img) { GameUI._applyCombatCropOnLoad(img); }

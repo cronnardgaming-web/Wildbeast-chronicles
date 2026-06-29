@@ -48,20 +48,24 @@ const SaveSystem = (() => {
    */
   function _extractGlobalConfig(gameState) {
     return {
-      version:    gameState.config?.game?.version || '1.0.0',
-      timestamp:  Date.now(),
-      config:     gameState.config,
-      types:      gameState.types,
-      typeMatrix: gameState.typeMatrix,
-      characters: gameState.characters,
-      equipment:  gameState.equipment,
-      items:      gameState.items,
-      equipBanners: gameState.equipBanners,
-      banners:    gameState.banners,
-      dailyQuests: gameState.dailyQuests,
-      loginCycles: gameState.loginCycles,
-      shopItems:   gameState.shopItems,
-      patchNotes:  gameState.patchNotes,
+      version:       gameState.config?.game?.version || '1.0.0',
+      timestamp:     Date.now(),
+      config:        gameState.config,
+      types:         gameState.types,
+      typeMatrix:    gameState.typeMatrix,
+      characters:    gameState.characters,
+      equipment:     gameState.equipment,
+      items:         gameState.items,
+      equipBanners:  gameState.equipBanners,
+      banners:       gameState.banners,
+      dailyQuests:   gameState.dailyQuests,
+      weeklyQuests:  gameState.weeklyQuests,
+      eventQuests:   gameState.eventQuests,
+      tagCategories: gameState.tagCategories,
+      loginCycles:   gameState.loginCycles,
+      shopItems:     gameState.shopItems,
+      patchNotes:    gameState.patchNotes,
+      events:        gameState.events || { current: null, next: null },
     };
   }
 
@@ -128,20 +132,24 @@ const SaveSystem = (() => {
       const player = rawPlayer ? JSON.parse(rawPlayer) : {};
       // Fusionner en un état complet
       return {
-        version:    global.version    || player.version || '1.0.0',
-        config:     global.config,
-        types:      global.types,
-        typeMatrix: global.typeMatrix,
-        characters: global.characters,
-        equipment:  global.equipment,
-        items:      global.items,
-        equipBanners: global.equipBanners,
-        banners:    global.banners,
-        dailyQuests: global.dailyQuests,
-        loginCycles: global.loginCycles,
-        shopItems:   global.shopItems,
-        patchNotes:  global.patchNotes,
-        player:     player.player,
+        version:       global.version    || player.version || '1.0.0',
+        config:        global.config,
+        types:         global.types,
+        typeMatrix:    global.typeMatrix,
+        characters:    global.characters,
+        equipment:     global.equipment,
+        items:         global.items,
+        equipBanners:  global.equipBanners,
+        banners:       global.banners,
+        dailyQuests:   global.dailyQuests,
+        weeklyQuests:  global.weeklyQuests,
+        eventQuests:   global.eventQuests,
+        tagCategories: global.tagCategories,
+        loginCycles:   global.loginCycles,
+        shopItems:     global.shopItems,
+        patchNotes:    global.patchNotes,
+        events:        global.events || { current: null, next: null },
+        player:        player.player,
       };
     } catch (e) {
       console.error('[SaveSystem] Échec de chargement slot ' + targetSlot + ':', e);
@@ -315,25 +323,26 @@ const SaveSystem = (() => {
         _exportVersion: '1.0',
         exportDate: new Date().toISOString(),
         gameVersion: gameState.config?.game?.version || '1.0.0',
-        // ── Config & contenu du jeu ──────────────────────────────────────────
-        config:      gameState.config,
-        types:       gameState.types,
-        typeMatrix:  gameState.typeMatrix,
-        characters:  gameState.characters,
-        equipment:   gameState.equipment,
-        items:       gameState.items,
-        equipBanners: gameState.equipBanners,
-        banners:     gameState.banners,
-        dailyQuests: gameState.dailyQuests,
-        loginCycles: gameState.loginCycles,
-        shopItems:   gameState.shopItems,
-        patchNotes:  gameState.patchNotes,
-        // ── NON inclus : player (collection, monnaies, progression…) ─────────
+        config:        gameState.config,
+        types:         gameState.types,
+        typeMatrix:    gameState.typeMatrix,
+        characters:    gameState.characters,
+        equipment:     gameState.equipment,
+        items:         gameState.items,
+        equipBanners:  gameState.equipBanners,
+        banners:       gameState.banners,
+        dailyQuests:   gameState.dailyQuests,
+        weeklyQuests:  gameState.weeklyQuests,
+        eventQuests:   gameState.eventQuests,
+        tagCategories: gameState.tagCategories,
+        loginCycles:   gameState.loginCycles,
+        shopItems:     gameState.shopItems,
+        patchNotes:    gameState.patchNotes,
+        events:        gameState.events || { current: null, next: null },
       };
       _downloadJson(payload, `database_export.json`);
     } catch (e) { console.error('[SaveSystem] Échec export base de données:', e); }
   }
-
   /**
    * Exporte UNIQUEMENT les données du joueur actif (slot courant).
    * N'inclut aucune config de jeu.

@@ -159,12 +159,6 @@ const ItemSystem = (() => {
 
 const ShopSystem = (() => {
 
-  /** Date calendaire locale du jour, au format 'YYYY-MM-DD'. */
-  function _todayKey() {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  }
-
   /**
    * Calcule l'état d'achat courant d'un article pour le joueur : combien de
    * fois il reste possible de l'acheter (null = illimité), et s'il est
@@ -186,7 +180,7 @@ const ShopSystem = (() => {
     }
 
     if (limit.type === 'daily') {
-      const isToday = pState?.dailyDate === _todayKey();
+      const isToday = pState?.dailyDate === GameUtils.todayKey();
       const used = isToday ? (pState?.dailyCount || 0) : 0;
       const remaining = Math.max(0, limit.amount - used);
       return { remaining, blocked: remaining <= 0 };
@@ -283,7 +277,7 @@ const ShopSystem = (() => {
   function _recordPurchase(shopItemId) {
     const player = GameState.getPlayer();
     const prevState = (player.shopPurchaseState || {})[shopItemId] || {};
-    const todayKey = _todayKey();
+    const todayKey = GameUtils.todayKey();
     const isToday = prevState.dailyDate === todayKey;
 
     const newEntry = {

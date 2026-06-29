@@ -1,7 +1,7 @@
 {
   "_exportType": "wildbeast_db_export",
   "_exportVersion": "1.0",
-  "exportDate": "2026-06-25T12:40:38.858Z",
+  "exportDate": "2026-06-29T10:16:53.282Z",
   "gameVersion": "1.0.0",
   "config": {
     "game": {
@@ -19,7 +19,7 @@
       "damageFormula": "atk² / (atk + def)",
       "minDamage": 10,
       "captureBaseRate": 0.03,
-      "rewardXpPerEnemy": 25,
+      "rewardXpPerEnemy": 13,
       "rewardGoldPerEnemy": 15,
       "rewardDiamondsPerEnemy": 10,
       "speedEvasionCap": 0.1,
@@ -61,8 +61,8 @@
     },
     "level": {
       "xpFormula": "base * (level ** expo)",
-      "xpBase": 30,
-      "xpExponent": 1.2,
+      "xpBase": 50,
+      "xpExponent": 1.5,
       "statGrowthPerLevel": {
         "hp": 0.02,
         "atk": 0.02,
@@ -72,11 +72,11 @@
     },
     "playerLevel": {
       "xpFormula": "base * (level ** expo)",
-      "xpBase": 40,
-      "xpExponent": 1.02,
+      "xpBase": 90,
+      "xpExponent": 1.6,
       "energyPerLevel": 5,
       "xpPerEnemyKill": 3,
-      "xpPerCapture": 6
+      "xpPerCapture": 8
     },
     "energy": {
       "enabled": true,
@@ -165,7 +165,7 @@
       "fire": {
         "id": "fire",
         "name": "Meute",
-        "description": "Augmente l'attaque d'un autre allié aléatoire de 10% pour une attaque (5% de chance).",
+        "description": "Augmente l'attaque d'un autre allié aléatoire pour la prochaine attaque.",
         "trigger": "onAttack",
         "chance": 0.05,
         "value": 10,
@@ -174,7 +174,7 @@
       "nature": {
         "id": "nature",
         "name": "Régénération",
-        "description": "Soigne 10% des PV max sur l'allié possédant le moins de vie (10% de chance).",
+        "description": "Soigne l'allié possédant le moins de vie.",
         "trigger": "onTurnEnd",
         "chance": 0.1,
         "value": 10,
@@ -183,7 +183,7 @@
       "ice": {
         "id": "ice",
         "name": "Œil Vif",
-        "description": "Augmente les dégâts critiques de +25%.",
+        "description": "Augmente les dégâts critiques.",
         "trigger": "passive",
         "chance": 1,
         "value": 25,
@@ -192,7 +192,7 @@
       "water": {
         "id": "water",
         "name": "Tsunami",
-        "description": "À la fin du tour, 10% de chance d'infliger 5% de dégâts (des PV max) à tous les adversaires.",
+        "description": "À la fin du tour, peut infliger des dégâts à tous les adversaires.",
         "trigger": "onTurnEnd",
         "chance": 0.1,
         "value": 5,
@@ -201,7 +201,7 @@
       "metal": {
         "id": "metal",
         "name": "Mue",
-        "description": "Juste avant d'attaquer, retire toutes les altérations d'état sur soi-même (35% de chance).",
+        "description": "Juste avant d'attaquer, peut retirer toutes les altérations d'état sur soi-même.",
         "trigger": "onAttack",
         "chance": 0.35,
         "value": 0,
@@ -210,7 +210,7 @@
       "electric": {
         "id": "electric",
         "name": "Paralysie",
-        "description": "Peut paralyser l'adversaire touché (5% de chance), l'empêchant d'agir pendant 1 attaque.",
+        "description": "Peut paralyser l'adversaire touché, l'empêchant d'agir pendant 1 attaque.",
         "trigger": "onHit",
         "chance": 0.05,
         "value": 1,
@@ -219,7 +219,7 @@
       "shadow": {
         "id": "shadow",
         "name": "Ombre",
-        "description": "Augmente l'esquive de 7%.",
+        "description": "Augmente l'esquive.",
         "trigger": "passive",
         "chance": 1,
         "value": 7,
@@ -228,7 +228,7 @@
       "chaos": {
         "id": "chaos",
         "name": "Venin",
-        "description": "Peut empoisonner l'adversaire touché (5% de chance) : -2% PV max par tour pendant 5 tours.",
+        "description": "Peut empoisonner l'adversaire touché, lui retirant des PV tous les tours pendant 5 tours.",
         "trigger": "onHit",
         "chance": 0.05,
         "value": 2,
@@ -238,7 +238,7 @@
       "light": {
         "id": "light",
         "name": "Contre-Attaque",
-        "description": "Lorsqu'il subit des dégâts, 5% de chance de lancer une attaque immédiatement sur l'attaquant.",
+        "description": "Lorsqu'il subit des dégâts, chance de lancer une attaque immédiatement sur l'attaquant.",
         "trigger": "onDamaged",
         "chance": 0.05,
         "value": 0,
@@ -247,7 +247,7 @@
       "magic": {
         "id": "magic",
         "name": "Hypnose",
-        "description": "Peut charmer l'adversaire touché (5% de chance) : sa prochaine attaque vise un de ses coéquipiers au hasard.",
+        "description": "Peut charmer l'adversaire touché : sa prochaine attaque vise un de ses coéquipiers au hasard.",
         "trigger": "onHit",
         "chance": 0.05,
         "value": 1,
@@ -256,12 +256,15 @@
       "Cryptide": {
         "id": "Cryptide",
         "name": "Mystère",
-        "description": "Au début du combat, ce créature reçoit aléatoirement un des autres passifs.",
+        "description": "Au début du combat, ce créature reçoit aléatoirement un passif d'un autre animal en jeu.",
         "trigger": "onBattleStart",
         "chance": 1,
         "value": 0,
         "icon": "🐉"
       }
+    },
+    "quests": {
+      "weeklyCount": 5
     }
   },
   "types": [
@@ -513,7 +516,16 @@
         "cx": 47.19739152244796,
         "cy": 71.9656283566058,
         "r": 45
-      }
+      },
+      "tags": [
+        "tag_europe",
+        "tag_asie",
+        "tag_afrique",
+        "tag_plaine",
+        "tag_fort",
+        "tag_herbivore",
+        "tag_minuscule"
+      ]
     },
     {
       "id": "Abeille1",
@@ -621,7 +633,16 @@
         "cx": 44,
         "cy": 56,
         "r": 44
-      }
+      },
+      "tags": [
+        "tag_europe",
+        "tag_asie",
+        "tag_amrique",
+        "tag_plaine",
+        "tag_montagne",
+        "tag_carnivore",
+        "tag_moyen"
+      ]
     },
     {
       "id": "Aigle1",
@@ -804,7 +825,14 @@
         "cy": 48.49999999999999,
         "r": 28.5
       },
-      "availableInLineCombat": false
+      "availableInLineCombat": false,
+      "tags": [
+        "tag_amrique",
+        "tag_fort",
+        "tag_milieu_aquatique",
+        "tag_carnivore",
+        "tag_grand"
+      ]
     },
     {
       "id": "Anaconda2",
@@ -950,7 +978,13 @@
         "cy": 29.25,
         "r": 30
       },
-      "availableInLineCombat": false
+      "availableInLineCombat": false,
+      "tags": [
+        "tag_afrique",
+        "tag_fort",
+        "tag_omnivore",
+        "tag_petit"
+      ]
     },
     {
       "id": "Aye-Aye1",
@@ -1022,7 +1056,17 @@
         "cy": 55,
         "r": 45
       },
-      "availableInLineCombat": false
+      "availableInLineCombat": false,
+      "tags": [
+        "tag_afrique",
+        "tag_europe",
+        "tag_asie",
+        "tag_oceanie",
+        "tag_amrique",
+        "tag_milieu_aquatique",
+        "tag_carnivore",
+        "tag_gigantesque"
+      ]
     },
     {
       "id": "Baleine1",
@@ -1130,7 +1174,16 @@
         "cx": 57.33371529767175,
         "cy": 57.42244128732966,
         "r": 37
-      }
+      },
+      "tags": [
+        "tag_europe",
+        "tag_asie",
+        "tag_amrique",
+        "tag_fort",
+        "tag_plaine",
+        "tag_carnivore",
+        "tag_petit"
+      ]
     },
     {
       "id": "Belette1",
@@ -1201,7 +1254,13 @@
         "cx": 38,
         "cy": 57.046070460704605,
         "r": 30
-      }
+      },
+      "tags": [
+        "tag_asie",
+        "tag_milieu_aquatique",
+        "tag_omnivore",
+        "tag_petit"
+      ]
     },
     {
       "id": "Carpe1",
@@ -1272,7 +1331,16 @@
         "cx": 55,
         "cy": 34.25,
         "r": 45
-      }
+      },
+      "tags": [
+        "tag_afrique",
+        "tag_europe",
+        "tag_asie",
+        "tag_amrique",
+        "tag_plaine",
+        "tag_carnivore",
+        "tag_petit"
+      ]
     },
     {
       "id": "Chat1",
@@ -1380,7 +1448,15 @@
         "cx": 46.666666666666664,
         "cy": 42,
         "r": 27
-      }
+      },
+      "tags": [
+        "tag_europe",
+        "tag_asie",
+        "tag_plaine",
+        "tag_fort",
+        "tag_herbivore",
+        "tag_grand"
+      ]
     },
     {
       "id": "Chevreuil1",
@@ -1488,7 +1564,16 @@
         "cx": 49.66664930465129,
         "cy": 39.997684649224354,
         "r": 34
-      }
+      },
+      "tags": [
+        "tag_europe",
+        "tag_asie",
+        "tag_amrique",
+        "tag_plaine",
+        "tag_fort",
+        "tag_omnivore",
+        "tag_petit"
+      ]
     },
     {
       "id": "Corbeau1",
@@ -1597,7 +1682,15 @@
         "cx": 53,
         "cy": 45,
         "r": 45
-      }
+      },
+      "tags": [
+        "tag_afrique",
+        "tag_asie",
+        "tag_plaine",
+        "tag_fort",
+        "tag_herbivore",
+        "tag_gigantesque"
+      ]
     },
     {
       "id": "Eléphant1",
@@ -1853,7 +1946,18 @@
         "cx": 50,
         "cy": 50,
         "r": 30
-      }
+      },
+      "tags": [
+        "tag_afrique",
+        "tag_europe",
+        "tag_asie",
+        "tag_amrique",
+        "tag_plaine",
+        "tag_fort",
+        "tag_montagne",
+        "tag_omnivore",
+        "tag_minuscule"
+      ]
     },
     {
       "id": "Fourmi1",
@@ -1924,7 +2028,17 @@
         "cx": 36.166805562789726,
         "cy": 33.5,
         "r": 33.5
-      }
+      },
+      "tags": [
+        "tag_afrique",
+        "tag_europe",
+        "tag_asie",
+        "tag_amrique",
+        "tag_fort",
+        "tag_milieu_aquatique",
+        "tag_carnivore",
+        "tag_petit"
+      ]
     },
     {
       "id": "Grenouille1",
@@ -2032,7 +2146,17 @@
         "cx": 57.333333333333336,
         "cy": 61.627906976744185,
         "r": 30
-      }
+      },
+      "tags": [
+        "tag_afrique",
+        "tag_europe",
+        "tag_asie",
+        "tag_amrique",
+        "tag_plaine",
+        "tag_fort",
+        "tag_omnivore",
+        "tag_minuscule"
+      ]
     },
     {
       "id": "Guêpe1",
@@ -2140,7 +2264,17 @@
         "cx": 48.99994791395385,
         "cy": 45,
         "r": 45
-      }
+      },
+      "tags": [
+        "tag_europe",
+        "tag_asie",
+        "tag_afrique",
+        "tag_amrique",
+        "tag_plaine",
+        "tag_fort",
+        "tag_insectivore",
+        "tag_petit"
+      ]
     },
     {
       "id": "Hérisson1",
@@ -2211,7 +2345,16 @@
         "cx": 50.357142857142854,
         "cy": 56,
         "r": 45
-      }
+      },
+      "tags": [
+        "tag_afrique",
+        "tag_europe",
+        "tag_asie",
+        "tag_amrique",
+        "tag_fort",
+        "tag_carnivore",
+        "tag_moyen"
+      ]
     },
     {
       "id": "Hibou1",
@@ -2254,7 +2397,7 @@
       "id": "Hibou2",
       "name": "Hibou",
       "description": "",
-      "portrait": "https://www.onf.fr/outils/articles/b79de903-a9c7-4e96-9e90-c7b65c327c28/++versions++/1/++paras++/1/++illustration++/++i18n++data:fr/++thumb++md:w1200?_=1693498215.407016",
+      "portrait": "https://www.portcros-parcnational.fr/sites/portcros-parcnational.fr/files/styles/extra_large/public/hibou-petit-duc.jpg?itok=_5nHNOeS",
       "rarity": "rare",
       "evolutionLine": "Hibou",
       "evolutionStage": 2,
@@ -2272,19 +2415,19 @@
       },
       "evolvesTo": "Hibou3",
       "portraitCrop": {
-        "x": 37.64705882352941,
-        "y": 27.352941176470587,
+        "x": 48.82352941176471,
+        "y": 27.058823529411764,
         "zoom": 1.7
       },
       "detailCrop": {
-        "x": 32.42424242424242,
-        "y": 20.833333333333336,
-        "zoom": 1.5
+        "x": 50.0000012190218,
+        "y": 17.833333333333336,
+        "zoom": 1
       },
       "combatCrop": {
-        "cx": 36.9326799673317,
-        "cy": 30.5,
-        "r": 25
+        "cx": 48.59934663399837,
+        "cy": 44.277778712143196,
+        "r": 33
       }
     },
     {
@@ -2356,7 +2499,15 @@
         "cx": 53.10868245294475,
         "cy": 36.25,
         "r": 45
-      }
+      },
+      "tags": [
+        "tag_europe",
+        "tag_asie",
+        "tag_plaine",
+        "tag_fort",
+        "tag_herbivore",
+        "tag_petit"
+      ]
     },
     {
       "id": "Lapin1",
@@ -2428,7 +2579,13 @@
         "cx": 53.33350695348716,
         "cy": 40.013263634235784,
         "r": 34
-      }
+      },
+      "tags": [
+        "tag_afrique",
+        "tag_plaine",
+        "tag_carnivore",
+        "tag_grand"
+      ]
     },
     {
       "id": "Lion1",
@@ -2685,7 +2842,17 @@
         "cx": 51.33340278139486,
         "cy": 25.506376594148538,
         "r": 34
-      }
+      },
+      "tags": [
+        "tag_europe",
+        "tag_asie",
+        "tag_amrique",
+        "tag_plaine",
+        "tag_fort",
+        "tag_montagne",
+        "tag_carnivore",
+        "tag_grand"
+      ]
     },
     {
       "id": "Loup1",
@@ -2868,7 +3035,14 @@
         "cx": 50,
         "cy": 39.5,
         "r": 45
-      }
+      },
+      "tags": [
+        "tag_europe",
+        "tag_amrique",
+        "tag_milieu_aquatique",
+        "tag_carnivore",
+        "tag_grand"
+      ]
     },
     {
       "id": "Phoque1",
@@ -3050,7 +3224,16 @@
         "cx": 58.99999999999999,
         "cy": 53,
         "r": 28
-      }
+      },
+      "tags": [
+        "tag_afrique",
+        "tag_europe",
+        "tag_asie",
+        "tag_amrique",
+        "tag_plaine",
+        "tag_omnivore",
+        "tag_petit"
+      ]
     },
     {
       "id": "Rat1",
@@ -3121,7 +3304,16 @@
         "cx": 39.33277774884108,
         "cy": 54.687024337414286,
         "r": 27
-      }
+      },
+      "tags": [
+        "tag_europe",
+        "tag_asie",
+        "tag_amrique",
+        "tag_plaine",
+        "tag_fort",
+        "tag_omnivore",
+        "tag_moyen"
+      ]
     },
     {
       "id": "Renard1",
@@ -3267,7 +3459,17 @@
         "cx": 56.333663211625606,
         "cy": 57.120011125017385,
         "r": 30
-      }
+      },
+      "tags": [
+        "tag_afrique",
+        "tag_europe",
+        "tag_asie",
+        "tag_oceanie",
+        "tag_amrique",
+        "tag_milieu_aquatique",
+        "tag_carnivore",
+        "tag_gigantesque"
+      ]
     },
     {
       "id": "Requin1",
@@ -3524,7 +3726,14 @@
         "cx": 47.99989582790771,
         "cy": 49.669233552121554,
         "r": 38
-      }
+      },
+      "tags": [
+        "tag_afrique",
+        "tag_asie",
+        "tag_plaine",
+        "tag_herbivore",
+        "tag_gigantesque"
+      ]
     },
     {
       "id": "Rhinocéros1",
@@ -3743,7 +3952,14 @@
         "cx": 57.333333333333336,
         "cy": 54.333333333333336,
         "r": 30
-      }
+      },
+      "tags": [
+        "tag_europe",
+        "tag_asie",
+        "tag_fort",
+        "tag_omnivore",
+        "tag_grand"
+      ]
     },
     {
       "id": "Sanglier1",
@@ -3889,7 +4105,14 @@
         "cx": 34.33251731861034,
         "cy": 30,
         "r": 30
-      }
+      },
+      "tags": [
+        "tag_asie",
+        "tag_amrique",
+        "tag_fort",
+        "tag_carnivore",
+        "tag_petit"
+      ]
     },
     {
       "id": "Scolopendre1",
@@ -4146,7 +4369,13 @@
         "cx": 69.33333333333333,
         "cy": 36.666666666666664,
         "r": 30
-      }
+      },
+      "tags": [
+        "tag_asie",
+        "tag_fort",
+        "tag_carnivore",
+        "tag_grand"
+      ]
     },
     {
       "id": "Tigre1",
@@ -4365,7 +4594,18 @@
         "cx": 44.65367211973547,
         "cy": 59.5,
         "r": 30
-      }
+      },
+      "tags": [
+        "tag_afrique",
+        "tag_europe",
+        "tag_asie",
+        "tag_oceanie",
+        "tag_amrique",
+        "tag_plaine",
+        "tag_milieu_aquatique",
+        "tag_omnivore",
+        "tag_moyen"
+      ]
     },
     {
       "id": "Tortue1",
@@ -4511,7 +4751,16 @@
         "cx": 40,
         "cy": 34,
         "r": 40
-      }
+      },
+      "tags": [
+        "tag_europe",
+        "tag_asie",
+        "tag_amrique",
+        "tag_plaine",
+        "tag_montagne",
+        "tag_herbivore",
+        "tag_grand"
+      ]
     },
     {
       "id": "Vache2",
@@ -4659,7 +4908,13 @@
         "cx": 52,
         "cy": 36,
         "r": 36
-      }
+      },
+      "tags": [
+        "tag_amrique",
+        "tag_plaine",
+        "tag_herbivore",
+        "tag_grand"
+      ]
     },
     {
       "id": "Bison1",
@@ -5340,6 +5595,33 @@
       "pool": "all",
       "featured": [],
       "featuredRateBoost": 2
+    },
+    {
+      "id": "banner_event_evt_1782654863735_fpq4r",
+      "name": "Event : Afrique",
+      "description": "Toutes les créatures Afrique disponibles en bannière !",
+      "active": true,
+      "featured": [
+        "Abeille0",
+        "Aye-Aye0",
+        "Baleine0",
+        "Chat0",
+        "Eléphant0",
+        "Fourmi0",
+        "Grenouille0",
+        "Guêpe0",
+        "Hérisson0",
+        "Hibou0",
+        "Lion0",
+        "Rat0",
+        "Requin0",
+        "Rhinocéros0",
+        "Tortue0"
+      ],
+      "pool": "tag",
+      "tagId": "tag_afrique",
+      "featuredRateBoost": 2,
+      "isEventBanner": true
     }
   ],
   "dailyQuests": [
@@ -5350,7 +5632,7 @@
       "active": true,
       "label": "Capturer 1 créature",
       "reward": {
-        "crystals": 15,
+        "crystals": 25,
         "gold": 0,
         "items": {}
       }
@@ -5362,7 +5644,7 @@
       "active": true,
       "label": "Capturer 2 créatures",
       "reward": {
-        "crystals": 35,
+        "crystals": 50,
         "gold": 0,
         "items": {}
       }
@@ -5374,7 +5656,7 @@
       "active": true,
       "label": "Capturer 3 créatures",
       "reward": {
-        "crystals": 70,
+        "crystals": 80,
         "gold": 0,
         "items": {}
       }
@@ -5387,7 +5669,7 @@
       "label": "Battre 5 ennemis",
       "reward": {
         "crystals": 0,
-        "gold": 150,
+        "gold": 40,
         "items": {}
       }
     },
@@ -5399,7 +5681,7 @@
       "label": "Battre 10 ennemis",
       "reward": {
         "crystals": 0,
-        "gold": 300,
+        "gold": 80,
         "items": {}
       }
     },
@@ -5411,7 +5693,7 @@
       "label": "Invoquer 1 équipement",
       "reward": {
         "crystals": 0,
-        "gold": 50,
+        "gold": 20,
         "items": {}
       }
     },
@@ -5423,7 +5705,7 @@
       "label": "Invoquer 10 équipements",
       "reward": {
         "crystals": 0,
-        "gold": 550,
+        "gold": 250,
         "items": {}
       }
     },
@@ -5434,7 +5716,7 @@
       "active": true,
       "label": "Invoquer 1 personnage",
       "reward": {
-        "crystals": 50,
+        "crystals": 25,
         "gold": 0,
         "items": {}
       }
@@ -5446,7 +5728,7 @@
       "active": true,
       "label": "Invoquer 10 personnages",
       "reward": {
-        "crystals": 550,
+        "crystals": 300,
         "gold": 0,
         "items": {}
       }
@@ -5459,8 +5741,10 @@
       "label": "Réussir 1 combat de lignée",
       "reward": {
         "crystals": 0,
-        "gold": 150,
-        "items": {}
+        "gold": 20,
+        "items": {
+          "item_energy_potion": 1
+        }
       }
     },
     {
@@ -5471,8 +5755,10 @@
       "label": "Réussir 3 combats de lignée",
       "reward": {
         "crystals": 0,
-        "gold": 400,
-        "items": {}
+        "gold": 65,
+        "items": {
+          "item_energy_potion": 3
+        }
       }
     },
     {
@@ -5483,7 +5769,7 @@
       "label": "Réussir 1 combat Full Aléatoire",
       "reward": {
         "crystals": 0,
-        "gold": 150,
+        "gold": 25,
         "items": {}
       }
     },
@@ -5495,7 +5781,7 @@
       "label": "Réussir 3 combats Full Aléatoire",
       "reward": {
         "crystals": 0,
-        "gold": 400,
+        "gold": 80,
         "items": {}
       }
     },
@@ -5506,12 +5792,361 @@
       "active": true,
       "label": "Réussir 1 combat d'Odyssée",
       "reward": {
-        "crystals": 0,
+        "crystals": 15,
         "gold": 0,
         "items": {
-          "item_energy_potion": 3
+          "item_power_pill": 1
         }
       }
+    },
+    {
+      "id": "pinned_daily_complete",
+      "type": "completeQuestDaily",
+      "target": 3,
+      "label": "Terminer 3 Quêtes Quotidiennes",
+      "active": true,
+      "tagId": null,
+      "reward": {
+        "crystals": 50,
+        "gold": 80,
+        "items": {}
+      },
+      "_pinned": true,
+      "targetLabel": "quêteQuotidienne"
+    }
+  ],
+  "weeklyQuests": [
+    {
+      "id": "wq_capture_5",
+      "type": "capture",
+      "target": 5,
+      "active": true,
+      "label": "Capturer 5 créatures",
+      "reward": {
+        "crystals": 180,
+        "gold": 0,
+        "items": {}
+      }
+    },
+    {
+      "id": "wq_capture_10",
+      "type": "capture",
+      "target": 10,
+      "active": true,
+      "label": "Capturer 10 créatures",
+      "reward": {
+        "crystals": 400,
+        "gold": 0,
+        "items": {}
+      }
+    },
+    {
+      "id": "wq_defeat_20",
+      "type": "defeat",
+      "target": 60,
+      "active": true,
+      "label": "Battre 60",
+      "reward": {
+        "crystals": 0,
+        "gold": 350,
+        "items": {}
+      }
+    },
+    {
+      "id": "wq_defeat_50",
+      "type": "defeat",
+      "target": 100,
+      "active": true,
+      "label": "Battre 100",
+      "reward": {
+        "crystals": 0,
+        "gold": 600,
+        "items": {}
+      }
+    },
+    {
+      "id": "wq_pull_char_20",
+      "type": "pullChar",
+      "target": 20,
+      "active": true,
+      "label": "Invoquer 20 animaux",
+      "reward": {
+        "crystals": 500,
+        "gold": 0,
+        "items": {}
+      }
+    },
+    {
+      "id": "wq_line_5",
+      "type": "line",
+      "target": 20,
+      "active": true,
+      "label": "Réussir un combat de lignée 20",
+      "reward": {
+        "crystals": 0,
+        "gold": 180,
+        "items": {}
+      }
+    },
+    {
+      "id": "wq_story_3",
+      "type": "story",
+      "target": 25,
+      "active": true,
+      "label": "Réussir un combat d'Odyssée 25",
+      "reward": {
+        "crystals": 400,
+        "gold": 200,
+        "items": {
+          "item_energy_potion": 2
+        }
+      }
+    },
+    {
+      "id": "wq_fullrandom_5",
+      "type": "fullRandom",
+      "target": 20,
+      "active": true,
+      "label": "Réussir un combat Full Aléatoire 20",
+      "reward": {
+        "crystals": 100,
+        "gold": 0,
+        "items": {}
+      }
+    },
+    {
+      "id": "pinned_weekly_complete",
+      "type": "completeQuestWeekly",
+      "target": 25,
+      "targetLabel": "quêteHebdomadaire",
+      "label": "Terminer 25 Quêtes Hebdomadaires",
+      "active": true,
+      "tagId": null,
+      "reward": {
+        "crystals": 200,
+        "gold": 0,
+        "items": {
+          "item_power_pill": 1
+        }
+      },
+      "_pinned": true
+    }
+  ],
+  "eventQuests": [
+    {
+      "id": "pinned_event_complete",
+      "type": "completeQuestEvent",
+      "target": 7,
+      "targetLabel": "quêteEvent",
+      "label": "Terminer 7 Quêtes d'Événement (Afrique)",
+      "active": true,
+      "tagId": "tag_afrique",
+      "reward": {
+        "crystals": 500,
+        "gold": 100,
+        "items": {},
+        "characters": "Eléphant0"
+      },
+      "_pinned": true
+    },
+    {
+      "id": "evt_1782654863735_fpq4r_q_capture3",
+      "type": "tagDefeat",
+      "tagId": "tag_afrique",
+      "target": 120,
+      "active": true,
+      "label": "Battre un animal [Tag] 120  (Afrique)",
+      "reward": {
+        "crystals": 300,
+        "gold": 0,
+        "items": {}
+      }
+    },
+    {
+      "id": "evt_1782654863735_fpq4r_q_capture10",
+      "type": "tagCapture",
+      "tagId": "tag_afrique",
+      "target": 10,
+      "active": true,
+      "label": "Capturer un animal [Tag] 10  (Afrique)",
+      "reward": {
+        "crystals": 250,
+        "gold": 0,
+        "items": {
+          "item_energy_potion": 1
+        }
+      }
+    },
+    {
+      "id": "evt_1782654863735_fpq4r_q_defeat10",
+      "type": "tagPull",
+      "tagId": "tag_afrique",
+      "target": 10,
+      "active": true,
+      "label": "Invoquer un animal [Tag] 10  (Afrique)",
+      "reward": {
+        "crystals": 300,
+        "gold": 0,
+        "items": {}
+      }
+    },
+    {
+      "id": "evt_1782654863735_fpq4r_q_defeat30",
+      "type": "eventInvasion",
+      "tagId": "tag_afrique",
+      "target": 30,
+      "active": true,
+      "label": "Finir un combat Invasion [Tag] 30 combat(s) d'Invasion (Afrique)",
+      "reward": {
+        "crystals": 0,
+        "gold": 250,
+        "items": {}
+      },
+      "targetLabel": "combatInvasion"
+    },
+    {
+      "id": "evt_1782654863735_fpq4r_q_invasion5",
+      "type": "eventInvasion",
+      "tagId": "tag_afrique",
+      "target": 50,
+      "active": true,
+      "label": "Finir un combat Invasion [Tag] 50 combat(s) d'Invasion (Afrique)",
+      "reward": {
+        "crystals": 0,
+        "gold": 350,
+        "items": {}
+      },
+      "targetLabel": "combatInvasion"
+    },
+    {
+      "id": "evt_1782654863735_fpq4r_q_defi3",
+      "type": "eventDefi",
+      "tagId": "tag_afrique",
+      "target": 25,
+      "active": true,
+      "label": "Finir un combat Défi [Tag] 25 combat(s) de Défi (Afrique)",
+      "reward": {
+        "crystals": 150,
+        "gold": 0,
+        "items": {}
+      },
+      "targetLabel": "combatDefi"
+    },
+    {
+      "id": "eq_1782722062370",
+      "type": "eventDefi",
+      "target": 40,
+      "targetLabel": "combatDefi",
+      "active": true,
+      "tagId": "tag_afrique",
+      "label": "Finir un combat Défi [Tag] 40 combat(s) de Défi (Afrique)",
+      "reward": {
+        "crystals": 250,
+        "gold": 0,
+        "items": {}
+      }
+    }
+  ],
+  "tagCategories": [
+    {
+      "id": "tc_continent",
+      "name": "Continent",
+      "tags": [
+        {
+          "id": "tag_afrique",
+          "label": "Afrique"
+        },
+        {
+          "id": "tag_europe",
+          "label": "Europe"
+        },
+        {
+          "id": "tag_asie",
+          "label": "Asie"
+        },
+        {
+          "id": "tag_oceanie",
+          "label": "Océanie"
+        },
+        {
+          "id": "tag_amrique",
+          "label": "Amérique"
+        }
+      ]
+    },
+    {
+      "id": "Habitat",
+      "name": "Habitat",
+      "tags": [
+        {
+          "id": "tag_plaine",
+          "label": "Plaine"
+        },
+        {
+          "id": "tag_fort",
+          "label": "Forêt"
+        },
+        {
+          "id": "tag_dsert",
+          "label": "Désert"
+        },
+        {
+          "id": "tag_montagne",
+          "label": "Montagne"
+        },
+        {
+          "id": "tag_milieu_aquatique",
+          "label": "Milieu Aquatique"
+        }
+      ]
+    },
+    {
+      "id": "Régime Alimentaire",
+      "name": "Régime Alimentaire",
+      "tags": [
+        {
+          "id": "tag_carnivore",
+          "label": "Carnivore"
+        },
+        {
+          "id": "tag_herbivore",
+          "label": "Herbivore"
+        },
+        {
+          "id": "tag_omnivore",
+          "label": "Omnivore"
+        },
+        {
+          "id": "tag_insectivore",
+          "label": "Insectivore"
+        }
+      ]
+    },
+    {
+      "id": "Taille",
+      "name": "Taille",
+      "tags": [
+        {
+          "id": "tag_minuscule",
+          "label": "Minuscule"
+        },
+        {
+          "id": "tag_petit",
+          "label": "Petit"
+        },
+        {
+          "id": "tag_moyen",
+          "label": "Moyen"
+        },
+        {
+          "id": "tag_grand",
+          "label": "Grand"
+        },
+        {
+          "id": "tag_gigantesque",
+          "label": "Gigantesque"
+        }
+      ]
     }
   ],
   "loginCycles": [
@@ -5629,19 +6264,19 @@
       "id": "shop_1782364433839",
       "category": "item",
       "refId": "item_power_pill",
-      "price": 100,
+      "price": 350,
       "currency": "crystals",
       "active": true,
       "limit": {
-        "type": "none",
-        "amount": 0
+        "type": "daily",
+        "amount": 3
       }
     },
     {
       "id": "shop_1782364448445",
       "category": "item",
       "refId": "item_energy_potion",
-      "price": 200,
+      "price": 100,
       "currency": "gold",
       "active": true,
       "limit": {
@@ -5650,10 +6285,22 @@
       }
     },
     {
-      "id": "shop_1782364529195",
+      "id": "shop_1782499376687",
+      "category": "equipment",
+      "refId": "AccC",
+      "price": 150,
+      "currency": "gold",
+      "active": true,
+      "limit": {
+        "type": "none",
+        "amount": 0
+      }
+    },
+    {
+      "id": "shop_1782499384001",
       "category": "equipment",
       "refId": "ArmeC",
-      "price": 500,
+      "price": 150,
       "currency": "gold",
       "active": true,
       "limit": {
@@ -5662,10 +6309,10 @@
       }
     },
     {
-      "id": "shop_1782364537816",
+      "id": "shop_1782499396207",
       "category": "equipment",
       "refId": "ArmureC",
-      "price": 500,
+      "price": 150,
       "currency": "gold",
       "active": true,
       "limit": {
@@ -5674,10 +6321,10 @@
       }
     },
     {
-      "id": "shop_1782364560735",
+      "id": "shop_1782499443797",
       "category": "equipment",
-      "refId": "equip_001",
-      "price": 750,
+      "refId": "AccC2",
+      "price": 150,
       "currency": "gold",
       "active": true,
       "limit": {
@@ -5686,10 +6333,58 @@
       }
     },
     {
-      "id": "shop_1782364570059",
+      "id": "shop_1782499459371",
+      "category": "equipment",
+      "refId": "ArmeC2",
+      "price": 150,
+      "currency": "gold",
+      "active": true,
+      "limit": {
+        "type": "none",
+        "amount": 0
+      }
+    },
+    {
+      "id": "shop_1782499724141",
+      "category": "equipment",
+      "refId": "ArmureC2",
+      "price": 150,
+      "currency": "gold",
+      "active": true,
+      "limit": {
+        "type": "none",
+        "amount": 0
+      }
+    },
+    {
+      "id": "shop_1782499736735",
+      "category": "equipment",
+      "refId": "ArmureU2",
+      "price": 250,
+      "currency": "gold",
+      "active": true,
+      "limit": {
+        "type": "none",
+        "amount": 0
+      }
+    },
+    {
+      "id": "shop_1782499778106",
+      "category": "equipment",
+      "refId": "ArmeU2",
+      "price": 250,
+      "currency": "gold",
+      "active": true,
+      "limit": {
+        "type": "none",
+        "amount": 0
+      }
+    },
+    {
+      "id": "shop_1782499785124",
       "category": "equipment",
       "refId": "equip_003",
-      "price": 750,
+      "price": 250,
       "currency": "gold",
       "active": true,
       "limit": {
@@ -5698,7 +6393,43 @@
       }
     },
     {
-      "id": "shop_1782364601739",
+      "id": "shop_1782499791134",
+      "category": "equipment",
+      "refId": "ArmeU",
+      "price": 250,
+      "currency": "gold",
+      "active": true,
+      "limit": {
+        "type": "none",
+        "amount": 0
+      }
+    },
+    {
+      "id": "shop_1782499800120",
+      "category": "equipment",
+      "refId": "ArmureU",
+      "price": 250,
+      "currency": "gold",
+      "active": true,
+      "limit": {
+        "type": "none",
+        "amount": 0
+      }
+    },
+    {
+      "id": "shop_1782499808518",
+      "category": "equipment",
+      "refId": "equip_001",
+      "price": 250,
+      "currency": "gold",
+      "active": true,
+      "limit": {
+        "type": "none",
+        "amount": 0
+      }
+    },
+    {
+      "id": "shop_1782499866294",
       "category": "character",
       "refId": "Abeille0",
       "price": 300,
@@ -5710,10 +6441,10 @@
       }
     },
     {
-      "id": "shop_1782364662219",
+      "id": "shop_1782499881212",
       "category": "character",
-      "refId": "Anaconda1",
-      "price": 1200,
+      "refId": "Aigle0",
+      "price": 650,
       "currency": "crystals",
       "active": true,
       "limit": {
@@ -5722,56 +6453,181 @@
       }
     },
     {
-      "id": "shop_1782364711873",
+      "id": "shop_1782499910260",
+      "category": "character",
+      "refId": "Anaconda1",
+      "price": 1300,
+      "currency": "crystals",
+      "active": true,
+      "limit": {
+        "type": "daily",
+        "amount": 1
+      }
+    },
+    {
+      "id": "shop_1782499927324",
       "category": "character",
       "refId": "Aye-Aye0",
-      "price": 4800,
+      "price": 7000,
       "currency": "crystals",
       "active": true,
       "limit": {
-        "type": "none",
-        "amount": 0
+        "type": "daily",
+        "amount": 1
       }
     },
     {
-      "id": "shop_1782364731112",
-      "category": "character",
-      "refId": "Aigle0",
-      "price": 600,
-      "currency": "crystals",
-      "active": true,
-      "limit": {
-        "type": "none",
-        "amount": 0
-      }
-    },
-    {
-      "id": "shop_1782364764736",
+      "id": "shop_1782499945908",
       "category": "character",
       "refId": "Baleine0",
-      "price": 2400,
+      "price": 3000,
       "currency": "crystals",
       "active": true,
       "limit": {
-        "type": "none",
-        "amount": 0
+        "type": "daily",
+        "amount": 1
       }
     },
     {
-      "id": "shop_1782364816891",
-      "category": "equipment",
-      "refId": "ArmeC",
-      "price": 100,
+      "id": "shop_1782499969502",
+      "category": "character",
+      "refId": "Belette0",
+      "price": 180,
       "currency": "crystals",
       "active": true,
       "limit": {
-        "type": "none",
-        "amount": 0
+        "type": "daily",
+        "amount": 1
       }
     }
   ],
   "patchNotes": {
-    "id": "pn_mqthjsed",
-    "text": "Mise à jour 0.3.0 :\n\n-Recadrage des images\n-Résolution du bug qui n'affichait qu'une seule évolution lorsque plusieurs avaient lieu en même temps\n-Nouveaux équipements\n-Ouverture de la boutique en jeu\n-Les objets sont désormais stocké dans l'Inventaire\n-Rééquilibrage des niveaux de joueur (les niveaux montent plus rapidement)\n\n-Ajout d' 1 lignée évolutive"
+    "id": "pn_mqz2838i",
+    "blocks": [
+      {
+        "title": "Nouvel Event - Afrique",
+        "image": "https://www.jaitoutcompris.com/img/encyclo/elephant-afrique.jpg",
+        "text": "Le premier Event limité est là !\n\nRessent la puissance de l'Afrique avec un Event orienté vers ce continent ancestrale !\n- Combat des animaux africains dans l'Invasion Afrique et Défi Afrique\n- Une bannière exclusive pour les animaux africains\n- Des remises dans la boutique sur les animaux africains\n- Des quêtes d'Event permettant de gagner de belles récompenses dont un éléphanteau mythique"
+      },
+      {
+        "title": "Note de mise à jour",
+        "image": "🔧",
+        "text": "Mise à jour 0.4.0 :\n\n-Ajout de quêtes Hebdomadaire\n-Ajout d'Events avec bannière, quêtes et combats sur un thème précis\n\nMise à jour 0.3.0 :\n\n-Recadrage des images\n-Résolution du bug qui n'affichait qu'une seule évolution lorsque plusieurs avaient lieu en même temps\n-Nouveaux équipements\n-Ouverture de la boutique en jeu\n-Les objets sont désormais stocké dans l'Inventaire\n-Rééquilibrage des niveaux de joueur (les niveaux montent plus rapidement)\n\n-Ajout d' 1 lignée évolutive"
+      }
+    ]
+  },
+  "events": {
+    "current": {
+      "id": "evt_1782654863735_fpq4r",
+      "tagId": "tag_afrique",
+      "tagLabel": "Afrique",
+      "customTitle": "",
+      "startDate": 1782597600000,
+      "endDate": 1783461600000,
+      "durationDays": 10,
+      "bannerId": "banner_event_evt_1782654863735_fpq4r",
+      "shopDiscountPct": 20,
+      "questIds": [
+        "evt_1782654863735_fpq4r_q_capture3",
+        "evt_1782654863735_fpq4r_q_capture10",
+        "evt_1782654863735_fpq4r_q_defeat10",
+        "evt_1782654863735_fpq4r_q_defeat30",
+        "evt_1782654863735_fpq4r_q_invasion5",
+        "evt_1782654863735_fpq4r_q_defi3"
+      ],
+      "quests": [
+        {
+          "id": "evt_1782654863735_fpq4r_q_capture3",
+          "type": "capture",
+          "tagId": "tag_afrique",
+          "target": 3,
+          "active": true,
+          "label": "Capturer 3 créatures Afrique",
+          "reward": {
+            "crystals": 150,
+            "gold": 0,
+            "items": {}
+          }
+        },
+        {
+          "id": "evt_1782654863735_fpq4r_q_capture10",
+          "type": "capture",
+          "tagId": "tag_afrique",
+          "target": 10,
+          "active": true,
+          "label": "Capturer 10 créatures Afrique",
+          "reward": {
+            "crystals": 400,
+            "gold": 0,
+            "items": {
+              "item_energy_potion": 1
+            }
+          }
+        },
+        {
+          "id": "evt_1782654863735_fpq4r_q_defeat10",
+          "type": "defeat",
+          "tagId": "tag_afrique",
+          "target": 10,
+          "active": true,
+          "label": "Battre 10 créatures Afrique en combat",
+          "reward": {
+            "crystals": 0,
+            "gold": 500,
+            "items": {}
+          }
+        },
+        {
+          "id": "evt_1782654863735_fpq4r_q_defeat30",
+          "type": "defeat",
+          "tagId": "tag_afrique",
+          "target": 30,
+          "active": true,
+          "label": "Battre 30 créatures Afrique en combat",
+          "reward": {
+            "crystals": 300,
+            "gold": 0,
+            "items": {}
+          }
+        },
+        {
+          "id": "evt_1782654863735_fpq4r_q_invasion5",
+          "type": "eventInvasion",
+          "tagId": "tag_afrique",
+          "target": 5,
+          "active": true,
+          "label": "Remporter 5 combats Invasion Afrique",
+          "reward": {
+            "crystals": 500,
+            "gold": 0,
+            "items": {}
+          }
+        },
+        {
+          "id": "evt_1782654863735_fpq4r_q_defi3",
+          "type": "eventDefi",
+          "tagId": "tag_afrique",
+          "target": 3,
+          "active": true,
+          "label": "Remporter 3 Défis Afrique",
+          "reward": {
+            "crystals": 0,
+            "gold": 800,
+            "items": {
+              "item_energy_potion": 2
+            }
+          }
+        }
+      ],
+      "invasionConfig": {
+        "energyCost": 15
+      },
+      "defiConfig": {
+        "energyCost": 20
+      },
+      "active": true,
+      "newCharIds": []
+    },
+    "next": null
   }
 }

@@ -34,6 +34,7 @@ const APP_SHELL = [
   './',
   './index.html',
   './manifest.json',
+  './utils.js',
   './database.js',
   './state.js',
   './quests.js',

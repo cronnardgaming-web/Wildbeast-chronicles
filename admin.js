@@ -22,20 +22,27 @@ const AdminPanel = (() => {
   // ─── CONSTANTES ──────────────────────────────────────────────────────────────
 
   const TABS = [
-    { id: 'characters', label: '👤 Créatures' },
-    { id: 'types',      label: '🔮 Types'       },
-    { id: 'passives',   label: '💫 Passifs'     },
+    // ── Créatures & Monde ──────────────────────────────
+    { id: 'characters', label: '👤 Espèces'      },
+    { id: 'evolutions', label: '🌀 Évolutions'   },
+    { id: 'types',      label: '🔮 Types'        },
+    { id: 'passives',   label: '💫 Passifs'      },
+    { id: 'tags',       label: '🏷️ Tags'          },
+    // ── Équipement & Économie ─────────────────────────
     { id: 'equipment',  label: '⚙️ Équipements'  },
     { id: 'items',      label: '🎁 Objets'       },
     { id: 'shop',       label: '🛒 Boutique'     },
     { id: 'gacha',      label: '🎲 Gacha'        },
-    { id: 'evolutions', label: '🌀 Évolutions'   },
     { id: 'awakening',  label: '⭐ Awakening'    },
+    // ── Progression & Événements ──────────────────────
+    { id: 'quests',     label: '📋 Quêtes'       },
+    { id: 'daily',      label: '📅 Connexion'    },
+    { id: 'event',      label: '🎪 Événement'    },
+    { id: 'combat',     label: '⚔️ Combat'        },
+    // ── Administration ────────────────────────────────
     { id: 'player',     label: '🎮 Joueur'       },
     { id: 'resources',  label: '💎 Ressources'   },
-    { id: 'combat',     label: '⚔️ Combat'        },
-    { id: 'audio',      label: '🎵 Audio & Vidéo' },
-    { id: 'daily',      label: '📅 Quotidien'    },
+    { id: 'audio',      label: '🎵 Audio'        },
     { id: 'patchnotes', label: '📝 Note MàJ'     },
   ];
 
@@ -55,6 +62,7 @@ const AdminPanel = (() => {
   function init() {
     _buildPanel();
     _bindGlobalEvents();
+    _bindEvtPublic();
   }
 
   /**
@@ -84,12 +92,30 @@ const AdminPanel = (() => {
           </div>
         </div>
         <div id="admin-tabs">
-          ${TABS.map(t => `
+          <div class="admin-tab-group-label">🐾 Créatures</div>
+          ${TABS.slice(0,5).map(t => `
             <button class="admin-tab ${t.id === _activeTab ? 'active' : ''}"
                     data-tab="${t.id}" onclick="AdminPanel.switchTab('${t.id}')">
               ${t.label}
-            </button>
-          `).join('')}
+            </button>`).join('')}
+          <div class="admin-tab-group-label">💰 Économie</div>
+          ${TABS.slice(5,10).map(t => `
+            <button class="admin-tab ${t.id === _activeTab ? 'active' : ''}"
+                    data-tab="${t.id}" onclick="AdminPanel.switchTab('${t.id}')">
+              ${t.label}
+            </button>`).join('')}
+          <div class="admin-tab-group-label">📅 Progression</div>
+          ${TABS.slice(10,14).map(t => `
+            <button class="admin-tab ${t.id === _activeTab ? 'active' : ''}"
+                    data-tab="${t.id}" onclick="AdminPanel.switchTab('${t.id}')">
+              ${t.label}
+            </button>`).join('')}
+          <div class="admin-tab-group-label">⚙️ Admin</div>
+          ${TABS.slice(14).map(t => `
+            <button class="admin-tab ${t.id === _activeTab ? 'active' : ''}"
+                    data-tab="${t.id}" onclick="AdminPanel.switchTab('${t.id}')">
+              ${t.label}
+            </button>`).join('')}
         </div>
         <div id="admin-content">
           <div id="admin-loading">Chargement...</div>
@@ -109,93 +135,159 @@ const AdminPanel = (() => {
     const style = document.createElement('style');
     style.id = 'admin-styles';
     style.textContent = `
+      /* ════════════════════════════════════════════════════════
+         ADMIN PANEL — Thème Naturaliste
+         ════════════════════════════════════════════════════════ */
       #admin-panel { display:none; position:fixed; inset:0; z-index:9999; }
       #admin-panel.visible { display:flex; }
-      #admin-overlay { position:absolute; inset:0; background:rgba(0,0,0,0.75); }
+      #admin-overlay {
+        position:absolute; inset:0;
+        background:rgba(0,0,0,.7);
+        backdrop-filter:blur(4px);
+      }
       #admin-container {
         position:relative; z-index:1; margin:auto;
-        width:95vw; max-width:1200px; height:92vh; height:92dvh;
-        background:#1a1a2e; border:1px solid #444; border-radius:12px;
+        width:96vw; max-width:1280px; height:93vh; height:93dvh;
+        background:linear-gradient(160deg, #0d1a10, #0a1208);
+        border:1px solid #253d2a;
+        border-top:2px solid rgba(91,191,122,.3);
+        border-radius:14px;
         display:flex; flex-direction:column; overflow:hidden;
-        box-shadow:0 0 40px rgba(0,0,0,0.8);
+        box-shadow:0 0 60px rgba(0,0,0,.9), 0 0 0 1px rgba(91,191,122,.08) inset;
         padding-top:env(safe-area-inset-top);
+        font-family:'Inter', system-ui, sans-serif;
       }
       #admin-header {
         display:flex; align-items:center; justify-content:space-between;
         flex-wrap:wrap; gap:8px;
-        padding:14px 20px; background:#16213e; border-bottom:1px solid #333;
+        padding:12px 20px;
+        background:rgba(5,13,7,.6);
+        border-bottom:1px solid #1a2d1f;
         flex-shrink:0;
+        backdrop-filter:blur(6px);
       }
-      #admin-header h2 { margin:0; font-size:1.1rem; color:#e8d5b7; letter-spacing:.5px; }
+      #admin-header h2 {
+        margin:0; font-size:1rem; font-weight:700;
+        font-family:'Playfair Display', Georgia, serif;
+        color:#c8a96e; letter-spacing:.04em;
+        display:flex; align-items:center; gap:8px;
+      }
       #admin-header-actions {
         display:flex; gap:6px; flex-wrap:wrap; align-items:center;
       }
       .admin-header-sep{
-        width:1px; height:24px; background:rgba(255,255,255,.15); flex-shrink:0;
+        width:1px; height:22px; background:rgba(255,255,255,.1); flex-shrink:0;
       }
       @media (max-width:640px){
         #admin-header-actions{ width:100%; }
-        #admin-header-actions .admin-btn{ flex:1 1 auto; min-width:0; padding:8px 8px; font-size:.72rem; }
+        #admin-header-actions .admin-btn{ flex:1 1 auto; min-width:0; padding:7px 8px; font-size:.7rem; }
         .admin-header-sep{ display:none; }
       }
+
+      /* ── ONGLETS ── */
       #admin-tabs {
-        display:flex; flex-wrap:wrap; gap:4px; padding:10px 16px;
-        background:#0f3460; border-bottom:1px solid #333; flex-shrink:0;
+        display:flex; flex-wrap:wrap; gap:3px; padding:8px 14px;
+        background:#080f0a;
+        border-bottom:1px solid #1a2d1f;
+        flex-shrink:0;
       }
       .admin-tab {
-        padding:9px 14px; border:none; border-radius:6px; cursor:pointer;
-        font-size:.82rem; background:#1a1a2e; color:#aaa; transition:all .2s;
-        min-height:38px; touch-action:manipulation;
+        padding:7px 13px; border:1px solid transparent; border-radius:7px;
+        cursor:pointer; font-size:.78rem; font-weight:500;
+        background:transparent; color:#5a7a5e;
+        transition:all .18s;
+        min-height:34px; touch-action:manipulation;
+        letter-spacing:.02em;
       }
-      .admin-tab:hover { background:#2a2a4e; color:#fff; }
-      .admin-tab.active { background:#e94560; color:#fff; font-weight:600; }
+      .admin-tab:hover { background:#132118; color:#8fa88f; border-color:#253d2a; }
+      .admin-tab-group-label {
+        font-size:.6rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+        color:#4a6a4a; padding:2px 4px; margin-top:2px;
+      }
+      .admin-tab.active {
+        background:linear-gradient(135deg, #1a3d22, #132118);
+        color:#5bbf7a; border-color:#2d6e3a;
+        font-weight:700;
+        box-shadow:0 0 0 1px rgba(91,191,122,.15) inset;
+      }
+
+      /* ── CONTENU ── */
       #admin-content {
-        flex:1; overflow-y:auto; padding:20px;
-        -webkit-overflow-scrolling:touch; touch-action:pan-y; overscroll-behavior-y:contain;
+        flex:1; overflow-y:auto; padding:20px 22px;
+        -webkit-overflow-scrolling:touch; touch-action:pan-y;
+        overscroll-behavior-y:contain;
       }
-      /* ── FORMULAIRES ── */
+      #admin-content::-webkit-scrollbar{ width:5px; }
+      #admin-content::-webkit-scrollbar-track{ background:transparent; }
+      #admin-content::-webkit-scrollbar-thumb{ background:#253d2a; border-radius:3px; }
+
+      /* ── SECTIONS ── */
       .admin-section { margin-bottom:28px; }
       .admin-section-title {
-        font-size:1rem; font-weight:700; color:#e94560;
-        border-bottom:1px solid #333; padding-bottom:8px; margin-bottom:16px;
+        font-size:.9rem; font-weight:700; color:#c8a96e;
+        border-bottom:1px solid #1a2d1f; padding-bottom:7px; margin-bottom:14px;
+        letter-spacing:.04em; text-transform:uppercase; font-size:.78rem;
+        display:flex; align-items:center; gap:6px;
       }
+      .admin-sep { border:none; border-top:1px solid #1a2d1f; margin:24px 0; }
+
+      /* ── GRILLE ET FORMULAIRES ── */
       .admin-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:12px; }
-      .admin-field { display:flex; flex-direction:column; gap:4px; }
-      .admin-field label { font-size:.8rem; color:#aaa; }
+      .admin-field { display:flex; flex-direction:column; gap:5px; }
+      .admin-field label { font-size:.75rem; color:#8fa88f; font-weight:500; letter-spacing:.02em; }
       .admin-field input, .admin-field select, .admin-field textarea {
-        background:#0f3460; border:1px solid #444; border-radius:6px;
-        color:#fff; padding:7px 10px; font-size:.85rem; outline:none;
-        transition:border-color .2s;
+        background:#0d1a10; border:1px solid #253d2a; border-radius:7px;
+        color:#f0ede6; padding:8px 11px; font-size:.83rem; outline:none;
+        font-family:'Inter', sans-serif;
+        transition:border-color .18s, box-shadow .18s;
       }
       .admin-field input:focus, .admin-field select:focus, .admin-field textarea:focus {
-        border-color:#e94560;
+        border-color:#5bbf7a;
+        box-shadow:0 0 0 3px rgba(91,191,122,.12);
       }
       .admin-field textarea { min-height:70px; resize:vertical; }
+      .admin-field select option { background:#0d1a10; }
+
       /* ── BOUTONS ── */
       .admin-btn {
-        padding:9px 16px; border:none; border-radius:6px; cursor:pointer;
-        font-size:.82rem; font-weight:600; transition:all .2s;
-        min-height:38px; touch-action:manipulation;
+        padding:8px 15px; border:1px solid transparent; border-radius:7px;
+        cursor:pointer; font-size:.8rem; font-weight:600;
+        transition:all .18s; min-height:36px; touch-action:manipulation;
+        letter-spacing:.02em; font-family:'Inter', sans-serif;
       }
-      .admin-btn-primary  { background:#0f3460; color:#fff; }
-      .admin-btn-primary:hover  { background:#1a4a80; }
-      .admin-btn-success  { background:#22c55e; color:#fff; }
-      .admin-btn-success:hover  { background:#16a34a; }
-      .admin-btn-warning  { background:#f59e0b; color:#000; }
-      .admin-btn-warning:hover  { background:#d97706; }
-      .admin-btn-danger   { background:#e94560; color:#fff; }
-      .admin-btn-danger:hover   { background:#c73652; }
-      .admin-btn-secondary { background:#3b1d6e; color:#c4b5fd; }
-      .admin-btn-secondary:hover { background:#4c2a8a; }
-      .admin-btn-sm { padding:4px 10px; font-size:.75rem; }
-      .admin-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
-      /* ── DRAG & DROP ── */
+      .admin-btn:active{ transform:scale(.97); }
+      .admin-btn-primary  { background:#132d1c; color:#5bbf7a; border-color:#253d2a; }
+      .admin-btn-primary:hover  { background:#1a3d26; border-color:#5bbf7a; }
+      .admin-btn-success  { background:#1a4a2a; color:#5bbf7a; border-color:#2d6e3a; }
+      .admin-btn-success:hover  { background:#1f5a32; border-color:#5bbf7a; box-shadow:0 0 0 2px rgba(91,191,122,.15); }
+      .admin-btn-warning  { background:#3d2e12; color:#c8a96e; border-color:#5a4420; }
+      .admin-btn-warning:hover  { background:#4d3a18; border-color:#c8a96e; }
+      .admin-btn-danger   { background:#3d1220; color:#e05a6a; border-color:#5a1e2e; }
+      .admin-btn-danger:hover   { background:#4d1828; border-color:#e05a6a; }
+      .admin-btn-secondary { background:#1a2520; color:#8fa88f; border-color:#253d2a; }
+      .admin-btn-secondary:hover { background:#202e26; border-color:#8fa88f; }
+      .admin-btn-sm { padding:4px 10px; font-size:.72rem; min-height:28px; border-radius:5px; }
+      .admin-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+
+      /* ── LISTE D'ITEMS ── */
+      .admin-list { display:flex; flex-direction:column; gap:8px; }
+      .admin-list-item {
+        display:flex; align-items:center; gap:10px;
+        background:#0d1a10; border:1px solid #1a2d1f;
+        border-radius:9px; padding:12px 14px;
+        transition:border-color .15s;
+      }
+      .admin-list-item:hover{ border-color:#253d2a; }
+      .admin-list-item.dragging { opacity:.3; }
+
+      /* ── DRAG ── */
       .drag-handle {
-        cursor:grab; color:#666; font-size:1.1rem; flex-shrink:0;
-        padding:0 4px; user-select:none; touch-action:none;
+        cursor:grab; color:#3a5a3e; font-size:1rem; flex-shrink:0;
+        padding:0 3px; user-select:none; touch-action:none;
+        transition:color .15s;
       }
+      .drag-handle:hover{ color:#5bbf7a; }
       .drag-handle:active { cursor:grabbing; }
-      .admin-list-item.dragging { opacity:.35; }
       .admin-list-item.drag-over { border-color:#4ade80; box-shadow:0 0 0 1px #4ade80 inset; }
       .admin-list-item.just-saved, .evo-chain-member.just-saved {
         animation: adminJustSaved 1.5s ease;
@@ -498,6 +590,9 @@ const AdminPanel = (() => {
           case 'shop':       content.innerHTML = _renderShopTab();       break;
           case 'gacha':      content.innerHTML = _renderGachaTab();      break;
           case 'evolutions': content.innerHTML = _renderEvolutionsTab(); break;
+          case 'tags':       content.innerHTML = _renderTagsTab();       break;
+          case 'quests':     content.innerHTML = _renderQuestsTab();     break;
+          case 'event':      _renderEventTab(content);                   break;
           case 'awakening':  content.innerHTML = _renderAwakeningTab();  break;
           case 'player':     content.innerHTML = _renderPlayerTab();     break;
           case 'resources':  content.innerHTML = _renderResourcesTab();  break;
@@ -747,10 +842,10 @@ const AdminPanel = (() => {
     const existing = GameState.getCharDef(id);
     if (existing) {
       GameState.updateCharDef(id, charData);
-      _notify(`✅ Créature "${name}" mis à jour.`);
+      _notify(`✅ Espèce "${name}" mis à jour.`);
     } else {
       GameState.addCharDef(charData);
-      _notify(`✅ Créature "${name}" créé.`);
+      _notify(`✅ Espèce "${name}" créé.`);
     }
 
     _clearCharForm();
@@ -798,7 +893,7 @@ const AdminPanel = (() => {
     if (!c) return;
     if (!confirm(`Supprimer "${c.name}" (${charId}) ? Cette action est irréversible.`)) return;
     GameState.removeCharDef(charId);
-    _notify(`🗑️ Créature supprimé.`);
+    _notify(`🗑️ Espèce supprimé.`);
     switchTab('characters');
   }
 
@@ -1476,7 +1571,7 @@ const AdminPanel = (() => {
 
   // ─── ONGLET BOUTIQUE ─────────────────────────────────────────────────────────
 
-  const SHOP_CATEGORY_LABELS_ADMIN = { equipment: '⚙️ Équipement', item: '🎁 Objet', character: '✦ Créature' };
+  const SHOP_CATEGORY_LABELS_ADMIN = { equipment: '⚙️ Équipement', item: '🎁 Objet', character: '✦ Espèce' };
 
   function _renderShopTab() {
     const state = GameState.get();
@@ -1519,7 +1614,7 @@ const AdminPanel = (() => {
             <select id="sh-category" onchange="AdminPanel._onShopCategoryChange(this.value)">
               <option value="equipment">⚙️ Équipement</option>
               <option value="item">🎁 Objet</option>
-              <option value="character">✦ Créature</option>
+              <option value="character">✦ Espèce</option>
             </select>
           </div>
           <div class="admin-field">
@@ -1805,11 +1900,14 @@ const AdminPanel = (() => {
           <textarea id="banner-desc" placeholder="Description de la bannière..."></textarea>
         </div>
         <div class="admin-field" style="margin-top:10px;">
-          <label>Créatures featured (sélection multiple)</label>
+          <label>Espèces featured (sélection multiple)</label>
           <select id="banner-featured" multiple style="height:120px;background:#0f3460;border:1px solid #444;color:#fff;border-radius:6px;padding:4px;">
             ${charOptions}
           </select>
-          <span style="font-size:.72rem; color:#888;">Maintenez Ctrl/Cmd pour sélectionner plusieurs</span>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap;">
+            <span style="font-size:.72rem; color:#888;">Maintenez Ctrl/Cmd pour sélectionner plusieurs</span>
+            <button class="admin-btn admin-btn-primary admin-btn-sm" onclick="AdminPanel._addCharsByTagToBanner()">🏷️ Ajouter par tag</button>
+          </div>
         </div>
         <div class="admin-actions">
           <button class="admin-btn admin-btn-success" onclick="AdminPanel._saveBanner()">💾 Enregistrer</button>
@@ -2024,6 +2122,77 @@ const AdminPanel = (() => {
 
   // ─── ONGLET ÉVOLUTIONS ───────────────────────────────────────────────────────
 
+  /** Génère le HTML des tags d'une lignée (sélecteurs + pills supprimables). */
+  function _renderLineTagsUI(lineId) {
+    const state   = GameState.get();
+    const cats    = state.tagCategories || [];
+    const lineTags = GameState.getLineTags(lineId) || [];
+
+    const pills = lineTags.map(tagId => {
+      // Trouver le label du tag
+      let label = tagId;
+      cats.forEach(cat => { const t = cat.tags.find(t => t.id === tagId); if (t) label = `${cat.name} · ${t.label}`; });
+      return `<span class="tag-pill" style="display:inline-flex;align-items:center;gap:4px;background:#1a3a2a;border:1px solid #4ade80;color:#4ade80;border-radius:999px;padding:2px 8px;font-size:.7rem;">
+        ${_escapeAttr(label)}
+        <button onclick="AdminPanel._removeLineTag('${lineId}','${tagId}')" style="background:none;border:none;color:#f87171;cursor:pointer;font-size:.8rem;padding:0;line-height:1;">✕</button>
+      </span>`;
+    }).join('');
+
+    const selects = cats.map(cat => {
+      const opts = cat.tags
+        .filter(t => !lineTags.includes(t.id))
+        .map(t => `<option value="${t.id}">${_escapeAttr(t.label)}</option>`)
+        .join('');
+      if (!opts) return '';
+      return `<select onchange="AdminPanel._addLineTag('${lineId}', this)" style="font-size:.72rem;background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 6px;">
+        <option value="">+ ${_escapeAttr(cat.name)}</option>
+        ${opts}
+      </select>`;
+    }).join('');
+
+    return `<div class="line-tags-row" style="margin-bottom:10px;">
+      <div style="font-size:.72rem;color:#aaa;margin-bottom:4px;">🏷️ Tags</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px;">${pills || '<span style="font-size:.7rem;color:#666;">Aucun tag</span>'}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">${selects}</div>
+    </div>`;
+  }
+
+  function _addLineTag(lineId, selectEl) {
+    const tagId = selectEl.value;
+    if (!tagId) return;
+    const current = GameState.getLineTags(lineId) || [];
+    if (!current.includes(tagId)) {
+      GameState.updateLineTags(lineId, [...current, tagId]);
+    }
+    selectEl.value = '';
+    // Re-render uniquement la lignée concernée sans remonter la page
+    _refreshLineTagsUI(lineId);
+  }
+
+  function _removeLineTag(lineId, tagId) {
+    const current = GameState.getLineTags(lineId) || [];
+    GameState.updateLineTags(lineId, current.filter(t => t !== tagId));
+    _refreshLineTagsUI(lineId);
+  }
+
+  /** Re-render uniquement le bloc tags d'une lignée sans recharger tout l'onglet. */
+  function _refreshLineTagsUI(lineId) {
+    const item = document.querySelector(`.admin-list-item[data-line-id="${lineId}"]`);
+    if (!item) return;
+    const existing = item.querySelector('.line-tags-row');
+    const newHtml  = _renderLineTagsUI(lineId);
+    const tmp = document.createElement('div');
+    tmp.innerHTML = newHtml;
+    const newEl = tmp.firstElementChild;
+    if (existing) item.replaceChild(newEl, existing);
+    else {
+      // Insérer après la checkbox Dispo Combat Ligne
+      const checkbox = item.querySelector('.line-avail-checkbox')?.closest('label');
+      if (checkbox) checkbox.after(newEl);
+      else item.prepend(newEl);
+    }
+  }
+
   function _renderEvolutionsTab() {
     const state = GameState.get();
     const chars = state.characters;
@@ -2082,6 +2251,7 @@ const AdminPanel = (() => {
                    onchange="AdminPanel._toggleLineCombatAvailability('${members[0].id}', this.checked)" />
             ⚔ Dispo en Combat de Ligne
           </label>
+          ${_renderLineTagsUI(lineId)}
           <p style="font-size:.68rem; color:#666; margin:0 0 8px;">Glissez une forme pour réorganiser l'ordre des stades.</p>
           <div style="display:flex; align-items:center; flex-wrap:wrap; gap:4px;">${chain}</div>
           <div style="margin-top:8px;">
@@ -2108,7 +2278,7 @@ const AdminPanel = (() => {
           </select>
         </div>
         <p style="font-size:.8rem; color:#888; margin-bottom:12px;">
-          Les évolutions se configurent dans l'onglet <strong>Créatures</strong>.
+          Les évolutions se configurent dans l'onglet <strong>Espèces</strong>.
           Cet onglet affiche les chaînes complètes pour visualisation et édition rapide.
           La rareté affichée est celle des créatures de la lignée (normalement unique).
         </p>
@@ -2349,7 +2519,7 @@ const AdminPanel = (() => {
         <div class="admin-section-title">Ajouter un créature à la collection</div>
         <div class="admin-grid">
           <div class="admin-field">
-            <label>Créature</label>
+            <label>Espèce</label>
             <select id="admin-add-char">
               ${state.characters.map(c => `<option value="${c.id}">${c.name} (${c.id})</option>`).join('')}
             </select>
@@ -2410,7 +2580,7 @@ const AdminPanel = (() => {
   }
 
   function _savePlayerInfo() {
-    const name  = document.getElementById('player-name')?.value.trim() || 'Dresseur';
+    const name  = document.getElementById('player-name')?.value.trim() || 'Naturaliste';
     const level = parseInt(document.getElementById('player-level')?.value || '1');
     GameState.updatePlayer({ name, level });
     _notify('✅ Informations joueur sauvegardées.');
@@ -2420,8 +2590,8 @@ const AdminPanel = (() => {
     const charId = document.getElementById('admin-add-char')?.value;
     if (!charId) return;
     const result = GameState.addCharacterToCollection(charId, 'admin');
-    if (!result) { _notify('❌ Créature introuvable.', 'error'); return; }
-    _notify(result.isNew ? '✅ Créature ajouté !' : `⭐ Awakening appliqué (doublon).`);
+    if (!result) { _notify('❌ Espèce introuvable.', 'error'); return; }
+    _notify(result.isNew ? '✅ Espèce ajouté !' : `⭐ Awakening appliqué (doublon).`);
     switchTab('player');
   }
 
@@ -2444,7 +2614,7 @@ const AdminPanel = (() => {
     player.collection = player.collection.filter(c => c.instanceId !== instanceId);
     player.team = player.team.filter(id => id !== instanceId);
     GameState.updatePlayer(player);
-    _notify('🗑️ Créature retiré de la collection.');
+    _notify('🗑️ Espèce retiré de la collection.');
     switchTab('player');
   }
 
@@ -2891,7 +3061,7 @@ const AdminPanel = (() => {
       </div>
       <hr class="admin-sep" />
       <div class="admin-section">
-        <div class="admin-section-title">👤 Niveau du Dresseur (joueur)</div>
+        <div class="admin-section-title">👤 Niveau du Naturaliste (joueur)</div>
         <p style="font-size:.78rem;color:#888;margin-bottom:12px;">
           Système de niveau distinct des créatures. À chaque niveau gagné, l'énergie
           maximale du joueur augmente et se régénère entièrement. L'XP est gagnée en
@@ -3114,11 +3284,9 @@ const AdminPanel = (() => {
   }
 
   function _renderDailyTab() {
-    return `
-      ${_renderLoginCyclesSection()}
-      <hr class="admin-sep" />
-      ${_renderDailyQuestsSection()}
-    `;
+    // L'édition des quêtes (quotidiennes, hebdo, event) est centralisée dans l'onglet Quêtes.
+    // Cet onglet gère uniquement les cycles de récompense de connexion.
+    return _renderLoginCyclesSection();
   }
 
   // ── SOUS-SECTION : CYCLES DE RÉCOMPENSE DE CONNEXION ────────────────────────
@@ -3418,11 +3586,11 @@ const AdminPanel = (() => {
     if (!teamInstances || teamInstances.length === 0) {
       return `<span style="color:#888">Aucune équipe active : impossible de calculer un aperçu (composez une équipe pour voir le diagnostic).</span>`;
     }
-    if (typeof CombatEngine === 'undefined' || typeof CombatEngine._computePowerProfile !== 'function') {
+    if (typeof CombatEngine === 'undefined' || typeof CombatEngine.computePowerProfile !== 'function') {
       return `<span style="color:#888">Diagnostic indisponible.</span>`;
     }
 
-    const profile = CombatEngine._computePowerProfile(teamInstances);
+    const profile = CombatEngine.computePowerProfile(teamInstances);
     const sf = Math.max(0, Math.min(1, scalingFactor ?? 0));
     const tankiness = Math.sqrt(Math.max(0.01, profile.def) * Math.max(0.01, profile.hp));
     const offense   = profile.atk;
@@ -3553,113 +3721,181 @@ const AdminPanel = (() => {
         xpPerCapture:   parseInt(document.getElementById('player-xp-per-capture')?.value || '15'),
       },
     });
-    _notify('✅ Niveau du Dresseur sauvegardé.');
+    _notify('✅ Niveau du Naturaliste sauvegardé.');
   }
 
   // ─── ONGLET NOTE DE MISE À JOUR ───────────────────────────────────────────────
 
   /**
    * Affiche un éditeur de texte libre pour rédiger les notes de mise à jour.
-   * Ces notes sont stockées dans state.patchNotes et affichées en popup au
-   * joueur à chaque connexion tant qu'il ne les a pas validées.
+   * Les notes de mise à jour sont un tableau de blocs { title, image, text }.
+   * Dans la popup joueur : titre + image visibles, texte masqué (clic pour dérouler).
    */
   function _renderPatchNotesTab() {
     const state = GameState.get();
-    const pn    = state.patchNotes || { id: '', text: '' };
+    const pn    = state.patchNotes || { id: '', blocks: [] };
+    const blocks = Array.isArray(pn.blocks) ? pn.blocks : [];
+
+    const blocksHtml = blocks.map((b, i) => `
+      <div class="pn-block" data-bi="${i}" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <span style="font-size:.72rem;color:var(--text-dim);font-weight:700;">BLOC ${i + 1}</span>
+          <button class="admin-btn admin-btn-danger admin-btn-sm" onclick="AdminPanel._pnDeleteBlock(${i})" style="margin-left:auto;">🗑️</button>
+          ${i > 0 ? `<button class="admin-btn admin-btn-sm" onclick="AdminPanel._pnMoveBlock(${i},-1)">▲</button>` : ''}
+          ${i < blocks.length - 1 ? `<button class="admin-btn admin-btn-sm" onclick="AdminPanel._pnMoveBlock(${i},1)">▼</button>` : ''}
+        </div>
+        <div class="admin-field" style="margin-bottom:8px;">
+          <label>Titre</label>
+          <input type="text" value="${_escapeAttr(b.title || '')}" placeholder="Ex : MaJ 0.4 — Évolutions"
+            oninput="AdminPanel._pnUpdateBlock(${i},'title',this.value)"
+            style="background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:var(--radius-sm);font-size:.85rem;width:100%;box-sizing:border-box;">
+        </div>
+        <div class="admin-field" style="margin-bottom:8px;">
+          <label>Image (URL ou base64)</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="text" value="${_escapeAttr(b.image || '')}" placeholder="https://... ou coller une URL d'image"
+              oninput="AdminPanel._pnUpdateBlock(${i},'image',this.value)"
+              style="flex:1;background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:var(--radius-sm);font-size:.85rem;box-sizing:border-box;">
+            <input type="file" accept="image/*" style="display:none;" id="pn-img-file-${i}"
+              onchange="AdminPanel._pnLoadImageFile(${i},this)">
+            <button class="admin-btn admin-btn-sm" onclick="document.getElementById('pn-img-file-${i}').click()">📁</button>
+            ${b.image ? `<img src="${_escapeAttr(b.image)}" style="height:36px;border-radius:4px;object-fit:cover;" onerror="this.style.display='none'">` : ''}
+          </div>
+        </div>
+        <div class="admin-field">
+          <label>Texte (contenu déroulable)</label>
+          <textarea rows="5" placeholder="Détail de la mise à jour..."
+            oninput="AdminPanel._pnUpdateBlock(${i},'text',this.value)"
+            style="width:100%;background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:var(--radius-sm);font-size:.82rem;font-family:var(--font-mono,monospace);line-height:1.5;box-sizing:border-box;resize:vertical;"
+            >${_escapeAttr(b.text || '')}</textarea>
+        </div>
+      </div>`).join('');
 
     return `
       <div class="admin-section">
-        <div class="admin-section-title">📝 Note de mise à jour</div>
-        <p style="color:#aaa;font-size:.85rem;margin:0 0 16px;">
-          Ce texte sera affiché en popup à chaque joueur lors de sa prochaine connexion,
-          jusqu'à ce qu'il clique sur <strong>OK</strong>. Modifiez-le et cliquez sur
-          <em>Publier</em> pour diffuser une nouvelle note (les joueurs verront
-          la popup à leur prochain lancement même s'ils l'avaient déjà validée).
-          Laissez le champ vide pour désactiver la popup.
+        <div class="admin-section-title">📝 Notes de mise à jour — blocs</div>
+        <p style="color:#aaa;font-size:.85rem;margin:0 0 14px;">
+          Chaque bloc = une note (titre + image + texte). Dans la popup joueur :
+          le <strong>titre et l'image</strong> sont visibles, le <strong>texte</strong>
+          se déroule au clic sur le titre. Cliquez <em>Publier</em> pour diffuser
+          (tous les joueurs verront la popup à leur prochain lancement).
         </p>
 
-        <div class="admin-field" style="margin-bottom:16px;">
-          <label>Contenu de la note (texte libre, markdown non requis)</label>
-          <textarea id="patchnotes-text" rows="12" style="min-height:200px;font-family:var(--font-mono,monospace);font-size:.82rem;line-height:1.55;"
-            placeholder="Ex : &#10;🆕 Nouvelle créature : Pyrokhan ajouté au bestiaire&#10;⚖️ Équilibrage : réduction des dégâts de type Feu de 10%&#10;🐛 Correctifs : le poison ne pouvait plus tuer en dehors des combats">${_escapeAttr(pn.text || '')}</textarea>
+        <div id="pn-blocks-container">
+          ${blocksHtml || '<p style="color:#666;font-style:italic;">Aucun bloc. Ajoutez-en un ci-dessous.</p>'}
         </div>
 
-        <div style="background:#0f3460;border:1px solid #333;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:.8rem;color:#888;">
-          <strong style="color:#aaa;">ID courant :</strong>
-          <code id="patchnotes-id-display" style="color:#f4c267;margin-left:8px;">${pn.id ? pn.id : '<em>aucun</em>'}</code>
-          <br><span style="margin-top:4px;display:block;">
-            Un nouvel ID est généré automatiquement à chaque publication, ce qui garantit
-            que tous les joueurs verront la popup même s'ils l'avaient déjà lue.
-          </span>
+        <button class="admin-btn" onclick="AdminPanel._pnAddBlock()" style="margin-bottom:16px;">＋ Ajouter un bloc</button>
+
+        <div style="background:#1a1a2e;border:1px solid #333;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:.78rem;color:#888;">
+          <strong style="color:#aaa;">ID publié actuel :</strong>
+          <code style="color:#f4c267;margin-left:6px;">${pn.id || '<em>aucun</em>'}</code>
         </div>
 
         <div class="admin-actions">
-          <button class="admin-btn admin-btn-success" onclick="AdminPanel._savePatchNotes()">📢 Publier la note</button>
-          <button class="admin-btn admin-btn-danger"  onclick="AdminPanel._clearPatchNotes()">🗑️ Supprimer (désactiver popup)</button>
+          <button class="admin-btn admin-btn-success" onclick="AdminPanel._savePatchNotes()">📢 Publier</button>
+          <button class="admin-btn admin-btn-danger"  onclick="AdminPanel._clearPatchNotes()">🗑️ Tout supprimer</button>
         </div>
       </div>
 
       <div class="admin-section">
-        <div class="admin-section-title">Aperçu de la popup joueur</div>
-        <p style="color:#aaa;font-size:.82rem;margin:0 0 12px;">
-          Voici comment la note apparaîtra aux joueurs (style indicatif).
-        </p>
-        <div id="patchnotes-preview" style="
-          background:linear-gradient(150deg,#152b18,#0f2211);
-          border:1px solid #2d4a30; border-radius:12px;
-          padding:20px 22px; max-width:460px;
-          font-family:'Manrope',sans-serif; color:#f4f1fb;
-        ">
-          <div style="font-family:'Cinzel',serif;font-weight:700;font-size:1rem;color:#f4c267;margin-bottom:12px;">
-            📋 Note de mise à jour
-          </div>
-          <div id="patchnotes-preview-text" style="
-            font-size:.85rem;line-height:1.65;color:#cde8d4;
-            white-space:pre-wrap;word-break:break-word;
-            max-height:220px;overflow-y:auto;
-          ">${_escapeAttr(pn.text || '').replace(/\n/g, '<br>') || '<em style="color:#4a6e50">Aucune note pour le moment.</em>'}</div>
-          <button style="
-            margin-top:16px;padding:10px 32px;border-radius:999px;
-            background:#4ade80;color:#000;font-weight:700;border:none;cursor:default;
-            font-family:'Cinzel',serif;font-size:.9rem;
-          ">OK, compris !</button>
+        <div class="admin-section-title">Aperçu — popup joueur</div>
+        <p style="color:#aaa;font-size:.82rem;margin:0 0 10px;">Le titre et l'image sont visibles. Cliquer sur le titre déroule le texte.</p>
+        <div style="background:linear-gradient(150deg,#152b18,#0f2211);border:1px solid #2d4a30;border-radius:12px;padding:18px 20px;max-width:460px;">
+          <div style="font-family:var(--font-display);font-weight:700;font-size:1rem;color:var(--accent);margin-bottom:12px;">📋 Mise à jour</div>
+          ${blocks.map((b, i) => `
+            <div style="border:1px solid #2d4a30;border-radius:8px;margin-bottom:8px;overflow:hidden;">
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;background:#122019;" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.pn-arrow').textContent=this.nextElementSibling.style.display==='none'?'▶':'▼'">
+                ${b.image ? `<img src="${_escapeAttr(b.image)}" style="width:38px;height:38px;border-radius:6px;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'">` : ''}
+                <strong style="flex:1;font-size:.88rem;color:#e8d5a0;">${_escapeAttr(b.title || 'Sans titre')}</strong>
+                <span class="pn-arrow" style="color:#4ade80;font-size:.8rem;">▶</span>
+              </div>
+              <div style="display:none;padding:10px 14px;font-size:.82rem;color:#cde8d4;white-space:pre-wrap;line-height:1.6;">${_escapeAttr(b.text || '').replace(/\n/g,'<br>')}</div>
+            </div>`).join('') || '<p style="color:#4a6e50;font-size:.82rem;font-style:italic;">Aucun bloc pour le moment.</p>'}
+          <button style="margin-top:12px;padding:10px 28px;border-radius:999px;background:#4ade80;color:#000;font-weight:700;border:none;font-family:var(--font-display);font-size:.9rem;cursor:default;">OK, compris !</button>
         </div>
       </div>
     `;
   }
 
-  /** Génère un identifiant unique de note (timestamp base36) */
-  function _genPatchNotesId() {
-    return 'pn_' + Date.now().toString(36);
+  /** Données de travail en mémoire pour l'éditeur de blocs (avant publication) */
+  function _pnGetBlocks() {
+    const pn = GameState.get().patchNotes || {};
+    return JSON.parse(JSON.stringify(Array.isArray(pn.blocks) ? pn.blocks : []));
   }
 
-  /** Publie la note de mise à jour saisie dans l'éditeur */
-  function _savePatchNotes() {
-    const text = document.getElementById('patchnotes-text')?.value?.trim() || '';
-    if (!text) {
-      _notify('⚠️ Le texte est vide. Utilisez "Supprimer" pour désactiver la popup.', 'error');
-      return;
-    }
-    const newId = _genPatchNotesId();
-    GameState.updatePatchNotes({ id: newId, text });
-    SaveSystem.saveGlobalConfig(GameState.get());
-    _notify('✅ Note de mise à jour publiée. Les joueurs la verront à leur prochaine connexion.');
-    // Rafraîchir l'affichage de l'ID courant
-    const idDisplay = document.getElementById('patchnotes-id-display');
-    if (idDisplay) idDisplay.innerHTML = `<code style="color:#f4c267;">${newId}</code>`;
-    // Rafraîchir l'aperçu
-    const preview = document.getElementById('patchnotes-preview-text');
-    if (preview) preview.innerHTML = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  function _pnSaveBlocks(blocks) {
+    const pn = GameState.get().patchNotes || {};
+    GameState.updatePatchNotes({ id: pn.id || '', blocks });
+    // Pas de SaveSystem.saveGlobalConfig ici : on ne sauvegarde qu'à la publication
   }
 
-  /** Supprime la note de mise à jour (désactive la popup) */
-  function _clearPatchNotes() {
-    if (!confirm('Supprimer la note de mise à jour ? Les joueurs ne verront plus aucune popup.')) return;
-    GameState.updatePatchNotes({ id: '', text: '' });
-    SaveSystem.saveGlobalConfig(GameState.get());
-    _notify('✅ Note supprimée. La popup est désactivée.');
+  function _pnAddBlock() {
+    const blocks = _pnGetBlocks();
+    blocks.push({ title: '', image: '', text: '' });
+    _pnSaveBlocks(blocks);
     switchTab('patchnotes');
   }
+
+  function _pnDeleteBlock(i) {
+    const blocks = _pnGetBlocks();
+    blocks.splice(i, 1);
+    _pnSaveBlocks(blocks);
+    switchTab('patchnotes');
+  }
+
+  function _pnMoveBlock(i, dir) {
+    const blocks = _pnGetBlocks();
+    const j = i + dir;
+    if (j < 0 || j >= blocks.length) return;
+    [blocks[i], blocks[j]] = [blocks[j], blocks[i]];
+    _pnSaveBlocks(blocks);
+    switchTab('patchnotes');
+  }
+
+  function _pnUpdateBlock(i, field, value) {
+    const blocks = _pnGetBlocks();
+    if (!blocks[i]) return;
+    blocks[i][field] = value;
+    _pnSaveBlocks(blocks);
+    // Pas de switchTab : on met à jour en live sans re-render
+  }
+
+  function _pnLoadImageFile(i, input) {
+    const file = input.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      AdminPanel._pnUpdateBlock(i, 'image', e.target.result);
+      switchTab('patchnotes');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  /** Publie les blocs courants (génère un nouvel ID → popup affichée à tous) */
+  function _savePatchNotes() {
+    const blocks = _pnGetBlocks();
+    if (!blocks.length || blocks.every(b => !b.title && !b.text)) {
+      _notify('⚠️ Ajoutez au moins un bloc avec un titre ou un texte avant de publier.', 'error');
+      return;
+    }
+    const newId = 'pn_' + Date.now().toString(36);
+    GameState.updatePatchNotes({ id: newId, blocks });
+    SaveSystem.saveGlobalConfig(GameState.get());
+    _notify('✅ Notes publiées. Les joueurs verront la popup à leur prochain lancement.');
+    switchTab('patchnotes');
+  }
+
+  /** Supprime toutes les notes (désactive la popup) */
+  function _clearPatchNotes() {
+    if (!confirm('Supprimer toutes les notes ? La popup sera désactivée.')) return;
+    GameState.updatePatchNotes({ id: '', blocks: [] });
+    SaveSystem.saveGlobalConfig(GameState.get());
+    _notify('✅ Notes supprimées. La popup est désactivée.');
+    switchTab('patchnotes');
+  }
+
+
 
   // ─── SAUVEGARDE / EXPORT / IMPORT ────────────────────────────────────────────
 
@@ -3698,7 +3934,7 @@ const AdminPanel = (() => {
           if (!confirm(
             '⚠️ IMPORT BASE DE DONNÉES\n\n' +
             'Ceci va remplacer toute la configuration du jeu :\n' +
-            '• Créatures, types, passifs\n' +
+            '• Espèces, types, passifs\n' +
             '• Équipements, bannières gacha\n' +
             '• Paramètres de combat, cycles de connexion…\n\n' +
             'Les données joueur (collection, gemmes, progression) NE seront PAS modifiées.\n\n' +
@@ -3908,6 +4144,409 @@ const AdminPanel = (() => {
     el.className   = type === 'error' ? 'error show' : 'show';
     clearTimeout(_notifTimeout);
     _notifTimeout = setTimeout(() => { el.className = ''; }, 3000);
+  }
+
+  // ─── ONGLET TAGS ──────────────────────────────────────────────────────────────
+
+  function _renderTagsTab() {
+    const cats = GameState.get().tagCategories || [];
+
+    const catList = cats.map((cat, ci) => {
+      const tagList = cat.tags.map((t, ti) => `
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-soft);">
+          <span style="flex:1;font-size:.82rem;color:var(--text);">${_escapeAttr(t.label)}</span>
+          <span style="font-size:.68rem;color:#555;font-family:monospace;">${t.id}</span>
+          <input type="text" value="${_escapeAttr(t.label)}"
+            placeholder="Nouveau label..."
+            style="width:120px;font-size:.75rem;padding:3px 6px;background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:6px;"
+            onchange="AdminPanel._renameTag(${ci},${ti},this.value)"
+            title="Renommer ce tag" />
+          <button class="admin-btn admin-btn-danger admin-btn-sm" onclick="AdminPanel._deleteTag(${ci},${ti})">🗑️</button>
+        </div>`).join('') || '<p style="font-size:.78rem;color:#666;margin:4px 0;">Aucun tag dans cette catégorie.</p>';
+
+      return `<div class="admin-list-item" style="flex-direction:column;align-items:flex-start;gap:8px;">
+        <div style="display:flex;align-items:center;gap:8px;width:100%;flex-wrap:wrap;">
+          <strong style="color:var(--accent);font-size:.9rem;">${_escapeAttr(cat.name)}</strong>
+          <span style="font-size:.68rem;color:#555;font-family:monospace;">${cat.id}</span>
+          <input type="text" value="${_escapeAttr(cat.name)}"
+            placeholder="Renommer..."
+            style="width:130px;font-size:.78rem;padding:3px 6px;background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:6px;margin-left:auto;"
+            onchange="AdminPanel._renameCat(${ci},this.value)"
+            title="Renommer cette catégorie" />
+          <button class="admin-btn admin-btn-danger admin-btn-sm" onclick="AdminPanel._deleteCat(${ci})">🗑️ Supprimer</button>
+        </div>
+        <div style="width:100%;padding-left:4px;">${tagList}</div>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:4px;width:100%;">
+          <input type="text" id="new-tag-label-${ci}" placeholder="Nouveau tag (label)..." style="font-size:.8rem;padding:4px 8px;background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:6px;flex:1;" />
+          <button class="admin-btn admin-btn-success admin-btn-sm" onclick="AdminPanel._addTag(${ci})">➕ Ajouter</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    return `
+      <div class="admin-section">
+        <div class="admin-section-title">🏷️ Catégories de Tags</div>
+        <p style="font-size:.8rem;color:#999;margin:0 0 12px;">
+          Les tags sont des étiquettes assignées aux lignées évolutives (onglet Évolutions).
+          Ils permettent de créer des bannières et quêtes ciblées.<br>
+          <span style="color:#aaa;">Cliquez sur le champ texte d'un tag ou d'une catégorie pour le renommer directement.</span>
+        </p>
+        <div class="admin-list">${catList || '<p style="color:#888;">Aucune catégorie. Créez-en une ci-dessous.</p>'}</div>
+      </div>
+      <hr class="admin-sep"/>
+      <div class="admin-section">
+        <div class="admin-section-title">➕ Nouvelle catégorie</div>
+        <div class="admin-grid">
+          <div class="admin-field"><label>Nom *</label><input type="text" id="new-cat-name" placeholder="Continent, Physique, Taille..." /></div>
+          <div class="admin-field"><label>ID (optionnel, auto si vide)</label><input type="text" id="new-cat-id" placeholder="tc_continent" /></div>
+        </div>
+        <div class="admin-actions">
+          <button class="admin-btn admin-btn-success" onclick="AdminPanel._addCategory()">✅ Créer catégorie</button>
+        </div>
+      </div>`;
+  }
+
+  // ─── Renommer une catégorie de tags ──────────────────────────────────────────
+  function _renameCat(ci, newName) {
+    if (!newName?.trim()) return _notify('Nom vide ignoré.');
+    const cats = JSON.parse(JSON.stringify(GameState.get().tagCategories || []));
+    if (!cats[ci]) return;
+    cats[ci].name = newName.trim();
+    GameState.updateTagCategories(cats);
+    switchTab('tags');
+  }
+
+  // ─── Renommer un tag dans une catégorie ──────────────────────────────────────
+  function _renameTag(ci, ti, newLabel) {
+    if (!newLabel?.trim()) return _notify('Label vide ignoré.');
+    const cats = JSON.parse(JSON.stringify(GameState.get().tagCategories || []));
+    if (!cats[ci]?.tags[ti]) return;
+    cats[ci].tags[ti].label = newLabel.trim();
+    GameState.updateTagCategories(cats);
+    switchTab('tags');
+  }
+
+  function _addCategory() {
+    const name = document.getElementById('new-cat-name')?.value.trim();
+    if (!name) return _notify('Nom de catégorie requis.');
+    const rawId = document.getElementById('new-cat-id')?.value.trim();
+    const id    = rawId || `tc_${name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')}`;
+    const cats  = [...(GameState.get().tagCategories || [])];
+    if (cats.find(c => c.id === id)) return _notify('ID déjà utilisé.');
+    cats.push({ id, name, tags: [] });
+    GameState.updateTagCategories(cats);
+    switchTab('tags');
+  }
+
+  function _deleteCat(ci) {
+    const cats = [...(GameState.get().tagCategories || [])];
+    cats.splice(ci, 1);
+    GameState.updateTagCategories(cats);
+    switchTab('tags');
+  }
+
+  function _addTag(ci) {
+    const label = document.getElementById(`new-tag-label-${ci}`)?.value.trim();
+    if (!label) return _notify('Label requis.');
+    const cats  = JSON.parse(JSON.stringify(GameState.get().tagCategories || []));
+    const cat   = cats[ci];
+    if (!cat) return;
+    const id = `tag_${label.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')}`;
+    if (cat.tags.find(t => t.id === id)) return _notify('Tag déjà existant.');
+    cat.tags.push({ id, label });
+    GameState.updateTagCategories(cats);
+    switchTab('tags');
+  }
+
+  function _deleteTag(ci, ti) {
+    const cats = JSON.parse(JSON.stringify(GameState.get().tagCategories || []));
+    cats[ci]?.tags.splice(ti, 1);
+    GameState.updateTagCategories(cats);
+    switchTab('tags');
+  }
+
+  // ─── ONGLET QUÊTES ────────────────────────────────────────────────────────────
+
+  function _renderQuestsTab() {
+    return `
+      ${_renderQuestSection('daily')}
+      <hr class="admin-sep"/>
+      ${_renderQuestSection('weekly')}
+      <hr class="admin-sep"/>
+      ${_renderQuestSection('event')}
+    `;
+  }
+
+  function _renderQuestSection(kind) {
+    const state    = GameState.get();
+    const kindKey  = kind === 'daily' ? 'dailyQuests' : kind === 'weekly' ? 'weeklyQuests' : 'eventQuests';
+    const quests   = state[kindKey] || [];
+    const cats     = state.tagCategories || [];
+    const actions  = GameDatabase.QUEST_ACTIONS  || [];
+    const targets  = GameDatabase.QUEST_TARGETS  || [];
+    const configKey = kind === 'daily' ? 'dailyCount' : 'weeklyCount';
+    const countVal  = state.config?.quests?.[configKey] ?? (kind === 'daily' ? 3 : 7);
+
+    const titles = { daily: '📅 Quêtes Quotidiennes', weekly: '📆 Quêtes Hebdomadaires', event: '🎉 Quêtes d\'Événement' };
+    const descs  = {
+      daily:  `Mise à jour tous les jours à 0h. ${countVal} quêtes tirées aléatoirement parmi celles actives.`,
+      weekly: `Mise à jour tous les lundis à 0h. ${countVal} quêtes tirées aléatoirement parmi celles actives.`,
+      event:  'Activées/désactivées manuellement. Toutes les quêtes actives sont proposées simultanément.',
+    };
+
+    const questList = quests.map((q, qi) => {
+      const tagOpts = cats.flatMap(cat => cat.tags.map(t => `<option value="${t.id}" ${q.tagId === t.id ? 'selected' : ''}>${_escapeAttr(cat.name)} · ${_escapeAttr(t.label)}</option>`)).join('');
+      const actionOpts = actions.map(a => `<option value="${a.id}" ${q.type === a.id ? 'selected' : ''}>${_escapeAttr(a.label)}</option>`).join('');
+      const targetOpts = targets.map(t => `<option value="${t.id}" ${q.targetLabel === t.id ? 'selected' : ''}>${_escapeAttr(t.label)}</option>`).join('');
+
+      const isPinnedQ = !!(q._pinned || q.id === 'pinned_daily_complete' || q.id === 'pinned_weekly_complete' || q.id === 'pinned_event_complete');
+      return `<div class="admin-list-item" style="flex-direction:column;align-items:flex-start;gap:8px;${isPinnedQ ? 'border-color:var(--accent2);background:linear-gradient(135deg,var(--surface-2),rgba(74,222,128,.04));' : ''}">
+        <div style="display:flex;align-items:center;gap:8px;width:100%;flex-wrap:wrap;">
+          ${isPinnedQ
+            ? `<span style="font-size:.65rem;background:var(--accent2);color:#000;padding:1px 7px;border-radius:999px;font-weight:700;">📌 BONUS</span>`
+            : (kind === 'event'
+                ? `<label style="display:flex;align-items:center;gap:4px;font-size:.78rem;"><input type="checkbox" ${q.active ? 'checked' : ''} onchange="AdminPanel._toggleQuestActive('${kind}',${qi},this.checked)"> Actif</label>`
+                : `<label style="display:flex;align-items:center;gap:4px;font-size:.78rem;"><input type="checkbox" ${q.active ? 'checked' : ''} onchange="AdminPanel._toggleQuestActive('${kind}',${qi},this.checked)"> Dans le pool</label>`)
+          }
+          <span style="flex:1;font-size:.78rem;color:#aaa;font-style:italic;">"${_escapeAttr(q.label)}"</span>
+          ${isPinnedQ ? '' : `<button class="admin-btn admin-btn-danger admin-btn-sm" onclick="AdminPanel._deleteQuest('${kind}',${qi})">🗑️</button>`}
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+          <select onchange="AdminPanel._updateQuestField('${kind}',${qi},'type',this.value)" style="font-size:.75rem;background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 6px;">${actionOpts}</select>
+          <input type="number" min="1" value="${q.target}" onchange="AdminPanel._updateQuestField('${kind}',${qi},'target',+this.value)" style="width:60px;font-size:.75rem;background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 6px;" />
+          <select onchange="AdminPanel._updateQuestField('${kind}',${qi},'targetLabel',this.value)" style="font-size:.75rem;background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 6px;">${targetOpts}</select>
+          ${cats.length ? `<select onchange="AdminPanel._updateQuestField('${kind}',${qi},'tagId',this.value)" style="font-size:.75rem;background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 6px;">
+            <option value="">— Tag (optionnel) —</option>${tagOpts}
+          </select>` : ''}
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+          <span style="font-size:.72rem;color:#aaa;">Récompense :</span>
+          💎 <input type="number" min="0" value="${q.reward?.crystals || 0}" onchange="AdminPanel._updateQuestReward('${kind}',${qi},'crystals',+this.value)" style="width:60px;font-size:.75rem;background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 6px;" />
+          🪙 <input type="number" min="0" value="${q.reward?.gold || 0}" onchange="AdminPanel._updateQuestReward('${kind}',${qi},'gold',+this.value)" style="width:60px;font-size:.75rem;background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 6px;" />
+          🎁 <select onchange="AdminPanel._updateQuestRewardItem('${kind}',${qi},'itemId',this.value)" style="font-size:.75rem;background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 6px;">
+            <option value="">— Aucun item —</option>
+            ${(state.items || []).map(it => {
+              const existingItems = q.reward?.items || {};
+              const currentItemId = Object.keys(existingItems)[0] || '';
+              return `<option value="${it.id}" ${currentItemId === it.id ? 'selected' : ''}>${_escapeAttr(it.icon || '')} ${_escapeAttr(it.name)}</option>`;
+            }).join('')}
+          </select>
+          ×<input type="number" min="0" max="99" value="${Object.values(q.reward?.items || {})[0] || 0}" onchange="AdminPanel._updateQuestRewardItem('${kind}',${qi},'qty',+this.value)" style="width:48px;font-size:.75rem;background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 6px;" />
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:4px;">
+          <span style="font-size:.72rem;color:#aaa;">Bonus :</span>
+          ⚙️ <select onchange="AdminPanel._updateQuestReward('${kind}',${qi},'equipment',this.value||null)" style="font-size:.75rem;background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 6px;">
+            <option value="">— Aucun équipement —</option>
+            ${(state.equipment || []).map(e => `<option value="${e.id}" ${q.reward?.equipment === e.id ? 'selected' : ''}>${_escapeAttr(e.name)}</option>`).join('')}
+          </select>
+          🐾 <select onchange="AdminPanel._updateQuestReward('${kind}',${qi},'characters',this.value||null)" style="font-size:.75rem;background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 6px;">
+            <option value="">— Aucun animal —</option>
+            ${(state.characters || []).filter(c => (c.evolutionStage||0) === 0).map(c => `<option value="${c.id}" ${q.reward?.characters === c.id ? 'selected' : ''}>${_escapeAttr(c.name)} (${c.rarity})</option>`).join('')}
+          </select>
+        </div>
+      </div>`;
+    }).join('');
+
+    const countInput = kind !== 'event' ? `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <label style="font-size:.8rem;color:#aaa;">Nombre de quêtes tirées par ${kind === 'daily' ? 'jour' : 'semaine'} :</label>
+        <input type="number" min="1" max="10" value="${countVal}"
+          onchange="AdminPanel._updateQuestCount('${kind}', +this.value)"
+          style="width:60px;font-size:.8rem;background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px 8px;" />
+      </div>` : '';
+
+    return `<div class="admin-section">
+      <div class="admin-section-title">${titles[kind]}</div>
+      <p style="font-size:.8rem;color:#999;margin:0 0 10px;">${descs[kind]}</p>
+      ${countInput}
+      <div class="admin-list" style="margin-bottom:12px;">${questList || '<p style="color:#888;">Aucune quête.</p>'}</div>
+      <button class="admin-btn admin-btn-success admin-btn-sm" onclick="AdminPanel._addQuest('${kind}')">+ Nouvelle quête</button>
+    </div>`;
+  }
+
+  function _addQuest(kind) {
+    const kindKey = kind === 'daily' ? 'dailyQuests' : kind === 'weekly' ? 'weeklyQuests' : 'eventQuests';
+    const state = GameState.get();
+    const quests = JSON.parse(JSON.stringify(state[kindKey] || []));
+    const newQ = {
+      id: `${kind[0]}q_${Date.now()}`,
+      type: 'capture', target: 1, targetLabel: 'animal',
+      active: true, tagId: null,
+      label: 'Capturer 1 animal',
+      reward: { crystals: 50, gold: 0, items: {} },
+    };
+    quests.push(newQ);
+    _saveQuestKind(kind, quests);
+    switchTab('quests');
+  }
+
+  function _deleteQuest(kind, qi) {
+    const kindKey = kind === 'daily' ? 'dailyQuests' : kind === 'weekly' ? 'weeklyQuests' : 'eventQuests';
+    const quests  = JSON.parse(JSON.stringify(GameState.get()[kindKey] || []));
+    quests.splice(qi, 1);
+    _saveQuestKind(kind, quests);
+    switchTab('quests');
+  }
+
+  function _toggleQuestActive(kind, qi, val) {
+    const kindKey = kind === 'daily' ? 'dailyQuests' : kind === 'weekly' ? 'weeklyQuests' : 'eventQuests';
+    const quests  = JSON.parse(JSON.stringify(GameState.get()[kindKey] || []));
+    if (quests[qi]) quests[qi].active = val;
+    _saveQuestKind(kind, quests);
+  }
+
+  function _updateQuestField(kind, qi, field, value) {
+    const kindKey = kind === 'daily' ? 'dailyQuests' : kind === 'weekly' ? 'weeklyQuests' : 'eventQuests';
+    const quests  = JSON.parse(JSON.stringify(GameState.get()[kindKey] || []));
+    if (!quests[qi]) return;
+    quests[qi][field] = value || null;
+
+    // Quand le type change vers completeQuestXxx, forcer le targetLabel correspondant
+    if (field === 'type') {
+      const autoTarget = {
+        completeQuestDaily:  'quêteQuotidienne',
+        completeQuestWeekly: 'quêteHebdomadaire',
+        completeQuestEvent:  'quêteEvent',
+      };
+      if (autoTarget[value]) {
+        quests[qi].targetLabel = autoTarget[value];
+        // Mettre à jour le select targetLabel dans le DOM
+        const items = document.querySelectorAll('#admin-content .admin-list-item');
+        if (items[qi]) {
+          const targetSel = items[qi].querySelectorAll('select')[1];
+          if (targetSel) targetSel.value = autoTarget[value];
+        }
+      }
+    }
+
+    // Regénérer le label automatiquement
+    quests[qi].label = _buildQuestLabel(quests[qi]);
+    _saveQuestKind(kind, quests);
+    // Mise à jour du label affiché sans re-render complet
+    const items = document.querySelectorAll('#admin-content .admin-list-item');
+    if (items[qi]) {
+      const labelEl = items[qi].querySelector('span[style*="italic"]');
+      if (labelEl) labelEl.textContent = `"${quests[qi].label}"`;
+    }
+  }
+
+  function _updateQuestReward(kind, qi, field, value) {
+    const kindKey = kind === 'daily' ? 'dailyQuests' : kind === 'weekly' ? 'weeklyQuests' : 'eventQuests';
+    const quests  = JSON.parse(JSON.stringify(GameState.get()[kindKey] || []));
+    if (!quests[qi]) return;
+    quests[qi].reward = quests[qi].reward || { crystals: 0, gold: 0, items: {} };
+    quests[qi].reward[field] = value;
+    _saveQuestKind(kind, quests);
+  }
+
+  function _updateQuestRewardItem(kind, qi, field, value) {
+    const kindKey = kind === 'daily' ? 'dailyQuests' : kind === 'weekly' ? 'weeklyQuests' : 'eventQuests';
+    const quests  = JSON.parse(JSON.stringify(GameState.get()[kindKey] || []));
+    if (!quests[qi]) return;
+    quests[qi].reward = quests[qi].reward || { crystals: 0, gold: 0, items: {} };
+    // On ne stocke qu'un seul item par quête (le select n'en montre qu'un)
+    // field = 'itemId' → change la clé, field = 'qty' → change la quantité
+    const existingItems = quests[qi].reward.items || {};
+    const currentItemId = Object.keys(existingItems)[0] || '';
+    const currentQty    = currentItemId ? (existingItems[currentItemId] || 0) : 0;
+    if (field === 'itemId') {
+      // Remplacer l'ancien item par le nouveau (même quantité)
+      quests[qi].reward.items = value ? { [value]: currentQty || 1 } : {};
+    } else if (field === 'qty') {
+      if (currentItemId) {
+        quests[qi].reward.items = value > 0 ? { [currentItemId]: value } : {};
+      }
+    }
+    _saveQuestKind(kind, quests);
+  }
+
+  function _updateQuestCount(kind, val) {
+    const state  = GameState.get();
+    const config = JSON.parse(JSON.stringify(state.config || {}));
+    config.quests = config.quests || {};
+    const key = kind === 'daily' ? 'dailyCount' : 'weeklyCount';
+    config.quests[key] = Math.max(1, Math.min(10, val));
+    GameState.updateConfig(config);
+  }
+
+  function _saveQuestKind(kind, quests) {
+    if (kind === 'daily')   GameState.updateDailyQuestDefs(quests);
+    else if (kind === 'weekly') GameState.updateWeeklyQuestDefs(quests);
+    else                    GameState.updateEventQuestDefs(quests);
+  }
+
+  /** Génère automatiquement un label de quête lisible à partir de ses champs. */
+  function _buildQuestLabel(q) {
+    const state   = GameState.get();
+    const actions = GameDatabase.QUEST_ACTIONS || [];
+    const targets = GameDatabase.QUEST_TARGETS || [];
+    const cats    = state.tagCategories || [];
+
+    const actionDef = actions.find(a => a.id === q.type);
+    const targetDef = targets.find(t => t.id === q.targetLabel);
+    let tagLabel = '';
+    if (q.tagId) {
+      cats.forEach(cat => { const t = cat.tags.find(t => t.id === q.tagId); if (t) tagLabel = ` (${t.label})`; });
+    }
+    const actionLabel = actionDef?.label || q.type;
+    const targetLabel = targetDef?.label || q.targetLabel || '';
+    return `${actionLabel} ${q.target} ${targetLabel}${tagLabel}`.trim();
+  }
+
+  // ─── BOUTON GACHA "Ajouter tous les animaux par tag" ─────────────────────────
+
+  function _addCharsByTagToBanner(bannerId) {
+    const state = GameState.get();
+    const cats  = state.tagCategories || [];
+    if (!cats.length) return _notify('Aucune catégorie de tags définie.');
+
+    // Construire une liste de tous les tags disponibles
+    const allTags = cats.flatMap(cat => cat.tags.map(t => ({ ...t, catName: cat.name })));
+    if (!allTags.length) return _notify('Aucun tag défini.');
+
+    const opts = allTags.map(t => `<option value="${t.id}">${_escapeAttr(t.catName)} · ${_escapeAttr(t.label)}</option>`).join('');
+    const sel  = document.getElementById('banner-featured');
+    if (!sel) return;
+
+    // Popup inline simple
+    const existing = document.getElementById('tag-banner-picker');
+    if (existing) { existing.remove(); return; }
+    const picker = document.createElement('div');
+    picker.id = 'tag-banner-picker';
+    picker.style.cssText = 'background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-top:8px;';
+    picker.innerHTML = `<label style="font-size:.8rem;color:#aaa;display:block;margin-bottom:6px;">Ajouter toutes les formes de base ayant ce tag :</label>
+      <div style="display:flex;gap:8px;">
+        <select id="tag-banner-sel" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px;">
+          <option value="">— Choisir un tag —</option>${opts}
+        </select>
+        <button class="admin-btn admin-btn-success admin-btn-sm" onclick="AdminPanel._applyTagToBanner()">Ajouter</button>
+        <button class="admin-btn admin-btn-sm" onclick="document.getElementById('tag-banner-picker')?.remove()">✕</button>
+      </div>`;
+    sel.closest('.admin-field').after(picker);
+  }
+
+  function _applyTagToBanner() {
+    const tagId = document.getElementById('tag-banner-sel')?.value;
+    if (!tagId) return _notify('Choisissez un tag.');
+    const state = GameState.get();
+    // Trouver toutes les formes de base ayant ce tag
+    const bases = state.characters.filter(c => (c.evolutionStage || 0) === 0 && (c.tags || []).includes(tagId));
+    if (!bases.length) return _notify('Aucun animal de base avec ce tag.');
+
+    const sel = document.getElementById('banner-featured');
+    if (!sel) return;
+    bases.forEach(c => {
+      // Ajouter l'option si elle n'existe pas
+      if (!Array.from(sel.options).find(o => o.value === c.id)) {
+        const opt = document.createElement('option');
+        opt.value = c.id; opt.textContent = c.name;
+        sel.appendChild(opt);
+      }
+      // Sélectionner
+      Array.from(sel.options).forEach(o => { if (o.value === c.id) o.selected = true; });
+    });
+    document.getElementById('tag-banner-picker')?.remove();
+    _notify(`✅ ${bases.length} animal(aux) ajouté(s) au featured.`);
   }
 
   // ─── ÉDITEUR DE RECADRAGE DE PORTRAITS ───────────────────────────────────────
@@ -4303,10 +4942,19 @@ const AdminPanel = (() => {
       _closeCropEditor();
       return;
     }
+    // Stocker les dimensions naturelles de l'image dans combatCrop pour que
+    // _combatCropImgHtml puisse reproduire exactement la même transformation
+    // géométrique que la preview de l'éditeur (qui utilise naturalWidth/Height).
+    const bgImg = document.getElementById('ce-com-bg');
+    const combatCropToSave = { ..._cropCombat };
+    if (bgImg && bgImg.naturalWidth && bgImg.naturalHeight) {
+      combatCropToSave.imgW = bgImg.naturalWidth;
+      combatCropToSave.imgH = bgImg.naturalHeight;
+    }
     GameState.updateCharDef(_cropCurrentCharId, {
       portraitCrop: { ..._cropVign   },
       detailCrop:   { ..._cropDetail },
-      combatCrop:   { ..._cropCombat },
+      combatCrop:   combatCropToSave,
     });
     _notify('✅ Recadrages enregistrés.');
     _closeCropEditor();
@@ -4315,6 +4963,326 @@ const AdminPanel = (() => {
   function _closeCropEditor() {
     document.getElementById('crop-editor-overlay')?.remove();
   }
+
+  // ─── ONGLET ÉVÉNEMENT ────────────────────────────────────────────────────────
+
+  let _eventCountdownTimer = null;
+
+  function _renderEventTab(container) {
+    const state      = GameState.get();
+    const allTags    = EventSystem.getAllTags(state);
+    const tagOptions = allTags.map(t =>
+      '<option value="' + t.id + '">' + t.label + '</option>'
+    ).join('');
+    const charOptions = state.characters
+      .filter(c => (c.evolutionStage || 0) === 0)
+      .map(c => '<option value="' + c.id + '">' + c.name + ' (' + c.rarity + ')</option>')
+      .join('');
+
+    const evtCurrent = state.events?.current || null;
+    const evtNext    = state.events?.next    || null;
+    const now        = Date.now();
+
+    container.innerHTML = `
+      <style>
+        .evt-section{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:18px;}
+        .evt-section-title{font-family:var(--font-display);font-weight:700;font-size:1.05rem;color:var(--accent);margin-bottom:14px;}
+        .evt-countdown{font-size:1.2rem;font-weight:800;color:#facc15;font-family:monospace;}
+        .evt-tag-chars{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;}
+        .evt-char-pill{font-size:.72rem;padding:2px 8px;border-radius:999px;background:var(--surface);border:1px solid var(--border-soft);}
+        .evt-rarity-row{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0;}
+        .evt-rarity-badge{padding:3px 10px;border-radius:999px;font-size:.72rem;font-weight:700;}
+        .rarity-common{background:#374151;color:#9ca3af;} .rarity-uncommon{background:#14532d;color:#6fcc6f;}
+        .rarity-rare{background:#1e3a5f;color:#60a5fa;} .rarity-epic{background:#3b0764;color:#c084fc;}
+        .rarity-legendary{background:#451a03;color:#fbbf24;} .rarity-mythic{background:#4c0519;color:#f87171;}
+        .evt-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+        @media(max-width:600px){.evt-grid{grid-template-columns:1fr;}}
+        .evt-field{display:flex;flex-direction:column;gap:4px;}
+        .evt-field label{font-size:.75rem;color:var(--text-dim);}
+        .evt-field input,.evt-field select{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:6px 8px;border-radius:var(--radius-sm);font-size:.85rem;width:100%;box-sizing:border-box;}
+        .evt-quest-row{display:flex;gap:4px;align-items:center;padding:4px;background:var(--surface);border-radius:4px;margin-bottom:3px;}
+        .evt-quest-row select,.evt-quest-row input{background:var(--surface-2);border:1px solid var(--border-soft);color:var(--text);padding:3px 5px;border-radius:3px;font-size:.75rem;}
+        .evt-quest-row .eq-label{flex:2;min-width:0;}
+        .evt-quest-row .eq-type{flex:1;min-width:0;}
+        .evt-char-list{display:flex;flex-direction:column;gap:3px;max-height:150px;overflow-y:auto;}
+        .evt-char-item{display:flex;align-items:center;gap:8px;padding:3px 6px;background:var(--surface);border-radius:4px;font-size:.78rem;}
+        .evt-char-item button{margin-left:auto;background:#7f1d1d;border:none;color:#fca5a5;border-radius:3px;padding:1px 6px;cursor:pointer;font-size:.72rem;}
+      </style>
+      <div id="evt-current-wrap"></div>
+      <div id="evt-next-wrap"></div>
+    `;
+
+    _renderEventSectionInto('current', evtCurrent, tagOptions, charOptions, allTags, now);
+    _renderEventSectionInto('next',    evtNext,    tagOptions, charOptions, allTags, now);
+    _startEventCountdownTimer(container);
+  }
+
+  function _renderEventSectionInto(slot, evt, tagOptions, charOptions, allTags, now) {
+    const wrap   = document.getElementById('evt-' + slot + '-wrap');
+    if (!wrap) return;
+    const state  = GameState.get();
+    const isActive = slot === 'current';
+    const title  = isActive ? '🎪 Événement en cours' : '⏳ Événement suivant';
+
+    if (!evt) {
+      const nextStart = EventSystem.nextEventStart();
+      wrap.innerHTML = '<div class="evt-section">' +
+        '<div class="evt-section-title">' + title + '</div>' +
+        '<p style="color:var(--text-dim);font-size:.85rem;margin-bottom:12px;">' +
+          (isActive ? 'Aucun événement actif.' : 'Prochain démarrage : <strong>' + GameUtils.formatDate(nextStart) + '</strong>') +
+        '</p>' +
+        _renderEventFormHtml(slot, tagOptions, nextStart) +
+      '</div>';
+      _bindEventFormBtns(slot);
+      return;
+    }
+
+    const chars    = EventSystem.getBaseCharsForTag(evt.tagId);
+    const RARITIES = ['common','uncommon','rare','epic','legendary','mythic'];
+    const RLABELS  = {common:'Commune',uncommon:'Peu Commune',rare:'Rare',epic:'Épique',legendary:'Légendaire',mythic:'Mythique'};
+    const dbCounts = {}; RARITIES.forEach(r => dbCounts[r] = 0);
+    chars.forEach(c => { if (c.rarity) dbCounts[c.rarity]++; });
+
+    const isRunning = isActive && evt.active && now >= evt.startDate && now <= evt.endDate;
+    const isPending = !isRunning && evt.startDate > now;
+    const statusBadge = isRunning
+      ? '<span style="background:#14532d;color:#4ade80;padding:2px 9px;border-radius:999px;font-size:.72rem;">● EN COURS</span>'
+      : isPending
+        ? '<span style="background:#1e3a5f;color:#60a5fa;padding:2px 9px;border-radius:999px;font-size:.72rem;">⏳ À VENIR</span>'
+        : '<span style="background:#3d1010;color:#f87171;padding:2px 9px;border-radius:999px;font-size:.72rem;">✗ TERMINÉ</span>';
+
+    const cdAttr = isRunning ? 'data-evt-end="' + evt.endDate + '"' : isPending ? 'data-evt-start="' + evt.startDate + '"' : '';
+    const cdVal  = isRunning ? GameUtils.formatCountdown(evt.endDate - now) : isPending ? GameUtils.formatCountdown(evt.startDate - now) : 'Terminé';
+    const cdLabel= isRunning ? 'Fin dans' : isPending ? 'Début dans' : '';
+
+
+    // Nouvelles créatures
+    const newCharsHtml = (evt.newCharIds || []).map(id => {
+      const def = state.characters.find(c => c.id === id);
+      if (!def) return '';
+      return '<div class="evt-char-item">' + _escapeAttr(def.name) + ' <em style="color:var(--text-dim)">(' + def.rarity + ')</em>' +
+        '<button class="btn-rm-char" data-char-id="' + id + '">✕</button></div>';
+    }).join('');
+
+    const tagSel = tagOptions.replace('value="' + evt.tagId + '"', 'value="' + evt.tagId + '" selected');
+
+    wrap.innerHTML = '<div class="evt-section">' +
+      '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">' +
+        '<div class="evt-section-title" style="margin:0">' + title + '</div>' + statusBadge +
+      '</div>' +
+
+      '<div class="evt-grid">' +
+        '<div class="evt-field"><label>Tag</label><select id="evt-' + slot + '-tag">' + tagSel + '</select></div>' +
+        '<div class="evt-field"><label>Titre personnalisé</label><input type="text" id="evt-' + slot + '-title" value="' + _escapeAttr(evt.customTitle||'') + '" placeholder="Laissez vide"></div>' +
+        '<div class="evt-field"><label>Début</label><input type="datetime-local" id="evt-' + slot + '-start" value="' + _tsToDatetimeLocal(evt.startDate) + '"></div>' +
+        '<div class="evt-field"><label>Durée (jours)</label><input type="number" id="evt-' + slot + '-duration" value="' + (evt.durationDays||10) + '" min="1" max="31"></div>' +
+        '<div class="evt-field"><label>Réduction boutique (%)</label><input type="number" id="evt-' + slot + '-discount" value="' + (evt.shopDiscountPct||20) + '" min="0" max="90"></div>' +
+        '<div class="evt-field"><label>Énergie Invasion</label><input type="number" id="evt-' + slot + '-inv-cost" value="' + (evt.invasionConfig?.energyCost||15) + '" min="0" max="99"></div>' +
+        '<div class="evt-field"><label>Énergie Défi</label><input type="number" id="evt-' + slot + '-defi-cost" value="' + (evt.defiConfig?.energyCost||20) + '" min="0" max="99"></div>' +
+      '</div>' +
+
+      '<div style="font-size:.78rem;color:var(--text-dim);margin-bottom:10px;">' +
+        (cdLabel ? cdLabel + ' : <span class="evt-countdown" ' + cdAttr + '>' + cdVal + '</span> &nbsp;|&nbsp; ' : '') +
+        GameUtils.formatDate(evt.startDate) + ' → ' + GameUtils.formatDate(evt.endDate) +
+      '</div>' +
+
+      '<div style="font-size:.78rem;color:var(--text-dim);font-weight:700;margin-bottom:4px;">🐾 Espèces du tag ' + _escapeAttr(evt.tagLabel) + ' (' + chars.length + ' formes de base)</div>' +
+      '<div class="evt-tag-chars" style="margin-bottom:8px;">' +
+        (chars.map(c => '<span class="evt-char-pill">' + _escapeAttr(c.name) + '</span>').join('') || '<em style="color:#888">Aucune</em>') +
+      '</div>' +
+      '<div class="evt-rarity-row" style="margin-bottom:14px;">' +
+        RARITIES.map(r => '<span class="evt-rarity-badge rarity-' + r + '">' + RLABELS[r] + ' : ' + (dbCounts[r]||0) + '</span>').join('') +
+      '</div>' +
+
+
+
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">' +
+        '<button class="btn-evt-save admin-btn admin-btn-success">💾 Enregistrer &amp; Activer</button>' +
+        '<button class="btn-evt-random admin-btn">🎲 Tag aléatoire</button>' +
+        (isActive && isRunning ? '<button class="btn-evt-deactivate admin-btn admin-btn-danger">⏹ Arrêter</button>' : '') +
+        (!isActive ? '<button class="btn-evt-activate-next admin-btn admin-btn-success">▶ Activer maintenant</button>' : '') +
+        '<button class="btn-evt-clear admin-btn admin-btn-danger">🗑 Effacer</button>' +
+      '</div>' +
+    '</div>';
+
+    _bindEventSectionBtns(slot, evt);
+  }
+
+  function _bindEventSectionBtns(slot, evt) {
+    const wrap = document.getElementById('evt-' + slot + '-wrap');
+    if (!wrap) return;
+
+    // Enregistrer & Activer
+    wrap.querySelector('.btn-evt-save')?.addEventListener('click', () => _evtSaveSlot(slot));
+
+    // Tag aléatoire
+    wrap.querySelector('.btn-evt-random')?.addEventListener('click', () => {
+      const tag = EventSystem.pickRandomTag();
+      if (!tag) { _notify('❌ Aucun tag disponible.'); return; }
+      const sel = document.getElementById('evt-' + slot + '-tag');
+      if (sel) sel.value = tag.id;
+      _notify('🎲 Tag aléatoire : ' + tag.label);
+    });
+
+    // Arrêter
+    wrap.querySelector('.btn-evt-deactivate')?.addEventListener('click', () => {
+      EventSystem.deactivateCurrent();
+      _notify('⏹ Événement arrêté.');
+      switchTab('event');
+    });
+
+    // Activer Next
+    wrap.querySelector('.btn-evt-activate-next')?.addEventListener('click', () => {
+      const state = GameState.get();
+      if (!state.events?.next) { _notify('❌ Aucun event "suivant" configuré.'); return; }
+      state.events.current = { ...state.events.next, startDate: Date.now(), active: true };
+      state.events.current.endDate = state.events.current.startDate + state.events.current.durationDays * 24 * 3600 * 1000;
+      state.events.next = null;
+      GameState._saveEvents(state.events);
+      EventSystem.activateCurrent();
+      _notify('▶ Événement activé !');
+      switchTab('event');
+    });
+
+    // Effacer
+    wrap.querySelector('.btn-evt-clear')?.addEventListener('click', () => {
+      if (!confirm('Effacer cet événement ?')) return;
+      if (slot === 'current') EventSystem.deactivateCurrent();
+      else {
+        const state = GameState.get();
+        if (state.events) state.events.next = null;
+        GameState._saveEvents(state.events || { current: null, next: null });
+      }
+      _notify('🗑 Événement effacé.');
+      switchTab('event');
+    });
+  }
+
+  function _renderEventFormHtml(slot, tagOptions, defaultStart) {
+    return '<div class="evt-grid">' +
+      '<div class="evt-field"><label>Tag</label><select id="evt-' + slot + '-tag">' + tagOptions + '</select></div>' +
+      '<div class="evt-field"><label>Titre personnalisé</label><input type="text" id="evt-' + slot + '-title" placeholder="Laissez vide"></div>' +
+      '<div class="evt-field"><label>Début</label><input type="datetime-local" id="evt-' + slot + '-start" value="' + _tsToDatetimeLocal(defaultStart) + '"></div>' +
+      '<div class="evt-field"><label>Durée (jours)</label><input type="number" id="evt-' + slot + '-duration" value="10" min="1" max="31"></div>' +
+      '<div class="evt-field"><label>Réduction boutique (%)</label><input type="number" id="evt-' + slot + '-discount" value="20" min="0" max="90"></div>' +
+      '<div class="evt-field"><label>Énergie Invasion</label><input type="number" id="evt-' + slot + '-inv-cost" value="15" min="0" max="99"></div>' +
+      '<div class="evt-field"><label>Énergie Défi</label><input type="number" id="evt-' + slot + '-defi-cost" value="20" min="0" max="99"></div>' +
+    '</div>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">' +
+      '<button class="btn-evt-create admin-btn admin-btn-success">✨ Créer l\'événement</button>' +
+      '<button class="btn-evt-random admin-btn">🎲 Tag aléatoire</button>' +
+    '</div>';
+  }
+
+  function _bindEventFormBtns(slot) {
+    const wrap = document.getElementById('evt-' + slot + '-wrap');
+    if (!wrap) return;
+    wrap.querySelector('.btn-evt-create')?.addEventListener('click', () => {
+      const opts = _evtReadForm(slot);
+      if (!opts.tagId) { _notify('❌ Choisissez un tag.'); return; }
+      const evt = EventSystem.buildEvent(opts.tagId, opts.startDate, opts);
+      if (!evt) { _notify('❌ Tag introuvable.'); return; }
+      if (slot === 'current') { EventSystem.saveCurrentEvent(evt); EventSystem.activateCurrent(); }
+      else EventSystem.saveNextEvent(evt);
+      _notify('✅ Événement créé' + (slot === 'current' ? ' et activé.' : '.'));
+      switchTab('event');
+    });
+    wrap.querySelector('.btn-evt-random')?.addEventListener('click', () => {
+      const tag = EventSystem.pickRandomTag();
+      if (!tag) { _notify('❌ Aucun tag disponible.'); return; }
+      const sel = document.getElementById('evt-' + slot + '-tag');
+      if (sel) sel.value = tag.id;
+      _notify('🎲 Tag aléatoire : ' + tag.label);
+    });
+  }
+
+  function _evtSaveSlot(slot) {
+    const state    = GameState.get();
+    const existing = slot === 'current' ? state.events?.current : state.events?.next;
+    if (!existing) { _bindEventFormBtns(slot); document.querySelector('#evt-' + slot + '-wrap .btn-evt-create')?.click(); return; }
+    const opts = _evtReadForm(slot);
+
+    // Lire les quêtes depuis le DOM
+    const rows = document.querySelectorAll('#evt-' + slot + '-quests-list .evt-quest-row');
+    const editedQuests = Array.from(rows).map((row, i) => {
+      const orig = (existing.quests || [])[i] || {};
+      return {
+        id:     orig.id || (existing.id + '_q_' + i + '_' + Date.now()),
+        type:   row.querySelector('.eq-type')?.value   || 'capture',
+        tagId:  opts.tagId,
+        label:  row.querySelector('.eq-label')?.value  || '',
+        target: parseInt(row.querySelector('.eq-target')?.value   || '1', 10),
+        active: true,
+        reward: {
+          crystals: parseInt(row.querySelector('.eq-crystals')?.value || '0', 10),
+          gold:     parseInt(row.querySelector('.eq-gold')?.value     || '0', 10),
+          items:    orig.reward?.items || {},
+        },
+      };
+    });
+
+    const updated = {
+      ...existing,
+      tagId:          opts.tagId,
+      tagLabel:       opts.tagLabel,
+      customTitle:    opts.customTitle,
+      startDate:      opts.startDate,
+      endDate:        opts.startDate + opts.durationDays * 24 * 3600 * 1000,
+      durationDays:   opts.durationDays,
+      shopDiscountPct: opts.shopDiscountPct,
+      invasionConfig: { energyCost: opts.invasionEnergyCost },
+      defiConfig:     { energyCost: opts.defiEnergyCost },
+      quests:         editedQuests.length ? editedQuests : existing.quests,
+    };
+
+    if (slot === 'current') { EventSystem.saveCurrentEvent(updated); EventSystem.activateCurrent(); }
+    else EventSystem.saveNextEvent(updated);
+    _notify('✅ Événement enregistré' + (slot === 'current' ? ' et actif.' : '.'));
+    switchTab('event');
+  }
+
+  function _tsToDatetimeLocal(ts) {
+    if (!ts) return '';
+    const d = new Date(ts), pad = n => String(n).padStart(2,'0');
+    return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+
+  function _startEventCountdownTimer(container) {
+    if (_eventCountdownTimer) clearInterval(_eventCountdownTimer);
+    _eventCountdownTimer = setInterval(() => {
+      const now = Date.now();
+      container.querySelectorAll('[data-evt-end]').forEach(el => {
+        el.textContent = GameUtils.formatCountdown(parseInt(el.dataset.evtEnd, 10) - now);
+      });
+      container.querySelectorAll('[data-evt-start]').forEach(el => {
+        el.textContent = GameUtils.formatCountdown(parseInt(el.dataset.evtStart, 10) - now);
+      });
+    }, 1000);
+  }
+
+  function _evtReadForm(slot) {
+    const g = id => document.getElementById('evt-' + slot + '-' + id)?.value;
+    const tagId   = g('tag');
+    const allTags = EventSystem.getAllTags(GameState.get());
+    const tagDef  = allTags.find(t => t.id === tagId);
+    const startVal = g('start');
+    const startTs  = startVal ? new Date(startVal).getTime() : EventSystem.nextEventStart();
+    return {
+      tagId,
+      tagLabel:           tagDef?.label || tagId || '',
+      customTitle:        g('title') || '',
+      startDate:          startTs,
+      durationDays:       parseInt(g('duration') || '10', 10),
+      shopDiscountPct:    parseInt(g('discount')  || '20', 10),
+      invasionEnergyCost: parseInt(g('inv-cost')  || '15', 10),
+      defiEnergyCost:     parseInt(g('defi-cost') || '20', 10),
+    };
+  }
+
+  // _bindEvtPublic reste pour compatibilité ascendante (était dans init)
+  function _bindEvtPublic() {}
+
+
 
   // ─── API PUBLIQUE ─────────────────────────────────────────────────────────────
 
@@ -4333,6 +5301,11 @@ const AdminPanel = (() => {
     _saveGachaConfig, _saveBanner, _editBanner, _deleteBanner, _clearBannerForm,
     _saveDropRates, _resetDropRates, _updateDropTotal,
     _resetAllEvolutions, _toggleLineCombatAvailability, _uncheckEpicPlusLines, _sortEvolutionLines,
+    _addLineTag, _removeLineTag,
+    _addCategory, _deleteCat, _addTag, _deleteTag,
+    _pnAddBlock, _pnDeleteBlock, _pnMoveBlock, _pnUpdateBlock, _pnLoadImageFile,
+    _addQuest, _deleteQuest, _toggleQuestActive, _updateQuestField, _updateQuestReward, _updateQuestRewardItem, _updateQuestCount,
+    _addCharsByTagToBanner, _applyTagToBanner,
     _saveAwakening, _setAwakening,
     _savePlayerInfo, _adminAddChar, _editPlayerChar, _removePlayerChar, _resetPlayer, _clearCollection,
     _saveResources, _addResources, _saveEnergyConfig, _fillEnergy, _resetStats,

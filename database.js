@@ -796,6 +796,111 @@ const GameDatabase = (() => {
 
   // ─── DONNÉES FUTURES (stubs pour migration) ───────────────────────────────────
 
+  // ─── CATÉGORIES DE TAGS ──────────────────────────────────────────────────────
+  // Chaque catégorie a un id, un nom, et une liste de tags.
+  // Les tags sont assignés aux lignées évolutives (via evolutionLine).
+  // Ils servent à cibler des bannières, quêtes, events, etc.
+
+  const DEFAULT_TAG_CATEGORIES = [
+    {
+      id: 'tc_continent',
+      name: 'Continent',
+      tags: [
+        { id: 'tag_afrique',      label: 'Afrique' },
+        { id: 'tag_europe',       label: 'Europe' },
+        { id: 'tag_asie',         label: 'Asie' },
+        { id: 'tag_amerique_n',   label: 'Amérique du Nord' },
+        { id: 'tag_amerique_s',   label: 'Amérique du Sud' },
+        { id: 'tag_oceanie',      label: 'Océanie' },
+        { id: 'tag_arctique',     label: 'Arctique / Antarctique' },
+      ],
+    },
+    {
+      id: 'tc_physique',
+      name: 'Caractéristiques physiques',
+      tags: [
+        { id: 'tag_ailé',     label: 'Ailé' },
+        { id: 'tag_aquatique', label: 'Aquatique' },
+        { id: 'tag_terrestre', label: 'Terrestre' },
+        { id: 'tag_venimeux',  label: 'Venimeux' },
+        { id: 'tag_nocturne',  label: 'Nocturne' },
+      ],
+    },
+  ];
+
+  // ─── QUÊTES HEBDOMADAIRES ─────────────────────────────────────────────────────
+  // Même structure que les quêtes quotidiennes.
+  // 7 tirées aléatoirement chaque lundi à 0h (nombre paramétrable).
+
+  const DEFAULT_WEEKLY_QUESTS = [
+    { id: 'wq_capture_5',    type: 'capture',    target: 5,  active: true,
+      label: 'Capturer 5 créatures',
+      reward: { crystals: 200, gold: 0,    items: {} } },
+    { id: 'wq_capture_10',   type: 'capture',    target: 10, active: true,
+      label: 'Capturer 10 créatures',
+      reward: { crystals: 400, gold: 0,    items: {} } },
+    { id: 'wq_defeat_20',    type: 'defeat',     target: 20, active: true,
+      label: 'Battre 20 ennemis',
+      reward: { crystals: 0,   gold: 800,  items: {} } },
+    { id: 'wq_defeat_50',    type: 'defeat',     target: 50, active: true,
+      label: 'Battre 50 ennemis',
+      reward: { crystals: 0,   gold: 1500, items: {} } },
+    { id: 'wq_pull_char_20', type: 'pullChar',   target: 20, active: true,
+      label: 'Invoquer 20 animaux',
+      reward: { crystals: 500, gold: 0,    items: {} } },
+    { id: 'wq_line_5',       type: 'line',       target: 5,  active: true,
+      label: 'Réussir 5 combats de lignée',
+      reward: { crystals: 300, gold: 0,    items: {} } },
+    { id: 'wq_story_3',      type: 'story',      target: 3,  active: true,
+      label: "Réussir 3 combats d'Odyssée",
+      reward: { crystals: 400, gold: 0,    items: { item_energy_potion: 2 } } },
+    { id: 'wq_fullrandom_5', type: 'fullRandom', target: 5,  active: true,
+      label: 'Réussir 5 combats Full Aléatoire',
+      reward: { crystals: 350, gold: 0,    items: {} } },
+  ];
+
+  // ─── QUÊTES D'ÉVÉNEMENT ───────────────────────────────────────────────────────
+  // Activées/désactivées manuellement en admin.
+  // Pas de tirage aléatoire : toutes les quêtes actives sont proposées simultanément.
+
+  const DEFAULT_EVENT_QUESTS = [];
+
+  // ─── ACTIONS ET CIBLES DISPONIBLES POUR LES QUÊTES ───────────────────────────
+  // Utilisées par le formulaire admin pour construire des quêtes paramétrables.
+
+  const QUEST_ACTIONS = [
+    { id: 'capture',              label: 'Capturer' },
+    { id: 'defeat',               label: 'Battre' },
+    { id: 'pullChar',             label: 'Invoquer' },
+    { id: 'pullEquip',            label: 'Invoquer (équipement)' },
+    { id: 'line',                 label: 'Réussir un combat de lignée' },
+    { id: 'fullRandom',           label: 'Réussir un combat Full Aléatoire' },
+    { id: 'story',                label: "Réussir un combat d'Odyssée" },
+    { id: 'tagCapture',           label: 'Capturer un animal [Tag]' },
+    { id: 'tagDefeat',            label: 'Battre un animal [Tag]' },
+    { id: 'tagPull',              label: 'Invoquer un animal [Tag]' },
+    { id: 'eventInvasion',        label: 'Finir un combat Invasion [Tag]' },
+    { id: 'eventDefi',            label: 'Finir un combat Défi [Tag]' },
+    { id: 'completeQuestDaily',   label: 'Terminer' },
+    { id: 'completeQuestWeekly',  label: 'Terminer' },
+    { id: 'completeQuestEvent',   label: 'Terminer' },
+  ];
+
+  const QUEST_TARGETS = [
+    { id: 'animal',                 label: 'animal(aux)' },
+    { id: 'ennemi',                 label: 'ennemi(s)' },
+    { id: 'invocation',             label: 'invocation(s)' },
+    { id: 'équipement',             label: 'équipement(s)' },
+    { id: 'combat',                 label: 'combat(s)' },
+    { id: 'combatInvasion',         label: "combat(s) d'Invasion" },
+    { id: 'combatDefi',             label: 'combat(s) de Défi' },
+    { id: 'lignée',                 label: 'de lignée' },
+    { id: 'quête',                  label: 'quête(s)' },
+    { id: 'quêteQuotidienne',       label: 'Quêtes Quotidiennes' },
+    { id: 'quêteHebdomadaire',      label: 'Quêtes Hebdomadaires' },
+    { id: 'quêteEvent',             label: "Quêtes d'Événement" },
+  ];
+
   const FUTURE_STUBS = {
     talents: [],
     activeSkills: [],
@@ -823,6 +928,11 @@ const GameDatabase = (() => {
     DEFAULT_ITEMS,
     ITEM_EFFECT_TYPES,
     DEFAULT_SHOP_ITEMS,
+    DEFAULT_TAG_CATEGORIES,
+    DEFAULT_WEEKLY_QUESTS,
+    DEFAULT_EVENT_QUESTS,
+    QUEST_ACTIONS,
+    QUEST_TARGETS,
     DEFAULT_DAILY_QUESTS,
     DEFAULT_LOGIN_CYCLES,
     DEFAULT_EQUIP_BANNERS,

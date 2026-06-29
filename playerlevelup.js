@@ -151,7 +151,7 @@ const PlayerLevelUpAnimator = (() => {
       <div class="plvl-stage" id="plvl-stage">
         <div class="plvl-halo"></div>
 
-        <div class="plvl-name" id="plvl-name">${_escapeHtml(playerName || 'Dresseur')}</div>
+        <div class="plvl-name" id="plvl-name">${GameUtils.escapeHtml(playerName || 'Dresseur')}</div>
         <div class="plvl-badge" id="plvl-badge">
           <span class="plvl-badge-label">LVL UP !</span>
         </div>
@@ -242,12 +242,6 @@ const PlayerLevelUpAnimator = (() => {
       _resolve = null;
       r?.();
     }, 350);
-  }
-
-  function _escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
   }
 
   return { play };

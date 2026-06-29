@@ -84,14 +84,29 @@ const GameState = (() => {
       equipBanners: JSON.parse(JSON.stringify(GameDatabase.DEFAULT_EQUIP_BANNERS)),
       banners:      JSON.parse(JSON.stringify(GameDatabase.DEFAULT_BANNERS)),
       dailyQuests:  JSON.parse(JSON.stringify(GameDatabase.DEFAULT_DAILY_QUESTS)),
+      weeklyQuests: JSON.parse(JSON.stringify(GameDatabase.DEFAULT_WEEKLY_QUESTS)),
+      eventQuests:  JSON.parse(JSON.stringify(GameDatabase.DEFAULT_EVENT_QUESTS)),
+      tagCategories: JSON.parse(JSON.stringify(GameDatabase.DEFAULT_TAG_CATEGORIES)),
       loginCycles:  JSON.parse(JSON.stringify(GameDatabase.DEFAULT_LOGIN_CYCLES)),
       shopItems:    JSON.parse(JSON.stringify(GameDatabase.DEFAULT_SHOP_ITEMS)),
-      patchNotes:   { id: '', text: '' },
+      patchNotes:   { id: '', blocks: [] },
+      events:       { current: null, next: null },
       player:       JSON.parse(JSON.stringify(GameDatabase.DEFAULT_PLAYER)),
     };
   }
 
   /** Fusionne les données sauvegardées avec les valeurs par défaut */
+  /** Migre l'ancien format { id, text } vers le nouveau { id, blocks:[...] } */
+  function _migratePatchNotes(pn) {
+    if (!pn) return null;
+    if (Array.isArray(pn.blocks)) return pn; // déjà nouveau format
+    // Ancien format : { id, text } → convertir en un bloc unique sans titre ni image
+    if (pn.text) {
+      return { id: pn.id || '', blocks: [{ title: 'Note de mise à jour', image: '', text: pn.text }] };
+    }
+    return { id: pn.id || '', blocks: [] };
+  }
+
   function _mergeWithDefaults(saved) {
     const defaults = _buildDefaultState();
     return {
@@ -104,9 +119,13 @@ const GameState = (() => {
       equipBanners: saved.equipBanners || defaults.equipBanners,
       banners:      saved.banners      || defaults.banners,
       dailyQuests:  saved.dailyQuests  || defaults.dailyQuests,
+      weeklyQuests: saved.weeklyQuests || defaults.weeklyQuests,
+      eventQuests:  saved.eventQuests  || defaults.eventQuests,
+      tagCategories: saved.tagCategories || defaults.tagCategories,
       loginCycles:  saved.loginCycles  || defaults.loginCycles,
       shopItems:    saved.shopItems    || defaults.shopItems,
-      patchNotes:   saved.patchNotes   || defaults.patchNotes,
+      patchNotes:   _migratePatchNotes(saved.patchNotes) || defaults.patchNotes,
+      events:       saved.events       || defaults.events,
       player:       _mergePlayer(defaults.player, saved.player),
     };
   }
@@ -166,7 +185,8 @@ const GameState = (() => {
         progress: { ...(saved.dailyQuestState?.progress || {}) },
         claimed:  { ...(saved.dailyQuestState?.claimed  || {}) },
       },
-      shopPurchaseState: { ...defaults.shopPurchaseState, ...(saved.shopPurchaseState || {}) },
+      shopPurchaseState:  { ...defaults.shopPurchaseState, ...(saved.shopPurchaseState || {}) },
+      shopDailyRotation:  saved.shopDailyRotation || null,
     };
   }
 
@@ -211,38 +231,53 @@ const GameState = (() => {
     const charDef = getCharDef(charDefId);
     if (!charDef) return null;
 
-    // XP joueur : accordée à chaque obtention de créature (gacha OU capture combat),
-    // qu'elle soit nouvelle ou qu'elle déclenche un awakening.
-    const plCfg = _state.config.playerLevel || {};
-    if (plCfg.xpPerCapture) addPlayerXp(plCfg.xpPerCapture);
-
     // Vérifier si la lignée est déjà possédée (quelque forme que ce soit)
-    const lineOwned = _state.player.collection.find(c => {
-      const def = getCharDef(c.charId);
-      return def?.evolutionLine === charDef.evolutionLine;
-    });
+    // AVANT d'accorder l'XP joueur : ainsi l'event 'playerLevelUp' (et le
+    // 'playerChanged' qui suit) ne peut pas déclencher un renderSpecimens()
+    // avec un awakening pas encore muté.
+    //
+    // Guard : si evolutionLine est absent/undefined sur l'une ou l'autre des
+    // définitions, on compare directement par charId pour éviter que
+    // undefined === undefined ne génère un faux positif d'awakening.
+    const lineOwned = charDef.evolutionLine
+      ? _state.player.collection.find(c => {
+          const def = getCharDef(c.charId);
+          return def?.evolutionLine && def.evolutionLine === charDef.evolutionLine;
+        })
+      : _state.player.collection.find(c => c.charId === charDefId);
+
+    let result;
 
     if (lineOwned) {
-      // Awakening : trouver le créature de la même lignée et augmenter son awakening
+      // Awakening : incrémenter EN PREMIER, avant tout _notify ou addPlayerXp
       const awakTarget = lineOwned;
       const oldAwk = awakTarget.awakening || 0;
       const maxAwk = _state.config.awakening.maxLevel;
       awakTarget.awakening = Math.min(oldAwk + 1, maxAwk);
-      _notify('awakening', { instanceId: awakTarget.instanceId });
-      _autoSave();
-      return { isNew: false, awakening: true, instance: awakTarget };
+      result = { isNew: false, awakening: true, instance: awakTarget };
+    } else {
+      // Nouveau créature : l'ajouter EN PREMIER à la collection
+      const instance = _createCharInstance(charDef);
+      _state.player.collection.push(instance);
+      _registerBestiaire(charDef);
+      result = { isNew: true, awakening: false, instance };
     }
 
-    // Nouveau créature
-    const instance = _createCharInstance(charDef);
-    _state.player.collection.push(instance);
+    // XP joueur accordée après la mutation : les events 'playerLevelUp' /
+    // 'playerChanged' verront donc la collection et l'awakening déjà à jour.
+    const plCfg = _state.config.playerLevel || {};
+    if (plCfg.xpPerCapture) addPlayerXp(plCfg.xpPerCapture);
 
-    // Mettre à jour le Bestiaire
-    _registerPokedex(charDef);
+    // Notifier l'UI du résultat final (après XP joueur pour que HUD et
+    // specimens soient cohérents en un seul re-render)
+    if (result.isNew) {
+      _notify('characterAdded', { instance: result.instance });
+    } else {
+      _notify('awakening', { instanceId: result.instance.instanceId });
+    }
 
-    _notify('characterAdded', { instance });
     _autoSave();
-    return { isNew: true, awakening: false, instance };
+    return result;
   }
 
   /**
@@ -267,7 +302,7 @@ const GameState = (() => {
    * Enregistre un créature dans le Bestiaire
    * @param {object} charDef
    */
-  function _registerPokedex(charDef) {
+  function _registerBestiaire(charDef) {
     if (!_state.player.bestiaire[charDef.id]) {
       _state.player.bestiaire[charDef.id] = {
         discovered: true,
@@ -335,7 +370,7 @@ const GameState = (() => {
     inst.charId = nextDef.id;
 
     // Enregistrer la nouvelle forme dans le Bestiaire
-    _registerPokedex(nextDef);
+    _registerBestiaire(nextDef);
 
     _notify('evolved', { instanceId: inst.instanceId, newCharId: nextDef.id });
     return nextDef;
@@ -422,6 +457,31 @@ const GameState = (() => {
         inv[itemId] = (inv[itemId] || 0) + qty;
       });
       p.inventory = inv;
+    }
+    // Récompense équipement : crée une instance dans equipInventory
+    if (reward.equipment) {
+      const equipIds = Array.isArray(reward.equipment) ? reward.equipment : [reward.equipment];
+      const equipInv = [...(p.equipInventory || [])];
+      equipIds.forEach(equipId => {
+        if (!equipId) return;
+        const def = (_state.equipment || []).find(e => e.id === equipId);
+        if (!def) return;
+        equipInv.push({
+          instanceId: 'einst_reward_' + Date.now() + '_' + Math.random().toString(36).slice(2),
+          equipId,
+          obtainedAt: Date.now(),
+          equippedBy: null,
+        });
+      });
+      p.equipInventory = equipInv;
+    }
+    // Récompense animal : ajoute à la collection (ou awakening)
+    if (reward.characters) {
+      const charIds = Array.isArray(reward.characters) ? reward.characters : [reward.characters];
+      charIds.forEach(charId => {
+        if (!charId) return;
+        addCharacterToCollection(charId, 'reward');
+      });
     }
     _notify('resourceChanged');
     _autoSave();
@@ -573,6 +633,42 @@ const GameState = (() => {
     _autoSave();
   }
 
+  /** Remplace les catégories de tags (admin) */
+  function updateTagCategories(cats) {
+    _state.tagCategories = JSON.parse(JSON.stringify(cats));
+    _notify('tagCategoriesChanged');
+    _autoSave();
+  }
+
+  /** Remplace les quêtes hebdomadaires (admin) */
+  function updateWeeklyQuestDefs(quests) {
+    _state.weeklyQuests = JSON.parse(JSON.stringify(quests));
+    _notify('weeklyQuestsChanged');
+    _autoSave();
+  }
+
+  /** Remplace les quêtes d'event (admin) */
+  function updateEventQuestDefs(quests) {
+    _state.eventQuests = JSON.parse(JSON.stringify(quests));
+    _notify('eventQuestsChanged');
+    _autoSave();
+  }
+
+  /** Met à jour les tags d'une lignée évolutive (stockés sur la forme de base) */
+  function updateLineTags(evolutionLine, tags) {
+    const base = _state.characters.find(c => (c.evolutionLine || c.id) === evolutionLine && (c.evolutionStage || 0) === 0);
+    if (!base) return;
+    base.tags = JSON.parse(JSON.stringify(tags));
+    _notify('charDefsChanged');
+    _autoSave();
+  }
+
+  /** Récupère les tags d'une lignée (depuis la forme de base) */
+  function getLineTags(evolutionLine) {
+    const base = _state.characters.find(c => (c.evolutionLine || c.id) === evolutionLine && (c.evolutionStage || 0) === 0);
+    return base?.tags || [];
+  }
+
   /** Remplace complètement le catalogue d'objets (admin) */
   function updateItemDefs(items) {
     _state.items = JSON.parse(JSON.stringify(items));
@@ -588,11 +684,11 @@ const GameState = (() => {
   }
 
   /**
-   * Met à jour les notes de mise à jour (admin).
-   * @param {{ id: string, text: string }} patchNotes
+   * Met à jour les notes de mise à jour (tableau de blocs).
+   * @param {{ id: string, blocks: Array<{title:string, image:string, text:string}> }} patchNotes
    */
   function updatePatchNotes(patchNotes) {
-    _state.patchNotes = { ...patchNotes };
+    _state.patchNotes = { id: patchNotes.id || '', blocks: patchNotes.blocks || [] };
     _notify('patchNotesChanged');
     _autoSave();
   }
@@ -723,30 +819,28 @@ const GameState = (() => {
    */
   function applyGameDatabase(data) {
     const defaults = _buildDefaultState();
-    // On fusionne chaque section config avec ses défauts pour garantir que
-    // tous les champs requis existent (robustesse si le fichier vient d'une
-    // version plus ancienne du jeu avec moins de champs).
-    if (data.config)      _state.config      = _mergeConfig(defaults.config, data.config);
-    if (data.types)       _state.types       = data.types;
-    if (data.typeMatrix)  _state.typeMatrix  = data.typeMatrix;
-    if (data.characters)  _state.characters  = data.characters;
-    if (data.equipment)   _state.equipment   = data.equipment;
-    if (data.items)       _state.items       = data.items;
-    if (data.equipBanners)_state.equipBanners= data.equipBanners;
-    if (data.banners)     _state.banners     = data.banners;
-    if (data.dailyQuests) _state.dailyQuests = data.dailyQuests;
-    if (data.loginCycles) _state.loginCycles = data.loginCycles;
-    if (data.shopItems)   _state.shopItems   = data.shopItems;
-    if (data.patchNotes)  _state.patchNotes  = data.patchNotes;
-    // player inchangé : aucune donnée joueur n'est touchée.
-    // ⚠️ Pas d'_autoSave() ici : applyGameDatabase peut être exécuté depuis
-    // l'écran de sélection de compte, où aucun slot joueur n'est encore chargé.
-    // Si _autoSaveFn était déjà branché, save() écrirait un joueur générique
-    // (DEFAULT_PLAYER) par-dessus le vrai slot. La persistance est assurée
-    // explicitement par l'appelant via SaveSystem.saveGlobalConfig().
+    if (data.config)        _state.config        = _mergeConfig(defaults.config, data.config);
+    if (data.types)         _state.types         = data.types;
+    if (data.typeMatrix)    _state.typeMatrix     = data.typeMatrix;
+    if (data.characters)    _state.characters     = data.characters;
+    if (data.equipment)     _state.equipment      = data.equipment;
+    if (data.items)         _state.items          = data.items;
+    if (data.equipBanners)  _state.equipBanners   = data.equipBanners;
+    if (data.banners) {
+      // Ne pas conserver les bannières event : elles seront réinjectées
+      // proprement par EventSystem.tick() — évite les doublons au rechargement.
+      _state.banners = data.banners.filter(b => !b.isEventBanner);
+    }
+    if (data.dailyQuests)   _state.dailyQuests    = data.dailyQuests;
+    if (data.weeklyQuests)  _state.weeklyQuests   = data.weeklyQuests;
+    if (data.tagCategories) _state.tagCategories  = data.tagCategories;
+    if (data.loginCycles)   _state.loginCycles    = data.loginCycles;
+    if (data.shopItems)     _state.shopItems      = data.shopItems;
+    if (data.patchNotes)    _state.patchNotes     = _migratePatchNotes(data.patchNotes) || _state.patchNotes;
+    if (data.eventQuests?.length) _state.eventQuests = data.eventQuests;
+    if (data.events)        _state.events         = data.events;
     _notify('configChanged');
   }
-
   /**
    * Applique les données joueur importées dans le slot courant, SANS toucher
    * à la configuration du jeu (types, créatures, config…).
@@ -774,9 +868,17 @@ const GameState = (() => {
     modifyResources, grantReward, regenEnergy,
     updateConfig, updateCharDef, addCharDef, removeCharDef, reorderCharDefs,
     updateTypeMatrix, updateTypes, reorderTypes, addEquipDef, updateEquipDef, removeEquipDef, reorderEquipDefs,
-    updateBanners, updateDailyQuestDefs, updateLoginCycles, updateItemDefs, updateShopItems, updatePatchNotes, updatePlayer,
+    updateBanners, updateDailyQuestDefs, updateWeeklyQuestDefs, updateEventQuestDefs,
+    updateLoginCycles, updateItemDefs, updateShopItems, updatePatchNotes, updatePlayer,
+    updateTagCategories, updateLineTags, getLineTags,
     applyGameDatabase, applyPlayerData,
     subscribe, setAutoSaveFn,
     getStoryNext, completeStoryLevel,
+    /** Persiste les données d'événement (appelé par EventSystem) */
+    _saveEvents(eventsObj) {
+      _state.events = eventsObj;
+      _notify('eventsChanged');
+      _autoSave();
+    },
   };
 })();
