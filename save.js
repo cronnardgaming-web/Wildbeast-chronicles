@@ -318,11 +318,15 @@ const SaveSystem = (() => {
    */
   function exportGameDatabase(gameState) {
     try {
+      // forceVersion : incrémenter ce champ dans l'admin (config → version force)
+      // pour garantir que TOUS les appareils réappliquent la BDD même si leur
+      // clé locale correspond déjà à l'exportDate. Utile après un bug de mémorisation.
       const payload = {
         _exportType: 'wildbeast_db_export',
         _exportVersion: '1.0',
         exportDate: new Date().toISOString(),
         gameVersion: gameState.config?.game?.version || '1.0.0',
+        forceVersion: gameState.config?.game?.forceVersion || '1',
         config:        gameState.config,
         types:         gameState.types,
         typeMatrix:    gameState.typeMatrix,
@@ -473,6 +477,25 @@ const SaveSystem = (() => {
    * empêchant toute détection de changement).
    * @returns {Promise<{available:boolean, data?:object}>}
    */
+  /**
+   * Calcule une empreinte légère du contenu de la BDD distante.
+   * Elle change dès qu'un champ significatif est modifié : nombre de
+   * créatures, de quêtes, version du jeu, ou état de l'event courant.
+   * Complète la comparaison sur exportDate pour couvrir les cas où
+   * l'exportDate ne change pas (mauvaise manipulation) ou a été mal
+   * mémorisé par une version précédente du client.
+   */
+  function _dbContentFingerprint(data) {
+    const chars  = (data.characters  || []).length;
+    const quests = (data.dailyQuests || []).length
+                 + (data.weeklyQuests || []).length
+                 + (data.eventQuests  || []).length;
+    const evtId  = data.events?.current?.id || data.events?.next?.id || '';
+    const gv     = data.gameVersion || '';
+    const fv     = data.forceVersion || '';   // champ optionnel pour forcer la mise à jour
+    return `${chars}|${quests}|${evtId}|${gv}|${fv}`;
+  }
+
   async function checkRemoteDatabaseUpdate() {
     try {
       const res = await fetch('./database_export.json', { cache: 'no-store' });
@@ -480,14 +503,16 @@ const SaveSystem = (() => {
       const data = await res.json();
       if (!data || data._exportType !== 'wildbeast_db_export') return { available: false };
 
-      const remoteVersion = data.exportDate || data.gameVersion;
-      const appliedVersion = getAppliedDbVersion();
-      if (!remoteVersion || remoteVersion === appliedVersion) return { available: false };
+      // Clé composite : exportDate + empreinte de contenu
+      // N'importe lequel qui change → mise à jour détectée
+      const remoteKey  = (data.exportDate || '') + '|' + _dbContentFingerprint(data);
+      const appliedKey = getAppliedDbVersion();
 
-      return { available: true, data };
+      if (remoteKey === appliedKey) return { available: false };
+
+      return { available: true, data, remoteKey };
     } catch (e) {
-      // Pas de fichier déposé, pas de réseau, ou JSON invalide : on ignore
-      // silencieusement (le jeu fonctionne très bien sans ce fichier).
+      // Pas de fichier déposé, pas de réseau, ou JSON invalide : silencieux.
       return { available: false };
     }
   }
@@ -503,10 +528,12 @@ const SaveSystem = (() => {
    * sa vraie progression.
    * @param {object} data - le JSON de database_export.json
    */
-  function applyRemoteDatabase(data) {
+  function applyRemoteDatabase(data, remoteKey) {
     GameState.applyGameDatabase(data);
     saveGlobalConfig(GameState.get());
-    _setAppliedDbVersion(data.exportDate || data.gameVersion);
+    // Stocker la clé composite (exportDate + empreinte) pour la prochaine comparaison
+    const key = remoteKey || ((data.exportDate || '') + '|' + _dbContentFingerprint(data));
+    _setAppliedDbVersion(key);
   }
 
   return {

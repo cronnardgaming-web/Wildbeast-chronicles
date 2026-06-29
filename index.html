@@ -298,26 +298,6 @@
   }
   .stat-filter-group{ display:flex; gap:6px; align-items:center; }
   .stat-filter-input{ width:64px; min-width:64px; padding:7px 10px; }
-  /* ── Filtre par tag dans l'onglet Équipe ── */
-  .team-tag-filter{
-    border-color:var(--accent2) !important;
-    color:var(--accent2) !important;
-  }
-  .team-tag-active-banner{
-    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;
-    background:rgba(138,122,240,.12); border:1px solid var(--accent2);
-    border-radius:var(--radius-sm); padding:8px 12px; margin-bottom:10px;
-    font-size:.82rem; color:var(--accent2);
-  }
-  .team-tag-active-banner strong{ color:var(--text); }
-  .team-tag-active-banner button{
-    background:none; border:1px solid var(--accent2); color:var(--accent2);
-    border-radius:999px; padding:3px 10px; font-size:.75rem; cursor:pointer;
-    font-family:var(--font-body); transition:background .15s, color .15s;
-  }
-  .team-tag-active-banner button:hover{
-    background:var(--accent2); color:#000;
-  }
 
   .equip-inv-tabs{ display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
   .equip-inv-tab-btn{
@@ -653,177 +633,57 @@
   .quests-screen-ready-hint{
     display:inline-block; margin-left:8px; color:var(--accent2); font-weight:700;
   }
-  /* ── Quêtes — accordéon déroulant ─────────────────────────────────── */
-  .quests-accordion{
-    background:var(--surface-2); border:1px solid var(--border-soft);
-    border-radius:var(--radius-lg); overflow:hidden; margin-bottom:10px;
-  }
-  .quests-accordion-event{
-    background:linear-gradient(135deg,#1a1200,#231c00);
-    border:2px solid #d4af37;
-    box-shadow:0 0 14px rgba(212,175,55,.12);
-  }
-  .quests-accordion-summary{
-    display:flex; align-items:center; justify-content:space-between;
-    gap:10px; padding:13px 16px; cursor:pointer; list-style:none;
-    user-select:none;
-    transition:background .15s;
-  }
-  .quests-accordion-summary::-webkit-details-marker{ display:none; }
-  .quests-accordion:not([open]) .quests-accordion-summary:hover{
-    background:rgba(255,255,255,.04);
-  }
-  .quests-accordion[open] .quests-accordion-summary{
+  .quests-section-title{
+    font-family:var(--font-display); font-weight:700; font-size:.9rem;
+    color:var(--accent); margin:0 0 8px; padding-bottom:4px;
     border-bottom:1px solid var(--border-soft);
   }
-  .quests-accordion-event[open] .quests-accordion-summary{
-    border-bottom-color:#d4af3744;
-  }
-  .quests-summary-left{
-    display:flex; align-items:center; gap:8px; flex:1; min-width:0;
-  }
-  .quests-summary-title{
-    font-family:var(--font-display); font-weight:700; font-size:.9rem;
-    color:var(--accent);
-  }
-  .quests-accordion-event .quests-summary-title{ color:#d4af37; }
-  .quests-summary-right{
-    display:flex; align-items:center; gap:8px; flex-shrink:0;
-  }
-  .quests-summary-progress{
-    font-size:.72rem; color:var(--text-faint); font-family:var(--font-mono);
-  }
-  .quests-chevron{
-    font-size:.8rem; color:var(--text-faint);
-    transition:transform .2s ease;
-    display:inline-block;
-  }
-  .quests-accordion[open] .quests-chevron{ transform:rotate(180deg); }
-  .quests-accordion-body{
-    padding:12px 16px 14px;
-  }
-
-  /* ── Quêtes — structure des sections ─────────────────────────────── */
-  .quests-ready-banner{
-    background:linear-gradient(90deg,#14532d,#166534); color:#4ade80;
-    border:1px solid #4ade8055; border-radius:var(--radius);
-    padding:10px 16px; font-weight:700; font-size:.88rem;
-    margin-bottom:14px; text-align:center; letter-spacing:.02em;
-  }
-  /* Section event */
-  .quests-event-block{
-    background:linear-gradient(135deg,#1a1200,#2a1e00);
-    border:2px solid #d4af37; border-radius:var(--radius-lg);
-    padding:14px 16px; margin-bottom:16px;
-    box-shadow:0 0 16px rgba(212,175,55,.15);
-  }
-  .quests-event-header{
-    display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:6px;
-  }
-  .quests-event-icon{ font-size:1.3rem; }
-  .quests-event-titles{ flex:1; display:flex; flex-direction:column; gap:2px; }
-  .quests-event-titles strong{ font-family:var(--font-display); font-size:1rem; color:#d4af37; }
-  .quests-event-timer{
-    font-size:.7rem; color:#c8a830; background:rgba(212,175,55,.12);
-    border:1px solid #d4af3744; border-radius:999px; padding:1px 8px;
-    display:inline-block; margin-top:2px;
-  }
-  /* Section quotidienne / hebdo */
-  .quests-section-block{ background:var(--surface-2); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:14px 16px; }
-  .quests-section-header{
-    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
-    font-family:var(--font-display); font-weight:700; font-size:.9rem;
-    color:var(--accent); margin-bottom:4px;
-  }
-  .quests-section-icon{ font-size:1.1rem; }
-  .quests-section-timer{
-    font-size:.68rem; color:var(--text-faint); background:var(--surface);
-    border:1px solid var(--border-soft); border-radius:999px; padding:1px 7px;
-    font-family:var(--font-mono);
-  }
-  .quests-ready-badge{
-    background:var(--accent2); color:#000; border-radius:999px;
-    padding:0px 7px; font-size:.7rem; font-weight:800;
-    margin-left:auto;
-  }
-  .quests-progress-summary{
-    font-size:.72rem; color:var(--text-faint); margin-bottom:10px;
-  }
-  .quests-empty{ color:var(--text-dim); font-size:.9rem; text-align:center; padding:16px 0; }
-  .quests-screen-list{ display:flex; flex-direction:column; gap:10px; }
-  /* ── Carte quête ──────────────────────────────────────────────────── */
+  .quests-empty{ color:var(--text-dim); font-size:.9rem; text-align:center; padding:30px 0; }
+  .quests-screen-list{ display:flex; flex-direction:column; gap:12px; }
   .quest-card{
-    display:flex; align-items:center; gap:12px;
-    background:var(--surface); border:1px solid var(--border-soft);
-    border-radius:var(--radius); padding:12px 14px;
-    transition:border-color .15s, box-shadow .15s;
-  }
-  .quest-card-ready{
-    border-color:var(--accent2);
-    box-shadow:0 0 0 1px var(--accent2), 0 0 18px rgba(74,222,128,.1);
-  }
-  .quest-card-claimed{ opacity:.5; }
-  .quest-card-active{}
-  /* Carte event */
-  .quest-card-event{ border-color:#d4af3744; background:rgba(212,175,55,.04); }
-  .quest-card-event.quest-card-ready{ border-color:#d4af37; box-shadow:0 0 0 1px #d4af37, 0 0 18px rgba(212,175,55,.15); }
-  /* Icône */
-  .quest-card-left{ flex-shrink:0; }
-  .quest-card-icon-wrap{
-    width:40px; height:40px; border-radius:50%;
+    display:flex; align-items:flex-start; gap:14px;
     background:var(--surface-2); border:1px solid var(--border-soft);
-    display:flex; align-items:center; justify-content:center; font-size:1.2rem;
+    border-radius:var(--radius-lg); padding:16px;
   }
-  .quest-icon-ready{ border-color:var(--accent2); background:rgba(74,222,128,.1); }
-  .quest-icon-claimed{ opacity:.6; }
-  /* Corps */
+  .quest-card.is-ready{ border-color:var(--accent2); box-shadow:0 0 0 1px var(--accent2), 0 0 22px rgba(74,222,128,.12); }
+  .quest-card.is-claimed{ opacity:.55; }
+  .quest-card-icon{
+    flex-shrink:0; width:42px; height:42px; border-radius:50%;
+    background:var(--surface); border:1px solid var(--border-soft);
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.3rem;
+  }
   .quest-card-body{ flex:1; min-width:0; }
-  .quest-card-label{ font-weight:700; font-size:.88rem; color:var(--text); margin-bottom:6px; line-height:1.3; }
-  .quest-pinned-badge{
-    display:inline-block; font-size:.58rem; background:var(--accent2); color:#000;
-    padding:1px 5px; border-radius:999px; font-weight:800; margin-left:5px; vertical-align:middle;
-  }
-  .quest-card-progress-row{ display:flex; align-items:center; gap:7px; margin-bottom:3px; }
+  .quest-card-label{ font-weight:700; font-size:.95rem; color:var(--text); margin-bottom:8px; }
   .quest-card-progressbar{
-    flex:1; height:7px; border-radius:4px; background:var(--surface-2);
-    overflow:hidden; border:1px solid var(--border-soft);
+    height:8px; border-radius:4px; background:var(--surface-3, var(--surface));
+    overflow:hidden; margin-bottom:4px; border:1px solid var(--border-soft);
   }
   .quest-card-progressfill{
-    height:100%; border-radius:4px;
-    transition:width .35s ease;
+    height:100%; background:linear-gradient(90deg, var(--accent2-deep), var(--accent2));
+    transition:width .3s ease;
   }
-  .quest-fill-active{ background:linear-gradient(90deg,#2563eb,#60a5fa); }
-  .quest-fill-ready{ background:linear-gradient(90deg,var(--accent2-deep,#16a34a),var(--accent2)); }
-  .quest-fill-claimed{ background:var(--border-soft); }
-  .quest-card-pct{ font-size:.65rem; color:var(--text-faint); font-family:var(--font-mono); min-width:28px; text-align:right; }
-  .quest-card-progresstext{ font-size:.68rem; color:var(--text-faint); font-family:var(--font-mono); margin-bottom:6px; }
-  .quest-card-reward{ display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
-  .quest-card-reward-label{ font-size:.68rem; color:var(--text-faint); }
+  .quest-card-progresstext{ font-size:.72rem; color:var(--text-faint); font-family:var(--font-mono); margin-bottom:8px; }
+  .quest-card-reward{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .quest-card-reward-label{ font-size:.7rem; color:var(--text-faint); text-transform:uppercase; letter-spacing:.04em; margin-right:2px; }
   .quest-reward-chip{
     display:inline-flex; align-items:center; gap:2px;
-    background:var(--surface-2); border:1px solid var(--border-soft);
-    border-radius:999px; padding:2px 8px; font-size:.72rem; color:var(--accent);
+    background:var(--surface); border:1px solid var(--border-soft);
+    border-radius:999px; padding:3px 9px; font-size:.75rem; color:var(--accent);
     font-weight:600;
   }
-  /* Bouton réclamer */
   .quest-claim-btn{
-    flex-shrink:0; align-self:center; padding:9px 14px; border-radius:999px;
-    font-family:var(--font-display); font-size:.78rem; font-weight:700;
+    flex-shrink:0; align-self:center; padding:10px 16px; border-radius:999px;
+    background:var(--accent2); color:#000; font-weight:700;
+    font-family:var(--font-display); font-size:.82rem;
     border:none; cursor:pointer; white-space:nowrap;
     transition:opacity .15s, transform .1s;
-    min-width:78px; text-align:center;
   }
-  .quest-claim-active{ background:var(--surface-2); color:var(--text-faint); cursor:default; }
-  .quest-claim-ready{ background:var(--accent2); color:#000; animation:claim-pulse 1.8s ease-in-out infinite; }
-  @keyframes claim-pulse{
-    0%,100%{ box-shadow:0 0 0 0 rgba(74,222,128,.4); }
-    50%{ box-shadow:0 0 0 6px rgba(74,222,128,0); }
-  }
-  .quest-claim-claimed{ background:var(--surface-2); color:var(--text-faint); cursor:default; font-size:1rem; }
-  .quest-claim-btn[disabled]{ cursor:default; }
+  .quest-claim-btn:hover:not([disabled]){ opacity:.85; transform:translateY(-1px); }
+  .quest-claim-btn[disabled]{ background:var(--surface-3, var(--border-soft)); color:var(--text-faint); cursor:default; }
   @media (max-width:420px){
     .quest-card{ flex-wrap:wrap; }
-    .quest-claim-btn{ width:100%; margin-top:6px; }
+    .quest-claim-btn{ width:100%; }
   }
 
   /* ============================================================
@@ -865,11 +725,11 @@
   }
   .shop-filter-btn.active{ background:var(--accent2); color:#000; border-color:var(--accent2); }
   .shop-grid{
-    display:flex; flex-direction:column; gap:18px;
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:12px;
     padding:4px 0;
   }
   .shop-grid-inner{
-    display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:10px;
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(132px, 1fr)); gap:10px;
   }
   .shop-card{
     background:var(--surface-2); border:1px solid var(--border-soft);
@@ -898,41 +758,6 @@
   }
   .shop-buy-btn:hover:not([disabled]){ opacity:.85; transform:translateY(-1px); }
   .shop-buy-btn[disabled]{ background:var(--surface-3, var(--border-soft)); color:var(--text-faint); cursor:default; }
-  /* ── Sections du shop ──────────────────────────────────────────────── */
-  .shop-section{
-    margin-bottom:4px;
-    background:var(--surface-2); border:1px solid var(--border-soft);
-    border-radius:var(--radius-lg); padding:14px 14px 16px;
-  }
-  .shop-section-header{
-    display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:wrap;
-    font-family:var(--font-display); font-weight:700; font-size:.9rem; color:var(--text-dim);
-    padding-bottom:10px; border-bottom:1px solid var(--border-soft);
-  }
-  .shop-section-icon{ font-size:1.1rem; }
-  .shop-section-sub{
-    font-size:.68rem; color:var(--text-faint); font-weight:400;
-    font-family:var(--font-body); margin-left:auto;
-  }
-  /* Section event — fond et bordure dorés */
-  .shop-section-event{
-    background:linear-gradient(135deg,#1a1400,#231c00);
-    border:2px solid #d4af37;
-    box-shadow:0 0 18px rgba(212,175,55,.18);
-  }
-  .shop-section-event .shop-section-header{
-    border-bottom-color:#d4af3755;
-    color:#d4af37;
-  }
-  .shop-evt-discount{
-    background:rgba(212,175,55,.2); color:#d4af37; border:1px solid #d4af3766;
-    border-radius:999px; padding:1px 9px; font-size:.72rem; font-weight:800;
-  }
-  /* Badge PROMO sur carte event */
-  .shop-card-event-badge{
-    font-size:.6rem; color:#d4af37; font-weight:800; letter-spacing:.06em;
-    text-align:center; margin-bottom:2px;
-  }
 
   .detail-layout{ display:flex; gap:16px; flex-wrap:wrap; }
   .detail-portrait{
@@ -1097,32 +922,6 @@
   .combat-mode-btn.active{
     border-color:var(--accent2); background:rgba(138,122,240,.15); color:var(--accent2);
   }
-  /* Boutons Event — pourtour doré brillant */
-  .combat-event-btn{
-    flex:1 1 calc(50% - 4px);
-    background:linear-gradient(135deg,#1a1200,#2a1e00) !important;
-    border:2px solid #d4af37 !important;
-    box-shadow:0 0 12px rgba(212,175,55,.35), inset 0 0 8px rgba(212,175,55,.08);
-    color:#d4af37 !important;
-    animation:evt-btn-glow 2.4s ease-in-out infinite;
-    flex-direction:column; gap:2px;
-    padding:10px 8px !important;
-  }
-  .combat-event-btn.active{
-    background:linear-gradient(135deg,#2a1f00,#3a2c00) !important;
-    box-shadow:0 0 22px rgba(212,175,55,.55), inset 0 0 14px rgba(212,175,55,.15);
-  }
-  .combat-event-btn:hover{
-    border-color:#f0cc50 !important;
-    box-shadow:0 0 20px rgba(212,175,55,.5), inset 0 0 10px rgba(212,175,55,.1);
-  }
-  @keyframes evt-btn-glow{
-    0%,100%{ box-shadow:0 0 10px rgba(212,175,55,.3), inset 0 0 6px rgba(212,175,55,.06); }
-    50%{     box-shadow:0 0 22px rgba(212,175,55,.55), inset 0 0 12px rgba(212,175,55,.14); }
-  }
-  .combat-event-btn-inner{ font-size:.78rem; line-height:1.3; text-align:center; }
-  .combat-event-tag{ font-size:.65rem; opacity:.8; }
-  .evt-badge{ background:rgba(212,175,55,.2); color:#d4af37; }
   .energy-cost-badge{
     background:rgba(96,165,250,.18); color:#60A5FA; border-radius:999px;
     padding:1px 7px; font-size:.68rem; font-weight:800; font-family:var(--font-mono);
@@ -2539,10 +2338,8 @@
   <!-- ============================================================
        GAME SCRIPTS — l'ordre est important (dépendances)
        ============================================================ -->
-  <script src="utils.js"></script>
   <script src="database.js"></script>
   <script src="state.js"></script>
-  <script src="save.js"></script>
   <script src="quests.js"></script>
   <script src="shop.js"></script>
   <script src="event.js"></script>
@@ -2555,6 +2352,7 @@
   <script src="ui.js"></script>
   <script src="dailyrewards.js"></script>
   <script src="admin.js"></script>
+  <script src="save.js"></script>
 
   <script>
     'use strict';
@@ -2882,8 +2680,8 @@
         //     été déposée sur GitHub depuis la dernière fois — l'appliquer
         //     silencieusement AVANT que la suite (tirage des quêtes, écrans)
         //     ne se base sur un catalogue potentiellement obsolète.
-        const { available, data } = await SaveSystem.checkRemoteDatabaseUpdate();
-        if (available) SaveSystem.applyRemoteDatabase(data);
+        const { available, data, remoteKey } = await SaveSystem.checkRemoteDatabaseUpdate();
+        if (available) SaveSystem.applyRemoteDatabase(data, remoteKey);
 
         // 2b. Appliquer le nom choisi si c'est une nouvelle partie
         if (newPlayerName) {
@@ -3063,10 +2861,10 @@
      */
     async function _checkAndApplyRemoteDatabase() {
       if (_accountSelected) return false; // un compte est en cours de chargement : ne pas interférer
-      const { available, data } = await SaveSystem.checkRemoteDatabaseUpdate();
+      const { available, data, remoteKey } = await SaveSystem.checkRemoteDatabaseUpdate();
       if (!available) return false;
       if (_accountSelected) return false; // re-vérifier après l'await (la promesse peut prendre du temps)
-      SaveSystem.applyRemoteDatabase(data);
+      SaveSystem.applyRemoteDatabase(data, remoteKey);
       return true;
     }
 

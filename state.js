@@ -107,10 +107,43 @@ const GameState = (() => {
     return { id: pn.id || '', blocks: [] };
   }
 
+  /**
+   * Fusionne par ID deux listes de catalogue (quêtes, tags, shop…).
+   *
+   * Règle : la database (dbList) fait autorité sur la STRUCTURE du catalogue.
+   *   - Un élément présent en DB mais absent en save → ajouté (nouveau contenu déployé)
+   *   - Un élément présent en save et en DB → les données sauvegardées écrasent
+   *     la DB pour ce champ (modifications admin conservées)
+   *   - Un élément présent en save mais ABSENT en DB → supprimé (retiré du jeu)
+   *
+   * Cela garantit que les nouvelles quêtes, tags ou articles de shop déployés
+   * via database_export.json apparaissent immédiatement sans effacer les
+   * personnalisations admin existantes.
+   *
+   * @param {Array} dbList   - liste issue de la database (référence)
+   * @param {Array} savedList - liste issue de la sauvegarde (peut être null/vide)
+   * @param {string} idKey   - nom du champ identifiant (défaut : 'id')
+   * @returns {Array}
+   */
+  function _mergeCatalogList(dbList, savedList, idKey = 'id') {
+    if (!Array.isArray(dbList) || dbList.length === 0) return savedList || [];
+    if (!Array.isArray(savedList) || savedList.length === 0) return dbList;
+
+    const savedMap = new Map(savedList.map(item => [item[idKey], item]));
+    // Parcourir la DB dans l'ordre — chaque élément DB est la référence
+    return dbList.map(dbItem => {
+      const savedItem = savedMap.get(dbItem[idKey]);
+      // Fusionner : saved écrase DB (modifications admin) mais DB fournit le squelette
+      return savedItem ? { ...dbItem, ...savedItem } : dbItem;
+    });
+  }
+
   function _mergeWithDefaults(saved) {
     const defaults = _buildDefaultState();
     return {
       config:       _mergeConfig(defaults.config, saved.config),
+      // Catalogues d'objets de jeu — fusion par ID :
+      // la database est la référence, saved apporte les modifications admin
       types:        saved.types        || defaults.types,
       typeMatrix:   saved.typeMatrix   || defaults.typeMatrix,
       characters:   saved.characters   || defaults.characters,
@@ -118,14 +151,17 @@ const GameState = (() => {
       items:        saved.items        || defaults.items,
       equipBanners: saved.equipBanners || defaults.equipBanners,
       banners:      saved.banners      || defaults.banners,
-      dailyQuests:  saved.dailyQuests  || defaults.dailyQuests,
-      weeklyQuests: saved.weeklyQuests || defaults.weeklyQuests,
-      eventQuests:  saved.eventQuests  || defaults.eventQuests,
-      tagCategories: saved.tagCategories || defaults.tagCategories,
-      loginCycles:  saved.loginCycles  || defaults.loginCycles,
-      shopItems:    saved.shopItems    || defaults.shopItems,
-      patchNotes:   _migratePatchNotes(saved.patchNotes) || defaults.patchNotes,
+      // Catalogues évolutifs : fusionnés par ID pour intégrer les nouveaux éléments
+      // déployés en database sans écraser les modifications admin existantes
+      dailyQuests:   _mergeCatalogList(defaults.dailyQuests,  saved.dailyQuests),
+      weeklyQuests:  _mergeCatalogList(defaults.weeklyQuests, saved.weeklyQuests),
+      eventQuests:   _mergeCatalogList(defaults.eventQuests,  saved.eventQuests),
+      tagCategories: _mergeCatalogList(defaults.tagCategories, saved.tagCategories, 'id'),
+      loginCycles:   _mergeCatalogList(defaults.loginCycles,  saved.loginCycles),
+      shopItems:     _mergeCatalogList(defaults.shopItems,     saved.shopItems),
+      // État runtime de l'event : géré par EventSystem, pas un catalogue → on prend saved
       events:       saved.events       || defaults.events,
+      patchNotes:   _migratePatchNotes(saved.patchNotes) || defaults.patchNotes,
       player:       _mergePlayer(defaults.player, saved.player),
     };
   }
@@ -819,26 +855,28 @@ const GameState = (() => {
    */
   function applyGameDatabase(data) {
     const defaults = _buildDefaultState();
-    if (data.config)        _state.config        = _mergeConfig(defaults.config, data.config);
-    if (data.types)         _state.types         = data.types;
-    if (data.typeMatrix)    _state.typeMatrix     = data.typeMatrix;
-    if (data.characters)    _state.characters     = data.characters;
-    if (data.equipment)     _state.equipment      = data.equipment;
-    if (data.items)         _state.items          = data.items;
-    if (data.equipBanners)  _state.equipBanners   = data.equipBanners;
+    if (data.config)       _state.config       = _mergeConfig(defaults.config, data.config);
+    if (data.types)        _state.types        = data.types;
+    if (data.typeMatrix)   _state.typeMatrix   = data.typeMatrix;
+    if (data.characters)   _state.characters   = data.characters;
+    if (data.equipment)    _state.equipment    = data.equipment;
+    if (data.items)        _state.items        = data.items;
+    if (data.equipBanners) _state.equipBanners = data.equipBanners;
     if (data.banners) {
-      // Ne pas conserver les bannières event : elles seront réinjectées
-      // proprement par EventSystem.tick() — évite les doublons au rechargement.
+      // Ne pas conserver les bannières event : réinjectées par EventSystem.tick()
       _state.banners = data.banners.filter(b => !b.isEventBanner);
     }
-    if (data.dailyQuests)   _state.dailyQuests    = data.dailyQuests;
-    if (data.weeklyQuests)  _state.weeklyQuests   = data.weeklyQuests;
-    if (data.tagCategories) _state.tagCategories  = data.tagCategories;
-    if (data.loginCycles)   _state.loginCycles    = data.loginCycles;
-    if (data.shopItems)     _state.shopItems      = data.shopItems;
-    if (data.patchNotes)    _state.patchNotes     = _migratePatchNotes(data.patchNotes) || _state.patchNotes;
-    if (data.eventQuests?.length) _state.eventQuests = data.eventQuests;
-    if (data.events)        _state.events         = data.events;
+    // Catalogues évolutifs : fusion par ID pour que les nouveaux éléments déployés
+    // s'intègrent sans écraser les modifications admin déjà en mémoire
+    if (data.dailyQuests)   _state.dailyQuests   = _mergeCatalogList(data.dailyQuests,   _state.dailyQuests);
+    if (data.weeklyQuests)  _state.weeklyQuests  = _mergeCatalogList(data.weeklyQuests,  _state.weeklyQuests);
+    if (data.eventQuests)   _state.eventQuests   = _mergeCatalogList(data.eventQuests,   _state.eventQuests);
+    if (data.tagCategories) _state.tagCategories = _mergeCatalogList(data.tagCategories, _state.tagCategories);
+    if (data.loginCycles)   _state.loginCycles   = _mergeCatalogList(data.loginCycles,   _state.loginCycles);
+    if (data.shopItems)     _state.shopItems     = _mergeCatalogList(data.shopItems,      _state.shopItems);
+    if (data.patchNotes)    _state.patchNotes    = _migratePatchNotes(data.patchNotes) || _state.patchNotes;
+    // events : état runtime géré par EventSystem — remplacement direct
+    if (data.events)        _state.events        = data.events;
     _notify('configChanged');
   }
   /**
